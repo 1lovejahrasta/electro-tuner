@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f0a">
-<title>Resonance Lab · v1.2 · Seven Stations</title>
+<title>Resonance Lab · v1.3 · Seven Stations</title>
 <style>
 :root{color-scheme:dark;--bg:#0b0f0a;--panel:#141a12;--line:#2c3a27;--fg:#f6f1de;--muted:#c3bfa8;--red:#e2382b;--gold:#f4c430;--green:#22a25a}
 *{box-sizing:border-box}
@@ -80,7 +80,7 @@ footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 <body>
 <div class="flag"></div>
 <header>
-<div class="eyebrow">FIELD INSTRUMENT 01 · v1.2 · SEVEN STATIONS</div>
+<div class="eyebrow">FIELD INSTRUMENT 01 · v1.3 · SEVEN STATIONS</div>
 <h1>Resonance Lab</h1>
 </header>
 <nav><div class="in">
@@ -98,9 +98,12 @@ footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 <button class="b" id="start">🎙 Start microphone</button>
 <button class="s" id="stop" disabled>Stop</button>
 <span style="flex:1"></span>
+<label style="margin:0;font-size:12px;display:flex;gap:6px;align-items:center">Instrument
+<select id="inst" style="width:auto;padding:6px"><option value="flute">🪈 Native flute</option><option value="voice">🎤 Voice</option><option value="guitar">🎸 Guitar</option><option value="keys">🎹 Keyboard (mic)</option><option value="midi">🎛 MIDI instrument</option></select></label>
 <label style="margin:0;font-size:12px;display:flex;gap:6px;align-items:center">Tuning
 <select id="tuning" style="width:auto;padding:6px"><option value="440">A = 440</option><option value="432">A = 432</option></select></label>
 </div>
+<div id="midiBox" class="status" style="display:none"><button class="s" id="midiBtn">🎛 Connect MIDI</button> <span id="midiState">Plug your MIDI keyboard or controller into the phone with a USB-C (OTG) cable, then tap Connect.</span></div>
 <div id="status" class="status">Microphone is off. Press Start and allow the microphone. Nothing is recorded or uploaded.</div>
 </div>
 
@@ -159,10 +162,12 @@ footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 <div class="grid2">
 <div class="panel red">
 <h2>Sacred Geometry · sand plate</h2>
+<div class="controls" style="margin-bottom:8px"><button class="s" id="shapeC">◯ Round plate</button><button class="s" id="shapeS">◻ Square plate</button><span style="flex:1"></span><button class="b" id="demo">▶ Demo C → B</button></div>
 <canvas id="plate" aria-label="Simulated sand plate"></canvas>
+<div class="caption" id="plateCap" style="margin-top:10px">Hold one steady tone (like a long “Ommm”) and watch the sand gather into a shape. Change the note and the shape changes.</div>
 <div class="controls" style="margin-top:8px;justify-content:space-between"><span class="note">Pattern: <b id="mode">waiting</b></span>
 <span><button class="s" id="scatter">✋ Scatter</button> <button class="s" id="hold">📌 Hold</button></span></div>
-<p class="note">A simulation of a Chladni plate: sand gathers on the still lines of a vibrating plate. Higher notes make more detailed shapes. This shows how a plate moves, not what happens in the body.</p>
+<p class="note">How it works: a real Chladni plate is a metal plate with sand on it. Each note makes the plate vibrate in its own way. Sand bounces off the parts that shake and settles on the lines that stay still. Low notes make simple shapes; higher notes make detailed ones. Silence = the sand rests where it is. This is a simulation of the plate, not of the body.</p>
 </div>
 <div>
 <div class="panel"><h2>Waveform</h2><canvas id="wave"></canvas><p class="note">The microphone signal as a moving line.</p></div>
@@ -181,7 +186,7 @@ footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 <label for="egs">Emotional Guidance Scale (1 = joy/freedom · 22 = fear/powerless)</label>
 <select id="egs"></select>
 <label for="source">What did you play?</label>
-<select id="source"><option>Native flute</option><option>Guitar</option><option>Voice / humming</option><option>Singing bowl</option><option>Other</option></select>
+<select id="source"><option>Native flute</option><option>Voice / humming</option><option>Guitar</option><option>Keyboard</option><option>MIDI instrument</option><option>Singing bowl</option><option>Other</option></select>
 <label for="body">Where did you feel it in your body?</label>
 <textarea id="body" placeholder="Example: G note — warmth in my throat, shoulders relaxed."></textarea>
 <label for="notes">Notes or questions</label>
@@ -222,7 +227,7 @@ The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (D
 </div>
 </section>
 
-<footer>Resonance Lab v1.2 · by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
+<footer>Resonance Lab v1.3 · by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
 </main>
 
 <script>
@@ -269,7 +274,8 @@ fig.innerHTML=`<defs><filter id="glow" x="-100%" y="-100%" width="300%" height="
 </g><line x1="100" y1="14" x2="100" y2="205" stroke="#f4c430" stroke-opacity=".18" stroke-width="2"/>`;
 const pts=ST.map((s,i)=>{const c=document.createElementNS(SVGNS,'circle');c.setAttribute('cx',100);c.setAttribute('cy',Y[i]);c.setAttribute('r',7);c.setAttribute('fill',s.col);c.setAttribute('class','pt');c.style.opacity=.4;c.addEventListener('click',()=>{selected=i;showCard(i)});fig.appendChild(c);return c});
 let lit=-1,selected=-1;
-function lightStation(i){if(i===lit)return;lit=i;pts.forEach((c,k)=>{const on=k===i;c.setAttribute('r',on?13:7);c.style.opacity=on?1:.4;c.setAttribute('filter',on?'url(#glow)':'')});if(i>=0){selected=i;showCard(i)}}
+let litMany=[];
+function lightStation(i){const many=inst==='midi'?midiNotes().map(n=>ST.findIndex(s=>s.pc===n%12)).filter(x=>x>=0):[];const key=i+'|'+many.join(',');if(key===lit)return;lit=key;pts.forEach((c,k)=>{const on=k===i||many.includes(k);c.setAttribute('r',on?13:7);c.style.opacity=on?1:.4;c.setAttribute('filter',on?'url(#glow)':'')});if(i>=0){selected=i;showCard(i)}}
 
 /* ---------- station card ---------- */
 function showCard(i){const s=ST[i];$('cardBox').innerHTML=`<div class="card">
@@ -294,12 +300,31 @@ let A4=440;$('tuning').addEventListener('change',e=>{A4=+e.target.value;if(selec
 const noteHz=m=>A4*Math.pow(2,(m-69)/12);
 const midiOf=f=>69+12*Math.log2(f/A4);
 let toneCtx=null;
-function tone(f){try{toneCtx=toneCtx||new (window.AudioContext||window.webkitAudioContext)();const o=toneCtx.createOscillator(),g=toneCtx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,toneCtx.currentTime);g.gain.linearRampToValueAtTime(.25,toneCtx.currentTime+.05);g.gain.linearRampToValueAtTime(0,toneCtx.currentTime+1.8);o.connect(g).connect(toneCtx.destination);o.start();o.stop(toneCtx.currentTime+1.9)}catch(e){}}
+function tone(f,dur){dur=dur||1.8;try{toneCtx=toneCtx||new (window.AudioContext||window.webkitAudioContext)();const o=toneCtx.createOscillator(),g=toneCtx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,toneCtx.currentTime);g.gain.linearRampToValueAtTime(.25,toneCtx.currentTime+.05);g.gain.linearRampToValueAtTime(.25,toneCtx.currentTime+dur-.3);g.gain.linearRampToValueAtTime(0,toneCtx.currentTime+dur);o.connect(g).connect(toneCtx.destination);o.start();o.stop(toneCtx.currentTime+dur+.1)}catch(e){}}
+
+/* ---------- instruments ---------- */
+const INST={
+ flute:{lo:180,label:'Native flute',sharp:'On flute, a little less air or a slightly shaded hole brings it down.',flat:'On flute, a little more air brings it up.'},
+ voice:{lo:70,label:'Voice',sharp:'Relax and aim a touch lower.',flat:'Lift the note a touch; more breath support helps.'},
+ guitar:{lo:70,label:'Guitar',sharp:'Loosen the string slightly (tuning peg).',flat:'Tighten the string slightly (tuning peg).'},
+ keys:{lo:40,label:'Keyboard',sharp:'Keyboard notes are fixed; this shows the instrument or sound is tuned sharp.',flat:'Keyboard notes are fixed; this shows the instrument or sound is tuned flat.'},
+ midi:{lo:40,label:'MIDI instrument',sharp:'',flat:''}
+};
+let inst=store('rl_inst')||'flute';
+/* ---------- MIDI ---------- */
+const held=new Map();let midiOn=false;
+function onMidi(e){const [st,n,v]=e.data;const cmd=st&0xf0;if(cmd===0x90&&v>0)held.set(n,{v,t:performance.now()});else if(cmd===0x80||(cmd===0x90&&v===0))held.delete(n)}
+async function connectMidi(){
+  if(!navigator.requestMIDIAccess){$('midiState').textContent='This browser has no MIDI support. Use Chrome on Android.';return}
+  try{const acc=await navigator.requestMIDIAccess();const hook=()=>{let names=[];acc.inputs.forEach(i=>{i.onmidimessage=onMidi;names.push(i.name)});midiOn=names.length>0;$('midiState').textContent=names.length?'✅ Connected: '+names.join(', ')+'. Play a note.':'No MIDI device found. Plug it in (USB-C OTG) and tap Connect again.'};hook();acc.onstatechange=hook}
+  catch(e){$('midiState').textContent='MIDI permission was blocked: '+(e.message||e.name)}
+}
+function midiNotes(){return [...held.keys()].sort((a,b)=>a-b)}
 
 /* ---------- pitch detection (YIN) ---------- */
 let yinBuf=null;
 function yin(buf,sr){
-  const W=Math.min(2048,buf.length>>1),tMin=Math.floor(sr/2400),tMax=Math.min(W-1,Math.floor(sr/70));
+  const W=Math.min(2048,buf.length>>1),tMin=Math.floor(sr/2400),tMax=Math.min(W-1,Math.floor(sr/INST[inst].lo));
   if(!yinBuf||yinBuf.length!==tMax+1)yinBuf=new Float32Array(tMax+1);const d=yinBuf;d[0]=1;let run=0;
   for(let t=1;t<=tMax;t++){let s=0;for(let i=0;i<W;i++){const x=buf[i]-buf[i+t];s+=x*x}run+=s;d[t]=run?s*t/run:1}
   let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<0.15){while(t+1<=tMax&&d[t+1]<d[t])t++;tau=t;break}}
@@ -329,12 +354,17 @@ function bandOf(hz){return hz<4?0:hz<8?1:hz<13?2:hz<30?3:4}
 const BANDS=['Delta','Theta','Alpha','Beta','Gamma'];
 const BMEAN=['deep sleep','deep relaxation and dreaming','calm, relaxed awareness','alert thinking','high focus'];
 
+function fromMidi(now){
+  const ns=midiNotes();if(!ns.length){cur.f=null;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null;cur.conf=0;cur.rms=0;cur.db=null}
+  else{const last=[...held.entries()].sort((a,b)=>b[1].t-a[1].t)[0];const n=last[0];cur.midi=n;cur.f=noteHz(n);cur.conf=1;cur.cents=0;cur.pc=n%12;cur.name=NAMES[cur.pc]+(Math.floor(n/12)-1);cur.rms=last[1].v/127*0.2;cur.db=20*Math.log10(last[1].v/127)}
+  trail.push({t:now,m:cur.midi});while(trail.length&&now-trail[0].t>6000)trail.shift();updateSustain(now);cur.vib=null;
+}
 function analyse(now){
   an.getFloatTimeDomainData(td);an.getFloatFrequencyData(fd);
   let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];const rms=Math.sqrt(sq/td.length);
   cur.rms=rms;cur.db=rms>0?20*Math.log10(rms):null;
   let p=null;if(rms>0.004)p=yin(td,ctx.sampleRate);
-  if(p&&p.f>70&&p.f<2400&&p.conf>.6){cur.f=p.f;cur.conf=p.conf;cur.midi=midiOf(p.f);const r=Math.round(cur.midi);cur.cents=Math.round((cur.midi-r)*100);cur.pc=((r%12)+12)%12;cur.name=NAMES[cur.pc]+(Math.floor(r/12)-1)}
+  if(p&&p.f>INST[inst].lo&&p.f<2400&&p.conf>.6){cur.f=p.f;cur.conf=p.conf;cur.midi=midiOf(p.f);const r=Math.round(cur.midi);cur.cents=Math.round((cur.midi-r)*100);cur.pc=((r%12)+12)%12;cur.name=NAMES[cur.pc]+(Math.floor(r/12)-1)}
   else{cur.f=null;cur.conf=p?p.conf:0;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null}
   trail.push({t:now,m:cur.midi});while(trail.length&&now-trail[0].t>6000)trail.shift();
   updateSustain(now);cur.vib=vibratoRate(now);
@@ -343,10 +373,12 @@ function analyse(now){
 /* ---------- readouts ---------- */
 function stationOfPc(pc){return ST.findIndex(s=>s.pc===pc)}
 function caption(){
-  if(!running)return '🎶 Press <b>Start microphone</b>, then play or hum one steady note.';
+  if(inst==='midi'&&!cur.f)return midiOn?'🎛 MIDI connected. Play a note or a chord; every station in the chord lights up.':'🎛 Tap <b>Connect MIDI</b> above, then play.';
+  if(inst!=='midi'&&!running)return '🎶 Press <b>Start microphone</b>, then play or sing one steady note.';
   if(!cur.f)return cur.rms>0.004?'👂 <b>Pitch unclear.</b> Try one clean, steady note; noise or two sounds at once confuse the meter.':'🎶 Listening… play or hum one steady note.';
   const s=stationOfPc(cur.pc),st=s>=0?ST[s]:null;let t='';
-  if(Math.abs(cur.cents)<=10)t=`✅ <b>${cur.name} is in tune.</b> `;else if(cur.cents>10)t=`⬆ <b>${cur.name} is ${cur.cents}¢ sharp.</b> On flute, a little less air or a slightly shaded hole brings it down. `;else t=`⬇ <b>${cur.name} is ${-cur.cents}¢ flat.</b> On flute, a little more air brings it up. `;
+  if(inst==='midi'&&held.size>1){const ns=midiNotes();const sts=[...new Set(ns.map(n=>stationOfPc(n%12)).filter(x=>x>=0))].map(i=>ST[i].name);return `🎛 <b>Chord: ${ns.map(n=>NAMES[n%12]).join(' ')}</b> lights ${sts.join(', ')||'no single station'}. Newest note: ${cur.name}.`}
+  if(Math.abs(cur.cents)<=10)t=`✅ <b>${cur.name} is in tune.</b> `;else if(cur.cents>10)t=`⬆ <b>${cur.name} is ${cur.cents}¢ sharp.</b> ${INST[inst].sharp} `;else t=`⬇ <b>${cur.name} is ${-cur.cents}¢ flat.</b> ${INST[inst].flat} `;
   if(cur.vib)t+=`Your note wobbles about <b>${cur.vib.hz.toFixed(1)} times a second</b> (vibrato). `;else if(sustain>2)t+=`Steady breath: held <b>${sustain.toFixed(1)} s</b>. `;
   t+=st?`This note lights <b>${st.name}</b> (${st.so}, seed sound ${st.seed.split(' ')[0]}).`:`${NAMES[cur.pc]} sits between two stations, so no single point lights up.`;
   return t;
@@ -365,7 +397,7 @@ function readouts(now){
   if(now-capT>400){capT=now;$('caption').innerHTML=caption()}
   const bi=cur.vib?bandOf(cur.vib.hz):-1;[...$('bands').children].forEach((d,k)=>d.classList.toggle('on',k===bi));
   $('bandText').textContent=cur.vib?`Your sound's wobble rhythm is ${cur.vib.hz.toFixed(1)} Hz. That number falls in the ${BANDS[bi]} range (${BMEAN[bi]} in EEG research). The phone measured your sound's rhythm, not your brainwaves.`:'When your note wobbles (vibrato), the app counts the wobbles per second and shows which brainwave range that number falls in. It compares numbers only: the phone hears your sound, not your brain.';
-  lightStation(cur.f&&cur.conf>.75&&s>=0?s:(running&&!cur.f?lit:-1));
+  lightStation(cur.f&&cur.conf>.75&&s>=0?s:-1);
   const cl=$('cardLive');if(cl)cl.textContent=cur.f?`${cur.name} · ${cur.f.toFixed(1)} Hz · ${c>=0?'+':''}${c}¢`:'—';
   journeyStep();
 }
@@ -382,7 +414,7 @@ function drawTrail(now){
 function drawLadder(){
   const g=fit($('ladder')),W=$('ladder').width,H=$('ladder').height;g.fillStyle='#0d120b';g.fillRect(0,0,W,H);
   const cols=['#e2382b','#f07a1f','#f4c430','#22a25a','#2f8fe0','#b05fd6'];g.font=`${11*DPR()}px system-ui`;g.textAlign='center';
-  if(!cur.f||!fd){g.fillStyle='#c3bfa8';g.fillText('Play a note to see its overtones',W/2,H/2);return}
+  if(!cur.f||!fd||!an||!ctx){g.fillStyle='#c3bfa8';g.fillText(inst==='midi'?'MIDI sends exact notes, no sound: overtones need the mic':'Play a note to see its overtones',W/2,H/2);return}
   const bin=ctx.sampleRate/an.fftSize;const lv=[];for(let k=1;k<=6;k++){const b=Math.round(k*cur.f/bin);let v=-140;for(let j=b-2;j<=b+2;j++)if(j>0&&j<fd.length)v=Math.max(v,fd[j]);lv.push(v)}
   const ref=lv[0];const bw=W/6;
   lv.forEach((v,i)=>{const rel=Math.max(-60,Math.min(10,v-ref));const h=(rel+60)/70*(H-34*DPR());g.fillStyle=cols[i];g.fillRect(i*bw+bw*.18,H-20*DPR()-h,bw*.64,h);g.fillStyle='#f6f1de';g.fillText(`${i+1}×`,i*bw+bw/2,H-6*DPR());g.fillStyle='#c3bfa8';g.fillText(Math.round(cur.f*(i+1))+'Hz',i*bw+bw/2,H-24*DPR()-h)});
@@ -391,20 +423,66 @@ function drawLadder(){
 function drawWave(){const g=fit($('wave')),w=$('wave').width,h=$('wave').height;g.fillStyle='#0d120b';g.fillRect(0,0,w,h);if(!td)return;const lg=g.createLinearGradient(0,0,w,0);lg.addColorStop(0,'#e2382b');lg.addColorStop(.5,'#f4c430');lg.addColorStop(1,'#22a25a');g.strokeStyle=lg;g.lineWidth=2*DPR();g.beginPath();const n=Math.min(td.length,2048);for(let i=0;i<n;i++){const x=i*w/(n-1),yy=h/2-td[i]*h*.44;i?g.lineTo(x,yy):g.moveTo(x,yy)}g.stroke()}
 function drawSpec(){const g=fit($('spectrum')),w=$('spectrum').width,h=$('spectrum').height;g.fillStyle='#0d120b';g.fillRect(0,0,w,h);if(!fd)return;const bin=ctx.sampleRate/an.fftSize,bars=80,L=Math.log(50),R=Math.log(4000);for(let j=0;j<bars;j++){const a=Math.max(1,Math.floor(Math.exp(L+j/bars*(R-L))/bin)),b=Math.min(fd.length-1,Math.max(a,Math.ceil(Math.exp(L+(j+1)/bars*(R-L))/bin)));let v=-120;for(let k=a;k<=b;k++)v=Math.max(v,fd[k]);const bh=Math.max(0,Math.min(1,(v+100)/85))*h*.92;g.fillStyle=j<27?'#e2382b':j<54?'#f4c430':'#22a25a';g.fillRect(j*w/bars,h-bh,Math.max(1,w/bars-1),bh)}}
 
-/* ---------- sand plate ---------- */
-const MODES=[];for(let n=1;n<=9;n++)for(let m=n+1;m<=10;m++)if((n+m)%2)MODES.push({n,m,k:n*n+m*m});MODES.sort((a,b)=>a.k-b.k);
-let mode=MODES[2],cand=null,votes=0,hold=false,energy=0;const N=2400,px=new Float32Array(N),py=new Float32Array(N);
-function scatter(){for(let i=0;i<N;i++){px[i]=Math.random();py[i]=Math.random()}}scatter();
-const F=(x,y,md)=>Math.cos(md.n*Math.PI*x)*Math.cos(md.m*Math.PI*y)-Math.cos(md.m*Math.PI*x)*Math.cos(md.n*Math.PI*y);
+/* ---------- sand plate (grid physics) ---------- */
+const G=160;
+function besselJ(n,x){let s=0;const K=96;for(let k=0;k<K;k++){const t=(k+.5)*Math.PI/K;s+=Math.cos(n*t-x*Math.sin(t))}return s/K}
+function besselZeros(n,count){const z=[];let prev=besselJ(n,0.3),x=0.3;while(z.length<count&&x<40){const nx=x+0.05,v=besselJ(n,nx);if((prev<0)!==(v<0)){let lo=x,hi=nx;for(let i=0;i<30;i++){const mid=(lo+hi)/2;if((besselJ(n,lo)<0)!==(besselJ(n,mid)<0))hi=mid;else lo=mid}z.push((lo+hi)/2)}prev=v;x=nx}return z}
+const CIRC=[];for(let n=0;n<=6;n++){const zs=besselZeros(n,4);zs.forEach((a,i)=>{if(n===0&&i===0)return;CIRC.push({type:'c',n,m:i+1,a,k:a*a})})}CIRC.sort((p,q)=>p.k-q.k);
+const SQ=[];for(let n=1;n<=8;n++)for(let m=n+1;m<=9;m++)for(const sg of [1,-1])SQ.push({type:'s',n,m,sg,k:n*n+m*m+(sg<0?.1:0)});SQ.sort((p,q)=>p.k-q.k);
+let shape=store('rl_shape')||'c';
+const fieldCache=new Map();
+function fieldFor(md){const key=md.type+md.n+'_'+md.m+'_'+(md.sg||0);if(fieldCache.has(key))return fieldCache.get(key);
+  const f=new Float32Array(G*G);let mx=1e-9;
+  for(let j=0;j<G;j++)for(let i=0;i<G;i++){const x=(i+.5)/G,y=(j+.5)/G;let v;
+    if(md.type==='s'){v=Math.cos(md.n*Math.PI*x)*Math.cos(md.m*Math.PI*y)+md.sg*Math.cos(md.m*Math.PI*x)*Math.cos(md.n*Math.PI*y)}
+    else{const u=2*x-1,w=2*y-1,r=Math.hypot(u,w);v=r>1?0:besselJ(md.n,md.a*r)*Math.cos(md.n*Math.atan2(w,u))}
+    f[j*G+i]=v;mx=Math.max(mx,Math.abs(v))}
+  for(let k=0;k<f.length;k++)f[k]/=mx;
+  const gx=new Float32Array(G*G),gy=new Float32Array(G*G);
+  for(let j=0;j<G;j++)for(let i=0;i<G;i++){const k=j*G+i,l=f[j*G+Math.max(0,i-1)],r=f[j*G+Math.min(G-1,i+1)],u=f[Math.max(0,j-1)*G+i],d=f[Math.min(G-1,j+1)*G+i];gx[k]=(r-l)*G/2;gy[k]=(d-u)*G/2}
+  const o={f,gx,gy};fieldCache.set(key,o);return o}
+const modes=()=>shape==='c'?CIRC:SQ;
+let mIdx=3,cand=-1,votes=0,hold=false,energy=0,fld=fieldFor(modes()[mIdx]);
+const N=5000,px=new Float32Array(N),py=new Float32Array(N);
+function inside(x,y){return shape!=='c'||Math.hypot(2*x-1,2*y-1)<=0.985}
+function scatter(){for(let i=0;i<N;i++){do{px[i]=Math.random();py[i]=Math.random()}while(!inside(px[i],py[i]))}}
+scatter();
+function setShape(sh){shape=sh;store('rl_shape',sh);mIdx=Math.min(mIdx,modes().length-1);fld=fieldFor(modes()[mIdx]);scatter();$('shapeC').classList.toggle('on',sh==='c');$('shapeS').classList.toggle('on',sh==='s');$('shapeC').style.borderColor=sh==='c'?'var(--gold)':'';$('shapeS').style.borderColor=sh==='s'?'var(--gold)':''}
+function idxForHz(f){const L=modes().length,midi=midiOf(f);return Math.max(0,Math.min(L-1,Math.round((midi-40)/(88-40)*(L-1))))}
+let demo=null;
+function plateHz(){
+  if(demo)return demo.f;
+  if(cur.f)return cur.f;
+  if(running&&fd&&cur.rms>0.01){const bin=ctx.sampleRate/an.fftSize;let b=-1,v=-1e9;for(let i=Math.ceil(80/bin);i<Math.floor(1500/bin);i++)if(fd[i]>v){v=fd[i];b=i}if(v>-70)return b*bin}
+  return null}
 function stepPlate(){
-  if(!hold&&cur.f){let b=MODES[0],d=1e9;for(const md of MODES){const e=Math.abs(md.k*40-cur.f);if(e<d){d=e;b=md}}if(b===cand)votes++;else{cand=b;votes=0}if(votes>8)mode=b}
-  energy=energy*.9+(running?Math.min(1,Math.max(0,(cur.rms-.004)*25)):0)*.1;const amp=.004+energy*.03;
-  for(let i=0;i<N;i++){const s=amp*Math.abs(F(px[i],py[i],mode))*(.4+energy);px[i]+=(Math.random()-.5)*s*2;py[i]+=(Math.random()-.5)*s*2;if(px[i]<0)px[i]=-px[i];if(px[i]>1)px[i]=2-px[i];if(py[i]<0)py[i]=-py[i];if(py[i]>1)py[i]=2-py[i]}
-  const c=$('plate');if(!c.offsetParent)return;const g=fit(c),W=c.width,H=c.height;g.fillStyle='#1a1408';g.fillRect(0,0,W,H);const r=Math.max(1,1.3*DPR());
-  for(let i=0;i<N;i++){const v=Math.abs(F(px[i],py[i],mode));g.fillStyle=v<.15?'#f4c430':v<.45?'#e9d9a0':'#8a7a4a';g.fillRect(px[i]*W-r/2,py[i]*H-r/2,r,r)}
-  $('mode').textContent=`mode ${mode.n}×${mode.m} ≈ ${mode.k*40} Hz`+(hold?' (held)':'');
+  const f=plateHz();
+  if(!hold&&f){const want=idxForHz(f);if(want===cand)votes++;else{cand=want;votes=0}if(votes>=5&&want!==mIdx){mIdx=want;fld=fieldFor(modes()[mIdx])}}
+  const loud=demo?0.8:(inst==='midi'?(cur.f?0.8:0):(running?Math.min(1,Math.max(0,(cur.rms-.004)*20)):0));
+  energy=energy*.85+(f?loud:0)*.15;
+  if(energy>0.02){const eta=0.0009*energy,sig=0.010*energy;const F=fld.f,GX=fld.gx,GY=fld.gy;
+    for(let i=0;i<N;i++){const gi=Math.min(G-1,Math.max(0,px[i]*G|0)),gj=Math.min(G-1,Math.max(0,py[i]*G|0)),k=gj*G+gi,v=F[k];
+      let nx=px[i]-eta*v*GX[k]+(Math.random()-.5)*2*sig*Math.abs(v),ny=py[i]-eta*v*GY[k]+(Math.random()-.5)*2*sig*Math.abs(v);
+      if(nx<0)nx=-nx;if(nx>1)nx=2-nx;if(ny<0)ny=-ny;if(ny>1)ny=2-ny;
+      if(!inside(nx,ny)){const u=2*nx-1,w=2*ny-1,r=Math.hypot(u,w);nx=(u/r*0.97+1)/2;ny=(w/r*0.97+1)/2}
+      px[i]=nx;py[i]=ny}}
+  const c=$('plate');if(!c.offsetParent)return;const g=fit(c),W=c.width,H=c.height;
+  g.fillStyle='#120e06';g.fillRect(0,0,W,H);
+  const grd=g.createRadialGradient(W*.4,H*.35,W*.05,W/2,H/2,W*.7);grd.addColorStop(0,'#3a3a3e');grd.addColorStop(1,'#16161a');
+  g.fillStyle=grd;if(shape==='c'){g.beginPath();g.arc(W/2,H/2,W/2*0.99,0,Math.PI*2);g.fill();g.strokeStyle='#8a7a4a';g.lineWidth=2*DPR();g.stroke()}else{g.fillRect(0,0,W,H)}
+  g.fillStyle='rgba(244,214,140,.9)';const r=Math.max(1,1.15*DPR());
+  for(let i=0;i<N;i++)g.fillRect(px[i]*W-r/2,py[i]*H-r/2,r,r);
+  const md=modes()[mIdx];
+  $('mode').textContent=(shape==='c'?`${md.n} lines × ${md.m} rings`:`${md.n}×${md.m}${md.sg>0?'+':'−'}`)+` · #${mIdx+1} of ${modes().length}`+(hold?' (held)':'');
+  if(demo){$('plateCap').innerHTML=`▶ Demo: <b>${demo.label}</b> → pattern #${mIdx+1}`}
+  else if(f){const m=Math.round(midiOf(f)),nm=NAMES[((m%12)+12)%12]+(Math.floor(m/12)-1);$('plateCap').innerHTML=`🎵 Hearing <b>${nm}</b> (${f.toFixed(0)} Hz) → pattern <b>#${mIdx+1}</b>. Hold it steady and the sand settles on the still lines.`}
+  else if(running)$('plateCap').innerHTML='🤫 Quiet: the sand rests. Hold one steady tone, like a long “Ommm”, to shape it.';
 }
 $('scatter').onclick=scatter;$('hold').onclick=()=>{hold=!hold;$('hold').textContent=hold?'▶ Follow':'📌 Hold'};
+$('shapeC').onclick=()=>setShape('c');$('shapeS').onclick=()=>setShape('s');setShape(shape);
+$('demo').onclick=()=>{if(demo){clearInterval(demo.timer);demo=null;$('demo').textContent='▶ Demo C → B';return}
+  let i=0;const step=()=>{if(i>=ST.length){clearInterval(demo.timer);demo=null;$('demo').textContent='▶ Demo C → B';return}const s=ST[i],f=noteHz(60+s.pc);demo.f=f;demo.label=`${s.n}4 · ${s.name}`;tone(f,3.2);i++};
+  demo={f:null,label:'',timer:null};$('demo').textContent='■ Stop demo';step();demo.timer=setInterval(step,3500)};
 
 /* ---------- practice journey ---------- */
 let jOn=false,jIdx=0,jHold=0,jLast=0;
@@ -421,7 +499,7 @@ function journeyStep(){
 /* ---------- loop ---------- */
 function loop(now){
   frame++;
-  if(running&&an){analyse(now)}
+  if(inst==="midi"){fromMidi(now)}else if(running&&an){analyse(now)}
   readouts(now);
   if($('v-live').classList.contains('on')){drawTrail(now);if(frame%3===0)drawLadder()}
   if($('v-sound').classList.contains('on')){drawWave();drawSpec()}
@@ -468,6 +546,8 @@ function renderLog(){
 $('export').onclick=()=>{const log=getLog();if(!log.length)return;const keys=Object.keys(log[0]);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=keys.join(',')+'\n'+log.map(r=>keys.map(k=>q(r[k])).join(',')).join('\n')+'\n';const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='resonance-log-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)};
 let clearArm=0;$('clear').onclick=()=>{if(Date.now()-clearArm<3000){store('rl_log',[]);renderLog();$('clear').textContent='🗑 Clear log';clearArm=0}else{clearArm=Date.now();$('clear').textContent='Tap again to erase';setTimeout(()=>$('clear').textContent='🗑 Clear log',3000)}};
 
+function setInst(v){inst=v;store('rl_inst',v);$('inst').value=v;$('midiBox').style.display=v==='midi'?'block':'none';const map={flute:'Native flute',voice:'Voice / humming',guitar:'Guitar',keys:'Keyboard',midi:'MIDI instrument'};$('source').value=map[v];held.clear();capT=0}
+$('inst').addEventListener('change',e=>setInst(e.target.value));$('midiBtn').onclick=connectMidi;setInst(inst);
 showCard(0);selected=0;
 requestAnimationFrame(loop);
 })();
