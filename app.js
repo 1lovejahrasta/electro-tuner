@@ -939,16 +939,19 @@ $('demo').onclick=()=>{if(demo){clearInterval(demo.timer);demo=null;$('demo').te
 
 /* ---------- teacher: listen, then match ---------- */
 let T={on:false,i:0,phase:'idle',hold:0,last:0,t0:0};
-function renderJourney(){$('journey').innerHTML=ST.map((s2,i)=>`<span style="background:${s2.col}" class="${T.on&&i<T.i||(!T.on&&T.done&&i<=6)?'done':''} ${T.on&&i===T.i?'cur':''}">${s2.n}</span>`).join('')}
+function renderJourney(){$('journey').innerHTML=ST.map((s2,i)=>`<button type="button" onclick="teachGo(${i})" title="Play ${s2.n} · ${s2.name}" style="background:${s2.col}" class="${T.on&&i<T.i||(!T.on&&T.done&&i<=6)?'done':''} ${T.on&&i===T.i?'cur':''}"><b>${s2.n}</b><small>${s2.name}</small></button>`).join('')}
 renderJourney();
 function tMidi(){return 12*(+$('jOct').value+1)+ST[T.i].pc}
 function teachPlay(){const st=ST[T.i];T.phase='listen';T.hold=0;$('jText').innerHTML=`👂 <b>Listen:</b> ${st.n}${$('jOct').value} · ${st.so} · <span style="color:${st.col}">${st.name}</span>`;$('jSub').textContent=st.chill;setRing(0,'🔊');selected=T.i;showCard(T.i);glowPts(LF,[T.i]);lit='t';
   sound(noteHz(tMidi()),2.5);setTimeout(()=>{if(!T.on)return;T.phase='turn';T.t0=performance.now();$('jText').innerHTML=`🎤 <b>Your turn:</b> sing or play <b style="color:${st.col}">${st.n}</b> (${st.so}, “${st.seed.split(' ')[0]}”) and hold it.`;if($('jDrone').checked)drone(noteHz(tMidi()-12))},2750)}
 function setRing(p,txt,col){const L=2*Math.PI*32;$('mRing').setAttribute('stroke-dasharray',`${(p*L).toFixed(1)} ${L.toFixed(1)}`);$('mRing').setAttribute('stroke',col||'#f4c430');$('mTxt').textContent=txt}
-async function teachStart(){if(inst!=='midi'&&!running)await start();T={on:true,i:0,phase:'idle',hold:0,last:0,done:false};['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=false);$('jStart').disabled=true;renderJourney();teachPlay()}
+async function teachStart(at){if(inst!=='midi'&&!running)await start();T={on:true,i:(typeof at==='number'?at:0),phase:'idle',hold:0,last:0,done:false};['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=false);$('jStart').disabled=true;renderJourney();teachPlay()}
 function teachNext(){droneOff();T.i++;if(T.i>=ST.length){T.on=false;T.done=true;T.phase='idle';renderJourney();setRing(1,'🌟','#22a25a');$('jText').innerHTML='🌟 <b>Lesson complete:</b> Root to Crown! Log how you feel in 📓 Journal.';$('jSub').textContent='';['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=true);$('jStart').disabled=false;$('jStart').textContent='▶ Again';lit=-1;return}renderJourney();teachPlay()}
 function teachStop(){droneOff();T.on=false;T.phase='idle';renderJourney();setRing(0,'—');$('jText').innerHTML='Lesson stopped. Tap <b>Start lesson</b> to begin again.';$('jSub').textContent='';['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=true);$('jStart').disabled=false;lit=-1}
-$('jStart').onclick=teachStart;$('jAgain').onclick=()=>{droneOff();teachPlay()};$('jSkip').onclick=teachNext;$('jStop').onclick=teachStop;
+$('jStart').onclick=()=>teachStart(0);
+/* tap any note: jump there, hear it, and the lesson carries on to the next note from there */
+function teachGo(i){droneOff();if(!T.on){teachStart(i);return}T.i=i;T.done=false;renderJourney();teachPlay()}
+window.teachGo=teachGo;$('jAgain').onclick=()=>{droneOff();teachPlay()};$('jSkip').onclick=teachNext;$('jStop').onclick=teachStop;
 function journeyStep(){
   if(!T.on||T.phase!=='turn')return;const now=performance.now(),dt=T.last?Math.min(.1,(now-T.last)/1000):0;T.last=now;const tol=+$('jTol').value,st=ST[T.i];
   if(!cur.f||cur.conf<.7){T.hold=Math.max(0,T.hold-dt);setRing(T.hold/0.8,'…');$('jSub').textContent='Listening… hold one steady tone.';return}
@@ -1062,6 +1065,16 @@ ${mudraBlock(i)}
   markBody($('bodyfig'),'b',[...new Set([i,...focus])]);}
 function renderFocus(){$('focusList').innerHTML=focus.length?'Today\'s focus: '+focus.map(i=>`<b style="color:${ST[i].col}">${ST[i].name}</b>`).join(' · '):'Today\'s focus: none yet. Open an area and tap “＋ Add to today\'s focus”.'}
 buildBody($('bodyfig'),'b',showBody);
+/* chakra picker: tap a station to open it and hear its note (no need to hunt on the body) */
+function ckStrip(host,onPick,id){if(!host)return;const d=document.createElement('div');d.className='ck-strip';d.id=id;
+  d.innerHTML=ST.map((s,i)=>`<button type="button" data-i="${i}" style="--c:${s.col}" title="${s.name} · ${s.n}"><i></i><b>${s.n}</b><small>${s.name}</small></button>`).join('');
+  d.addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(!b)return;const i=+b.dataset.i;onPick(i);ckMark(id,i);sound(noteHz(60+ST[i].pc),3,.2)});host.before(d)}
+function ckMark(id,i){const d=$(id);if(d)d.querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.i===i))}
+ckStrip($('bodyfig')&&$('bodyfig').closest('.figwrap'),i=>showBody(i),'ckBody');
+ckStrip($('fig')&&$('fig').closest('.figwrap'),i=>{selected=i;showCard(i);try{glowPts(LF,[i])}catch(e){}},'ckLive');
+{const _sb=showBody;showBody=function(i){_sb(i);ckMark('ckBody',i)};}
+{const _sc=showCard;showCard=function(i){_sc(i);ckMark('ckLive',i)};}
+
 $('chart').innerHTML='<tr><th>#</th><th>Chakra</th><th>Pinpoint</th><th>Color</th><th>Note · seed</th><th>Organs & glands</th><th>Stones</th><th>Herbs</th><th>Mudra</th></tr>'+ST.map((s,i)=>`<tr><td style="color:${s.col};font-weight:900">${i+1}</td><td><b style="color:${s.col}">${s.name}</b><br><span style="font-size:15px">${s.dev}</span><br><span class="note"><i>${s.iast}</i><br>“${s.mean}”</span></td><td>${BODY[i].pt}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${s.col}"></span> ${s.nm.replace('≈ ','')}</td><td>${s.n} · ${s.seed.split(' ')[0]}</td><td>${BODY[i].organs}</td><td>${BODY[i].stones}</td><td>${herbList(BODY[i].herbs)}</td><td><div style="width:70px">${mudraSVG(i)}</div>${MUDRA[i].name}</td></tr>`).join('');
 let cmBuilt=false;
 $('cmOpen').onclick=()=>{const list=focus.length?focus:[bodySel];if(!cmBuilt){buildBody($('cmfig'),'c',i=>{});cmBuilt=true}markBody($('cmfig'),'c',list);

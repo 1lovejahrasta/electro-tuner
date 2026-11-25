@@ -322,6 +322,18 @@ main{padding-top:4px}
 
 .lv-col{container-type:inline-size}
 @container (max-width:430px){.tm-chips{gap:3px}.tm-chip small{display:none}.tm-chip{min-width:38px;min-height:44px;justify-content:center;padding:4px}}
+
+/* chakra picker + tappable teacher notes (v55) */
+.ck-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0 8px}
+.ck-strip button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:10px;border:1px solid #294535;background:#0D1712;color:var(--fg);min-height:48px;cursor:pointer}
+.ck-strip button i{width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+.ck-strip button b{font-size:14px}.ck-strip button small{font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ck-strip button.on{border-color:var(--c);box-shadow:0 0 10px var(--c);background:#13211a}
+.journey button{flex:1;min-height:44px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:2px solid transparent;opacity:.55;color:#111;cursor:pointer;padding:2px}
+.journey button small{font-size:8.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.journey button.done{opacity:.8}.journey button.cur{opacity:1;border-color:#fff;box-shadow:0 0 12px rgba(255,255,255,.5)}
+.journey{gap:4px}
+@container (max-width:430px){.ck-strip button small,.journey button small{display:none}}
 </style>
 </head>
 <body>
@@ -443,6 +455,7 @@ main{padding-top:4px}
 </div>
 <div class="panel gold">
 <h2>Teacher · listen, then match</h2>
+<p class="note" style="margin:2px 0 0">Tap any note to hear it and start there. When you match it, the lesson moves on to the next note.</p>
 <div class="journey" id="journey"></div>
 <div class="match"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="#1f2a1b" stroke-width="8"/><circle id="mRing" cx="40" cy="40" r="32" fill="none" stroke="#f4c430" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 201" transform="rotate(-90 40 40)"/><text id="mTxt" x="40" y="46" text-anchor="middle" font-size="18" font-weight="900" fill="#f6f1de">—</text></svg>
 <div><div id="jText" style="font-size:15px;line-height:1.45">Tap <b>Start lesson</b>. The teacher plays a note, then you match it with your voice or instrument.</div><div class="note" id="jSub"></div></div></div>
@@ -575,6 +588,6 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <footer>Electro Tuner · created by Jah Rasta · One love 🟥🟨🟩</footer>
 </main>
 
-<script src="app.js?v=54"></script>
+<script src="app.js?v=55"></script>
 </body>
 </html>
