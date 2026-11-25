@@ -80,9 +80,16 @@ details p,details li{line-height:1.55;color:var(--muted);font-size:14px}
 footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 /* ===== Electro Tuner · character integration ===== */
 .et-splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#030b07;padding:20px;transition:opacity 350ms ease}
+.et-splash{background:#030b07 radial-gradient(ellipse at 50% 45%,rgba(34,162,90,.18),transparent 60%)}
+.et-splash.has-galaxy{background:radial-gradient(ellipse 42% 38% at 50% 44%,rgba(3,11,7,.72),rgba(3,11,7,.15) 70%,rgba(3,11,7,.35)),#030b07 url(galaxy.jpg) center/cover no-repeat}
+.et-splash > *:not(canvas){position:relative;z-index:1}
+.et-splash .et-skip{position:absolute}
+canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;background:transparent;border-radius:0}
+.medbtn{border:1px solid rgba(244,196,48,.45);background:rgba(244,196,48,.08);color:var(--fg);border-radius:999px;padding:7px 13px;font-weight:800;font-size:12px}
+.medbtn.on{background:linear-gradient(90deg,#e2382b,#f4c430,#22a25a);color:#111;border-color:transparent;box-shadow:0 0 14px rgba(244,196,48,.45)}
 .et-splash.is-exiting{opacity:0;pointer-events:none}
 .et-aura-stage{flex:none;position:relative;width:min(58vw,300px);height:min(62dvh,560px);display:grid;place-items:center;animation:aura-enter 700ms ease-out both}
-.et-aura-stage img{position:absolute;inset:0;display:block;height:100%;width:100%;object-fit:contain;-webkit-mask-image:radial-gradient(ellipse 66% 49% at 50% 48%,#000 64%,transparent 100%);mask-image:radial-gradient(ellipse 66% 49% at 50% 48%,#000 64%,transparent 100%)}
+.et-aura-stage img{position:absolute;top:0;left:50%;transform:translateX(-50%);display:block;height:100%;width:auto;max-width:none;-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 24%,#000 76%,transparent 100%),linear-gradient(to bottom,transparent 0%,#000 9%,#000 90%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent 0%,#000 24%,#000 76%,transparent 100%),linear-gradient(to bottom,transparent 0%,#000 9%,#000 90%,transparent 100%);mask-composite:intersect}
 .et-aura-stage::before{content:"";position:absolute;inset:14%;border-radius:50%;background:radial-gradient(circle,rgba(19,160,89,.22),rgba(245,197,46,.08) 48%,transparent 72%);filter:blur(18px);animation:aura-breathe 3s ease-in-out infinite;pointer-events:none}
 .et-splash-title{font-size:clamp(26px,6vw,42px);font-weight:900;letter-spacing:.07em;background:linear-gradient(90deg,#e2382b,#f5c52e,#22a25a);-webkit-background-clip:text;background-clip:text;color:transparent}
 .et-splash-credit{color:#f5c52e;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
@@ -133,18 +140,20 @@ body.d-viber .saiyan{display:none!important}
 </head>
 <body>
 <div class="et-splash" id="splash" role="dialog" aria-label="Electro Tuner">
+<canvas class="stars" id="splashStars"></canvas>
 <button class="et-skip" id="skip">Skip ›</button>
 <div class="et-aura-stage"><img class="aura-anim" src="aura.gif" data-still="aura.png" alt="Jah Rasta in an electric aura"></div>
 <div class="et-splash-title">ELECTRO TUNER</div>
 <div class="et-splash-credit">Created by Jah Rasta</div>
 </div>
+<canvas id="bgWaves" style="position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;background:transparent;border-radius:0"></canvas>
 <div class="flag"></div>
 <header>
 <div class="eyebrow">FIELD INSTRUMENT 01 · v1.5 · ZION 3000</div>
 <div class="titlerow"><img class="et-avatar" src="avatar.png" alt="Jah Rasta"><h1>Electro Tuner</h1></div>
 <div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin:-4px 0 10px;text-transform:uppercase">Created by Jah Rasta</div>
 <div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
-<button class="sessbtn" id="sessOpen">🧘 Session mode</button></div>
+<button class="sessbtn" id="sessOpen">🧘 Session mode</button><button class="medbtn" id="medBtn">🎵 Meditation sound: off</button></div>
 </header>
 <nav><div class="in">
 <button data-v="live" class="on">🎙 Live</button>
@@ -340,7 +349,7 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <div class="saff" id="sAff"></div>
 <div class="note" style="text-align:center;margin-top:6px" id="sBody"></div>
 <div class="prog"><i id="sProg"></i></div>
-<div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="60">1 min each</option><option value="120" selected>2 min each</option><option value="180">3 min each</option><option value="300">5 min each</option></select><select class="voiceSel" style="width:auto;padding:6px"><option value="bowl">🥣 Bowl</option><option value="flute">🪈 Flute</option></select><button class="s" id="sNext">▶</button><button class="s" id="sMudraBtn">🙏 Mudra</button></div>
+<div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="60">1 min each</option><option value="120" selected>2 min each</option><option value="180">3 min each</option><option value="300">5 min each</option></select><select class="voiceSel" style="width:auto;padding:6px"><option value="bowl">🥣 Bowl</option><option value="flute">🪈 Flute</option></select><button class="s" id="sNext">▶</button><button class="s" id="sMudraBtn">🙏 Mudra</button><button class="medbtn" id="sMedBtn">🎵 Sound</button></div>
 <p class="note" style="text-align:center;margin-top:8px">Sound healing here is a relaxation and reflection practice, not a medical treatment.</p>
 </div></div>
 <footer>Electro Tuner · created by Jah Rasta · One love 🟥🟨🟩</footer>
@@ -835,6 +844,7 @@ function loop(now){
 }
 
 async function start(){
+  if(typeof medStop==="function"&&med){medStop();$("status").textContent="Meditation sound paused so the mic can listen clearly.";}
   if(running)return;
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('status').textContent='Microphone unavailable here. Open this page in Chrome.';return}
   try{
@@ -880,13 +890,57 @@ function setDepth(d){depth=d;store('rl_depth',d);document.body.classList.remove(
 document.querySelectorAll('#depth button').forEach(b=>b.onclick=()=>setDepth(b.dataset.d));setDepth(depth);setLayer(layer);
 document.querySelectorAll('.voiceSel').forEach(el=>{el.value=voiceSel;el.addEventListener('change',e=>{voiceSel=e.target.value;store('rl_voice',voiceSel);document.querySelectorAll('.voiceSel').forEach(x=>x.value=voiceSel)})});
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+/* ---------- meditation sound (generated live, works offline) ---------- */
+let med=null;
+function medStart(){
+  try{const c=actx();const t=c.currentTime;const master=c.createGain();master.gain.setValueAtTime(0,t);master.gain.linearRampToValueAtTime(.075,t+3);master.connect(c.destination);
+    const breath=c.createGain();breath.gain.value=.85;breath.connect(master);
+    const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=.07;lg.gain.value=.15;lfo.connect(lg).connect(breath.gain);lfo.start();
+    const nodes=[lfo];const base=136.1;
+    [[1,.55],[1.5,.22],[2,.28],[3,.06],[4,.04]].forEach(([r,a])=>{[-0.25,0.25].forEach(d=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=base*r+d*r;g.gain.value=a/2;o.connect(g).connect(breath);o.start();nodes.push(o)})});
+    const len=c.sampleRate*4,buf=c.createBuffer(1,len,c.sampleRate),ch=buf.getChannelData(0);let last=0;for(let i=0;i<len;i++){last=(last+.02*(Math.random()*2-1))/1.02;ch[i]=last*3.2}
+    const n=c.createBufferSource();n.buffer=buf;n.loop=true;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=420;const ng=c.createGain();ng.gain.value=.12;
+    const wl=c.createOscillator(),wg=c.createGain();wl.frequency.value=.09;wg.gain.value=.08;wl.connect(wg).connect(ng.gain);wl.start();
+    n.connect(lp).connect(ng).connect(master);n.start();nodes.push(n,wl);
+    med={master,nodes};}catch(e){med=null}
+  medUI();
+}
+function medStop(){if(!med)return;const c=toneCtx,m=med;med=null;try{m.master.gain.cancelScheduledValues(c.currentTime);m.master.gain.setValueAtTime(m.master.gain.value,c.currentTime);m.master.gain.linearRampToValueAtTime(0,c.currentTime+1.5);setTimeout(()=>m.nodes.forEach(x=>{try{x.stop()}catch(e){}}),1700)}catch(e){}medUI()}
+function medToggle(){if(med){medStop();store('rl_med',0)}else{if(running)stop();medStart();store('rl_med',1)}}
+function medUI(){const on=!!med;[$('medBtn'),$('sMedBtn')].forEach(b=>{if(!b)return;b.classList.toggle('on',on)});$('medBtn').textContent='🎵 Meditation sound: '+(on?'on':'off');$('sMedBtn').textContent=on?'🎵 Sound on':'🎵 Sound'}
+$('medBtn').onclick=medToggle;$('sMedBtn').onclick=medToggle;
+if(store('rl_med')){const once=()=>{document.removeEventListener('pointerdown',once,true);if(!med&&!running)medStart()};document.addEventListener('pointerdown',once,true)}
+
+/* ---------- floating wavelengths background ---------- */
+(function(){const cv=$('bgWaves'),g=cv.getContext('2d');const R=matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const W=[{c:'226,56,43',f:1.3,s:.18,y:.28,a:.16},{c:'244,196,48',f:.9,s:-.12,y:.5,a:.14},{c:'34,162,90',f:1.7,s:.09,y:.72,a:.16},{c:'176,95,214',f:2.3,s:-.22,y:.88,a:.08}];
+  function size(){cv.width=Math.round(innerWidth*Math.min(DPR(),1.5));cv.height=Math.round(innerHeight*Math.min(DPR(),1.5))}
+  size();addEventListener('resize',size);let last=0,lvl=0;
+  function draw(now){requestAnimationFrame(draw);if(document.hidden||now-last<33)return;last=now;const t=now/1000;
+    const live=(running&&cur.f)?Math.min(1,cur.rms*12):(med?.25:0);lvl+=(live-lvl)*.05;
+    const w=cv.width,h=cv.height;g.clearRect(0,0,w,h);g.lineWidth=1.6*Math.min(DPR(),1.5);
+    for(const L of W){const amp=h*(.03+.05*lvl)*(1+.3*Math.sin(t*.3+L.f));g.strokeStyle=`rgba(${L.c},${L.a+.12*lvl})`;g.shadowColor=`rgba(${L.c},.6)`;g.shadowBlur=8;g.beginPath();
+      for(let x=0;x<=w;x+=6){const k=x/w;const y=h*L.y+Math.sin(k*Math.PI*2*L.f+t*L.s*6)*amp+Math.sin(k*Math.PI*2*L.f*2.3-t*.7)*amp*.35;x?g.lineTo(x,y):g.moveTo(x,y)}g.stroke()}
+    g.shadowBlur=0}
+  if(!R)requestAnimationFrame(draw);else draw(1000)})();
+
+/* ---------- splash starfield + galaxy ---------- */
+(function(){const sp=$('splash');if(!sp)return;const gi=new Image();gi.onload=()=>sp.classList.add('has-galaxy');gi.src='galaxy.jpg';
+  const cv=$('splashStars'),g=cv.getContext('2d');const R=matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cols=['#ffffff','#f4c430','#22a25a','#e2382b','#cfa6f4'];let S=[];
+  function size(){cv.width=innerWidth*DPR();cv.height=innerHeight*DPR();S=Array.from({length:170},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:(Math.random()*1.3+.3)*DPR(),p:Math.random()*6.28,v:.2+Math.random()*.5,c:cols[Math.random()<.75?0:1+(Math.random()*4|0)]}))}
+  size();addEventListener('resize',size);let t0=performance.now();
+  (function tick(now){if(!document.body.contains(cv))return;const dt=(now-t0)/1000;g.clearRect(0,0,cv.width,cv.height);
+    for(const s of S){const a=.35+.65*Math.abs(Math.sin(s.p+dt*s.v*1.6));g.globalAlpha=a;g.fillStyle=s.c;g.beginPath();g.arc(s.x,(s.y-dt*6*s.v*DPR()+cv.height)%cv.height,s.r,0,6.283);g.fill()}
+    g.globalAlpha=1;if(!R)requestAnimationFrame(tick)})(t0);})();
+
 /* ---------- splash + practitioner intro ---------- */
 if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)document.querySelectorAll('img.aura-anim').forEach(i=>i.src=i.dataset.still);
 (function(){const sp=$('splash');let done=false;const close=()=>{if(done)return;done=true;sp.classList.add('is-exiting');setTimeout(()=>sp.remove(),400)};
   let seen=false;try{seen=sessionStorage.getItem('et_splash')==='1';sessionStorage.setItem('et_splash','1')}catch(e){}
   if(seen){sp.remove();return}
   $('skip').onclick=close;sp.addEventListener('click',close);
-  const img=sp.querySelector('img');const go=()=>setTimeout(close,2000);if(img.complete)go();else{img.onload=go;img.onerror=()=>{img.src=img.dataset.still;go()}}
+  const img=sp.querySelector('img');const go=()=>setTimeout(close,2600);if(img.complete)go();else{img.onload=go;img.onerror=()=>{img.src=img.dataset.still;go()}}
   setTimeout(close,4500);})();
 $('introOpen').onclick=()=>{sStopGuide();$('intro').classList.add('on')};$('introGo').onclick=()=>$('intro').classList.remove('on');
 showCard(0);selected=0;

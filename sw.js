@@ -1,6 +1,6 @@
 // Electro Tuner offline worker: keeps the app on the phone so it opens in airplane mode.
-const CACHE='electro-tuner-v23';
-const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./aura.gif','./aura.png','./avatar.png','./mudra-1.jpg','./mudra-2.jpg','./mudra-3.jpg','./mudra-4.jpg','./mudra-5.jpg','./mudra-6.jpg','./mudra-7.jpg'];
+const CACHE='electro-tuner-v24';
+const FILES=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./aura.gif','./aura.png','./avatar.png','./mudra-1.jpg','./mudra-2.jpg','./mudra-3.jpg','./mudra-4.jpg','./mudra-5.jpg','./mudra-6.jpg','./mudra-7.jpg','./galaxy.jpg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
