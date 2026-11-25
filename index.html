@@ -32,6 +32,14 @@ button:disabled{opacity:.4}
 .status{font-size:13px;color:var(--muted);margin-top:10px}
 .grid2{display:grid;grid-template-columns:1fr;gap:0 16px}
 @media(min-width:720px){.grid2{grid-template-columns:1.05fr .95fr}}
+.dialwrap{position:relative;width:100%;max-width:520px;margin:4px auto 0;aspect-ratio:1/.92}
+.dialwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.dial-read{position:absolute;left:0;right:0;top:53%;transform:translateY(-58%);text-align:center;pointer-events:none}
+.dial-read .note{font-size:clamp(52px,15vw,96px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 0 18px currentColor,0 0 40px rgba(0,0,0,.6);transition:color .2s}
+.dial-tag{margin-top:6px;font-size:12px;font-weight:900;letter-spacing:.32em;color:var(--muted);transition:color .2s,text-shadow .2s}
+.dial-tag.ok{color:#00FF85;text-shadow:0 0 12px #00FF85}
+.dial-tag.near{color:#FFC928}.dial-tag.off{color:#FF3434}
+.dial-sub{text-align:center;font-size:14px;color:var(--muted);margin-top:2px}.dial-sub b{color:var(--fg)}
 .big{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
 .big .note{font-size:clamp(54px,16vw,84px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
 .big .sub{font-size:15px;color:var(--muted);line-height:1.5}
@@ -216,10 +224,13 @@ body.d-viber .saiyan{display:none!important}
 <div class="grid2">
 <div>
 <div class="panel">
-<div class="big"><div class="note" id="bigNote">♪</div>
-<div class="sub"><b id="hz">— Hz</b><br><span id="solf">solfège —</span> · <span id="conf">confidence —</span></div></div>
-<div class="needle"><span style="left:4px">♭ flat</span><span style="right:4px">sharp ♯</span><i id="needle"></i></div>
+<div class="dialwrap" id="dialwrap">
+<canvas id="dial" aria-label="Tuner dial"></canvas>
+<div class="dial-read"><div class="note" id="bigNote">♪</div><div class="dial-tag" id="dialTag">LISTENING</div></div>
+</div>
+<div class="dial-sub"><b id="hz">— Hz</b> · <span id="solf">solfège —</span> · <span id="conf">confidence —</span></div>
 <div class="note" style="text-align:center" id="cents">tuning: —</div>
+<i id="needle" hidden></i>
 <div class="minis">
 <div class="mini"><strong id="sustain">0.0s</strong><span>Sustain (best <b id="best">0.0</b>s)</span></div>
 <div class="mini"><strong id="vib">—</strong><span>Wobble rhythm (Hz)</span></div>
@@ -615,12 +626,12 @@ function caption(){
 }
 let capT=0;
 function readouts(now){
-  $('bigNote').textContent=cur.name||'♪';$('bigNote').style.color=cur.pc!==null&&stationOfPc(cur.pc)>=0?ST[stationOfPc(cur.pc)].col:'var(--fg)';
-  $('hz').textContent=cur.f?cur.f.toFixed(1)+' Hz':'— Hz';
+  
+  
   const s=cur.pc!==null?stationOfPc(cur.pc):-1;$('solf').textContent=s>=0?'solfège '+ST[s].so:(cur.pc!==null?'between stations':'solfège —');
   $('conf').textContent='confidence '+(cur.f?Math.round(cur.conf*100)+'%':'—');
   const c=cur.cents;$('needle').style.left=(c===null?50:50+Math.max(-50,Math.min(50,c)))+'%';
-  $('cents').textContent=c===null?'tuning: —':(Math.abs(c)<=10?'in tune ('+(c>=0?'+':'')+c+'¢)':(c>0?'+'+c+'¢ sharp':c+'¢ flat'))+' · A='+A4;
+  
   $('sustain').textContent=sustain.toFixed(1)+'s';$('best').textContent=best.toFixed(1);
   $('vib').textContent=cur.vib?cur.vib.hz.toFixed(1):'—';
   $('lvl').textContent=cur.db!==null?cur.db.toFixed(0):'—';
@@ -632,6 +643,103 @@ function readouts(now){
   journeyStep();
 }
 
+
+/* ---------- JAH RASTA TUNER · ZION 3000 (one pitch source for every visual) ---------- */
+const JT={hist:[],c:0,has:0,lastT:0,lastSeen:-1e9,name:null,pc:null,f:null,midi:null,
+  lock:false,lockSince:0,offSince:0,lockAt:-1e9,bars:new Float32Array(80),parts:[],prevRms:0,strobe:0,scan:-1e9,lastName:null,last:0};
+const JTC={red:'#FF3434',gold:'#FFC928',green:'#00FF85',ivory:'#F4F5E9',obs:'#050907',emer:'#0C1C14'};
+function jtCol(c){const a=Math.abs(c);return a<=3?JTC.green:a<=15?JTC.gold:JTC.red}
+function jtState(now){
+  const live=cur&&cur.f&&cur.cents!==null&&cur.cents!==undefined;
+  if(live){
+    const exact=(cur.midi-Math.round(cur.midi))*100;JT.hist.push(exact);if(JT.hist.length>3)JT.hist.shift();
+    const m=[...JT.hist].sort((x,y)=>x-y)[JT.hist.length>>1];
+    const dt=Math.min(.1,(now-(JT.lastT||now))/1000),k=1-Math.exp(-dt/.08);
+    if(!JT.has||cur.name!==JT.name){JT.c=m;if(cur.name!==JT.lastName){JT.scan=now;JT.lastName=cur.name}}else JT.c+=(m-JT.c)*k;
+    JT.has=1;JT.lastSeen=now;JT.name=cur.name;JT.pc=cur.pc;JT.f=cur.f;JT.midi=Math.round(cur.midi);
+  }else if(now-JT.lastSeen>350){JT.has=0;JT.hist.length=0;JT.name=null;JT.pc=null;JT.f=null;JT.lock=false}
+  JT.lastT=now;
+  if(JT.has){const a=Math.abs(JT.c);
+    if(!JT.lock){if(a<=3){if(!JT.lockSince)JT.lockSince=now;if(now-JT.lockSince>=250){JT.lock=true;JT.lockAt=now;JT.offSince=0;try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}}}else JT.lockSince=0}
+    else{if(a>5){if(!JT.offSince)JT.offSince=now;if(now-JT.offSince>=100){JT.lock=false;JT.lockSince=0}}else JT.offSince=0}
+  }else{JT.lockSince=0}
+}
+function jtText(){
+  const note=$('bigNote'),tag=$('dialTag'),ce=$('cents'),hz=$('hz');
+  const s=JT.pc!==null?stationOfPc(JT.pc):-1;
+  note.textContent=JT.has?JT.name:'♪';note.style.color=JT.has&&s>=0?ST[s].col:JTC.ivory;
+  if(!JT.has){tag.className='dial-tag';tag.textContent=running?'LISTENING':'READY';ce.textContent='tuning: —';hz.textContent='— Hz';return}
+  const c=Math.round(JT.c),tgt=noteHz(JT.midi);
+  hz.textContent=(tgt*Math.pow(2,JT.c/1200)).toFixed(1)+' Hz';
+  if(JT.lock){tag.className='dial-tag ok';tag.textContent='ALIGNED ✦'}
+  else{tag.className='dial-tag '+(Math.abs(c)<=15?'near':'off');tag.textContent=c>0?'SHARP ▲':c<0?'FLAT ▼':'ALIGNING'}
+  ce.textContent=`${c>0?'+':''}${c}¢ · target ${tgt.toFixed(2)} Hz · A=${A4}`;
+}
+function drawDial(now){
+  const cv=$('dial');if(!cv||!cv.offsetParent){requestAnimationFrame(drawDial);return}
+  jtState(now);jtText();
+  const g=fit(cv),W=cv.width,H=cv.height,d=Math.min(2,DPR());const dt=Math.min(.05,(now-(JT.last||now))/1000);JT.last=now;
+  const cx=W/2,cy=H*.53,R=Math.min(W*.43,H*.47);
+  const A0=Math.PI*(5/6),SPAN=Math.PI*(4/3);const ang=c=>A0+(c+50)/100*SPAN;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  g.clearRect(0,0,W,H);
+  const c=JT.has?Math.max(-50,Math.min(50,JT.c)):0,col=JT.has?jtCol(JT.c):JTC.gold;
+  const s=JT.pc!==null?stationOfPc(JT.pc):-1,chak=s>=0?ST[s].col:JTC.gold;
+  const lt=now-JT.lockAt,breath=.5+.5*Math.sin(now/2000*Math.PI*2);
+  // audio level (real mic data)
+  let rms=running&&cur?cur.rms||0:0;const lvl=Math.min(1,rms*9);
+  // core: chakra glow, lights up on alignment
+  const coreOn=JT.lock?Math.min(1,Math.max(0,(lt-350)/300))*(.75+.25*breath):0;
+  let cg=g.createRadialGradient(cx,cy,0,cx,cy,R*.46);cg.addColorStop(0,chak+(JT.has?Math.round(40+120*coreOn).toString(16).padStart(2,'0'):'18'));cg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=cg;g.beginPath();g.arc(cx,cy,R*.46,0,Math.PI*2);g.fill();
+  // harmonic / clarity ring 48-55% (driven by measured pitch confidence)
+  const clar=JT.has?(cur.conf||0):0;g.lineWidth=R*.07;g.strokeStyle=`rgba(244,245,233,${.05+.25*clar})`;g.beginPath();g.arc(cx,cy,R*.515,0,Math.PI*2);g.stroke();
+  g.lineWidth=R*.02;g.strokeStyle=chak+'aa';g.beginPath();g.arc(cx,cy,R*.515,-Math.PI/2,-Math.PI/2+Math.PI*2*clar);g.stroke();
+  // vibration field 59-72%: 80 radial bars from the live microphone waveform
+  const N=80,base=R*.6,maxD=R*.12;
+  for(let i=0;i<N;i++){let v=0;if(running&&typeof td!=='undefined'&&td){const idx=Math.floor(i/N*Math.min(td.length,2048));v=Math.min(1,Math.abs(td[idx])*6)}
+    const cur0=JT.bars[i],tau=v>cur0?.025:.18;JT.bars[i]=cur0+(v-cur0)*(1-Math.exp(-dt/tau));
+    const a=i/N*Math.PI*2-Math.PI/2,L=R*.012+JT.bars[i]*maxD;
+    g.strokeStyle=JT.has?col:'rgba(244,245,233,.18)';g.globalAlpha=.35+.6*JT.bars[i];g.lineWidth=Math.max(1.5,R*.012);
+    g.beginPath();g.moveTo(cx+Math.cos(a)*base,cy+Math.sin(a)*base);g.lineTo(cx+Math.cos(a)*(base+L),cy+Math.sin(a)*(base+L));g.stroke()}
+  g.globalAlpha=1;
+  // pitch segments 80-90%: 101 segments, glowing energy packet + trail
+  const r1=R*.8,r2=R*.9,seg=SPAN/101;
+  for(let i=0;i<=100;i++){const sc=i-50,a=ang(sc),dist=Math.abs(sc-c);
+    let on=JT.has?Math.max(0,1-dist/4):0;if(JT.lock)on=Math.max(on,Math.max(0,1-Math.abs(sc)/3)*(.7+.3*breath));
+    const conv=JT.lock&&lt<150?(1-lt/150):0;
+    const zone=Math.abs(sc)<=3?JTC.green:Math.abs(sc)<=15?JTC.gold:JTC.red;
+    g.strokeStyle=on>0?zone:(Math.abs(sc)<=3?'#0f3a24':'#16221a');g.lineWidth=(sc%10===0?2.6:1.6)*d*(R/300+.6);
+    g.globalAlpha=on>0?.35+.65*on:(sc%10===0?.9:.6);
+    if(on>0){g.shadowColor=zone;g.shadowBlur=14*d*on}
+    const rr2=sc%10===0?r2+R*.025:r2;
+    g.beginPath();g.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1);g.lineTo(cx+Math.cos(a)*rr2,cy+Math.sin(a)*rr2);g.stroke();g.shadowBlur=0}
+  g.globalAlpha=1;
+  // centre marker + flat/sharp marks
+  g.fillStyle=JTC.green;const am=ang(0);g.beginPath();g.arc(cx+Math.cos(am)*R*.76,cy+Math.sin(am)*R*.76,3*d,0,Math.PI*2);g.fill();
+  g.font=`800 ${Math.max(12*d,R*.07)}px system-ui`;g.textAlign='center';g.textBaseline='middle';
+  g.fillStyle=JTC.red+'cc';g.fillText('♭',cx+Math.cos(ang(-50))*R*.98,cy+Math.sin(ang(-50))*R*.98+R*.1);g.fillText('♯',cx+Math.cos(ang(50))*R*.98,cy+Math.sin(ang(50))*R*.98+R*.1);
+  // holographic strobe 94-98%: 48 dashes, CCW flat / CW sharp, frozen when aligned
+  if(JT.has&&!JT.lock&&!reduce){JT.strobe+=Math.sign(JT.c)*Math.min(120,Math.abs(JT.c)*6)*Math.PI/180*dt}
+  for(let i=0;i<48;i++){const a=JT.strobe+i/48*Math.PI*2;const lit=JT.has?(JT.lock?.9:.55):.18;
+    g.strokeStyle=JT.lock?JTC.green:(i%3===0?JTC.red:i%3===1?JTC.gold:JTC.green);g.globalAlpha=lit*(i%2?1:.6);g.lineWidth=R*.035;
+    g.beginPath();g.arc(cx,cy,R*.96,a,a+Math.PI*2/48*.45);g.stroke()}
+  g.globalAlpha=1;
+  // digital scan on note acquisition (120 ms)
+  const sc=now-JT.scan;if(sc<120&&JT.has){g.fillStyle=`rgba(0,255,133,${.18*(1-sc/120)})`;const y=cy-R*.4+R*.8*(sc/120);g.fillRect(cx-R*.4,y,R*.8,2*d)}
+  // alignment pulse 150-350 ms
+  if(JT.lock&&lt>150&&lt<650){const p=(lt-150)/500;g.strokeStyle=`rgba(0,255,133,${(1-p)*.8})`;g.lineWidth=4*d;g.beginPath();g.arc(cx,cy,R*(.45+p*.65),0,Math.PI*2);g.stroke()}
+  // energy particles 102-106% (max 24, spawned by real onsets/volume)
+  if(!reduce&&running&&rms-JT.prevRms>.01&&JT.parts.length<24)for(let k=0;k<4&&JT.parts.length<24;k++)JT.parts.push({a:Math.random()*Math.PI*2,r:R*1.03,v:R*(.15+Math.random()*.25),life:1});
+  if(!reduce&&running&&lvl>.15&&Math.random()<lvl*.3&&JT.parts.length<24)JT.parts.push({a:Math.random()*Math.PI*2,r:R*1.02,v:R*.1,life:1});
+  JT.prevRms=rms;
+  JT.parts=JT.parts.filter(p=>(p.life-=dt*1.4)>0);
+  for(const p of JT.parts){p.r+=p.v*dt;g.fillStyle=JT.has?col:JTC.gold;g.globalAlpha=p.life*.9;g.beginPath();g.arc(cx+Math.cos(p.a)*p.r,cy+Math.sin(p.a)*p.r,1.8*d,0,Math.PI*2);g.fill()}
+  g.globalAlpha=1;
+  // idle breathing
+  if(!JT.has&&!reduce){g.strokeStyle=`rgba(255,201,40,${.08+.08*breath})`;g.lineWidth=2*d;g.beginPath();g.arc(cx,cy,R*.72,0,Math.PI*2);g.stroke()}
+  requestAnimationFrame(drawDial);
+}
+requestAnimationFrame(drawDial);
 /* ---------- drawings ---------- */
 function drawTrail(now){
   const g=fit($('trail')),W=$('trail').width,H=$('trail').height;g.fillStyle='#0d120b';g.fillRect(0,0,W,H);
