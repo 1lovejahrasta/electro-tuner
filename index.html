@@ -98,6 +98,8 @@ canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-
 @keyframes et-float{0%,100%{transform:translateY(0) scale(1.03)}50%{transform:translateY(-1.6%) scale(1.045)}}
 @keyframes et-power{0%,100%{opacity:.55}50%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.et-bg img,.et-power{animation:none}}
+.et-enter{z-index:2;margin-top:16px;border:1px solid rgba(244,196,48,.6);background:rgba(3,8,5,.55);color:#f6f1de;border-radius:999px;padding:12px 20px;font-weight:800;font-size:14px;letter-spacing:.04em;box-shadow:0 0 22px rgba(244,196,48,.35);animation:et-enterpulse 2.4s ease-in-out infinite}
+@keyframes et-enterpulse{0%,100%{box-shadow:0 0 14px rgba(244,196,48,.25)}50%{box-shadow:0 0 30px rgba(244,196,48,.6)}}
 .et-splash.is-exiting{opacity:0;pointer-events:none}
 .et-aura-stage{flex:none;position:relative;width:min(58vw,300px);height:min(62dvh,560px);display:grid;place-items:center;animation:aura-enter 700ms ease-out both}
 .et-aura-stage img{position:absolute;top:0;left:50%;transform:translateX(-50%);display:block;height:100%;width:auto;max-width:none;-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 24%,#000 76%,transparent 100%),linear-gradient(to bottom,transparent 0%,#000 9%,#000 90%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent 0%,#000 24%,#000 76%,transparent 100%),linear-gradient(to bottom,transparent 0%,#000 9%,#000 90%,transparent 100%);mask-composite:intersect}
@@ -152,11 +154,12 @@ body.d-viber .saiyan{display:none!important}
 <body>
 <div class="et-splash" id="splash" role="dialog" aria-label="Electro Tuner">
 <canvas class="stars" id="splashStars"></canvas>
-<button class="et-skip" id="skip">Skip ›</button>
+<button class="et-skip" id="skip">Enter quietly ›</button>
 <div class="et-bg"><img src="ascension.jpg" alt="Jah Rasta floating in the galaxy, powering up"></div>
 <div class="et-power"></div>
 <div class="et-splash-title" style="margin-top:auto">ELECTRO TUNER</div>
 <div class="et-splash-credit">Created by Jah Rasta</div>
+<button class="et-enter" id="enterBtn">✦ Tap to enter · meditation sound on ✦</button>
 </div>
 <canvas id="bgWaves" style="position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;background:transparent;border-radius:0"></canvas>
 <div class="flag"></div>
@@ -905,16 +908,16 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 /* ---------- soft UI sounds + welcome chime ---------- */
 let uiOn=store('rl_ui');if(uiOn===null)uiOn=1;
 function uiOK(){return uiOn&&!running}
-function softTap(){if(!uiOK())return;try{const c=actx(),t=c.currentTime;const o=c.createOscillator(),g=c.createGain(),o2=c.createOscillator(),g2=c.createGain();
-  o.type='sine';o.frequency.setValueAtTime(660,t);o.frequency.exponentialRampToValueAtTime(990,t+.07);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.035,t+.008);g.gain.exponentialRampToValueAtTime(.0004,t+.22);
-  o2.type='sine';o2.frequency.value=1980;g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.008,t+.01);g2.gain.exponentialRampToValueAtTime(.0002,t+.3);
-  o.connect(g).connect(c.destination);o2.connect(g2).connect(c.destination);o.start(t);o2.start(t);o.stop(t+.25);o2.stop(t+.32)}catch(e){}}
+const PENTA=[523.25,587.33,659.25,783.99,880];let lastP=-1;
+function softTap(){if(!uiOK())return;try{const c=actx(),t=c.currentTime;let k;do{k=Math.random()*PENTA.length|0}while(k===lastP);lastP=k;const f=PENTA[k];
+  const out=c.createGain();out.gain.value=1;out.connect(c.destination);
+  [[1,.028,1.6],[2.76,.009,.9],[5.4,.004,.5]].forEach(([r,a,dec])=>{[0,1.2].forEach(det=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*r+det;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a/2,t+.012);g.gain.exponentialRampToValueAtTime(.00015,t+dec);o.connect(g).connect(out);o.start(t);o.stop(t+dec+.05)})})}catch(e){}}
 function welcome(){if(!uiOn)return;try{const c=actx(),t=c.currentTime;const out=c.createGain();out.gain.value=.9;out.connect(c.destination);
   const d=c.createDelay(1.2),fb=c.createGain(),wet=c.createGain();d.delayTime.value=.32;fb.gain.value=.38;wet.gain.value=.35;out.connect(d);d.connect(fb).connect(d);d.connect(wet).connect(c.destination);
   [[261.63,0],[392,.18],[523.25,.36],[659.25,.54]].forEach(([f,dt])=>{[[1,.06],[2.76,.018],[5.4,.008]].forEach(([r,a])=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*r;g.gain.setValueAtTime(0,t+dt);g.gain.linearRampToValueAtTime(a,t+dt+.02);g.gain.exponentialRampToValueAtTime(.0002,t+dt+2.6/r);o.connect(g).connect(out);o.start(t+dt);o.stop(t+dt+2.7)})});
   const sw=c.createOscillator(),sg=c.createGain();sw.type='sine';sw.frequency.setValueAtTime(130.8,t);sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.05,t+.6);sg.gain.exponentialRampToValueAtTime(.0002,t+3.2);sw.connect(sg).connect(out);sw.start(t);sw.stop(t+3.3)}catch(e){}}
 let welcomed=false;function doWelcome(){if(welcomed)return;welcomed=true;welcome()}
-document.addEventListener('pointerdown',e=>{const b=e.target.closest('button,select,.pp,.pt,[data-z]');if(!welcomed){doWelcome();return}if(b)softTap()},true);
+document.addEventListener('pointerdown',e=>{if(e.target.closest('#splash'))return;const b=e.target.closest('button,select,.pp,.pt,[data-z]');if(!welcomed){doWelcome();return}if(b)softTap()},true);
 function uiUI(){$('uiBtn').classList.toggle('on',!!uiOn);$('uiBtn').textContent='🔔 Tap sounds: '+(uiOn?'on':'off')}
 $('uiBtn').addEventListener('click',()=>{uiOn=uiOn?0:1;store('rl_ui',uiOn);uiUI()});uiUI();
 
@@ -967,9 +970,10 @@ if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)doc
 (function(){const sp=$('splash');let done=false;const close=()=>{if(done)return;done=true;sp.classList.add('is-exiting');setTimeout(()=>sp.remove(),400)};
   let seen=false;try{seen=sessionStorage.getItem('et_splash')==='1';sessionStorage.setItem('et_splash','1')}catch(e){}
   if(seen){sp.remove();return}
-  $('skip').onclick=close;sp.addEventListener('click',close);
-  const img=sp.querySelector('.et-bg img');const go=()=>setTimeout(close,3200);if(img.complete)go();else{img.onload=go;img.onerror=()=>{img.src=img.dataset.still;go()}}
-  setTimeout(close,4500);})();
+  const enter=(withSound)=>{welcomed=true;if(uiOn)welcome();if(withSound&&!med){setTimeout(()=>{medStart();store('rl_med',1)},700)}close()};
+  $('enterBtn').addEventListener('click',e=>{e.stopPropagation();enter(true)});
+  $('skip').addEventListener('click',e=>{e.stopPropagation();enter(false)});
+  sp.addEventListener('click',()=>enter(true));})();
 $('introOpen').onclick=()=>{sStopGuide();$('intro').classList.add('on')};$('introGo').onclick=()=>$('intro').classList.remove('on');
 showCard(0);selected=0;
 requestAnimationFrame(loop);
