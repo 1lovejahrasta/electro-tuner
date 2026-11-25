@@ -4,216 +4,472 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f0a">
-<title>Resonance Lab · Field Instrument 01</title>
+<title>Resonance Lab · v1.2 · Seven Stations</title>
 <style>
 :root{color-scheme:dark;--bg:#0b0f0a;--panel:#141a12;--line:#2c3a27;--fg:#f6f1de;--muted:#c3bfa8;--red:#e2382b;--gold:#f4c430;--green:#22a25a}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(circle at 15% 0%,#1d2a17,#0b0f0a 60%);font-family:system-ui,-apple-system,Arial,sans-serif;color:var(--fg)}
 .flag{height:6px;background:linear-gradient(90deg,var(--red) 0 33.3%,var(--gold) 33.3% 66.6%,var(--green) 66.6%)}
-main{max-width:760px;margin:auto;padding:20px 16px 60px}
+header{max-width:1180px;margin:auto;padding:14px 16px 0}
 .eyebrow{letter-spacing:.17em;font-size:11px;color:var(--green);font-weight:800}
-h1{font-size:clamp(30px,7.5vw,50px);margin:4px 0;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
-h2{font-size:19px;margin:0 0 10px;color:var(--gold)}
-.lead{color:var(--muted);line-height:1.5;margin:0 0 20px}
-.panel{background:rgba(20,26,18,.92);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:16px;padding:16px;margin:14px 0}
+h1{font-size:clamp(28px,7vw,44px);margin:2px 0 8px;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:17px;margin:0 0 10px;color:var(--gold)}
+nav{position:sticky;top:0;z-index:5;background:rgba(11,15,10,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+nav .in{max-width:1180px;margin:auto;display:flex;gap:6px;padding:8px 12px;overflow-x:auto}
+nav button{background:transparent;border:1px solid var(--line);color:var(--fg);padding:9px 14px;border-radius:999px;font-weight:700;font-size:14px;white-space:nowrap}
+nav button.on{background:var(--gold);border-color:var(--gold);color:#1a1405}
+main{max-width:1180px;margin:auto;padding:12px 14px 70px}
+.view{display:none}.view.on{display:block}
+.panel{background:rgba(20,26,18,.92);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:16px;padding:14px;margin:12px 0}
 .panel.gold{border-left-color:var(--gold)}.panel.red{border-left-color:var(--red)}
-.controls{display:flex;gap:9px;flex-wrap:wrap}
-button{border:1px solid var(--gold);background:var(--gold);color:#1a1405;border-radius:12px;padding:12px 16px;font-weight:800;font-size:14px}
-button.secondary{background:transparent;color:var(--fg);border-color:var(--line)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button.b{border:1px solid var(--gold);background:var(--gold);color:#1a1405;border-radius:12px;padding:11px 15px;font-weight:800;font-size:14px}
+button.s{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:12px;padding:10px 13px;font-weight:700;font-size:13px}
 button:disabled{opacity:.4}
-.status{font-size:13px;color:var(--muted);margin-top:12px;min-height:20px}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.metric{background:#0f140d;border:1px solid var(--line);border-radius:12px;padding:12px 6px;text-align:center}
-.metric strong{display:block;font-size:clamp(17px,5vw,26px);font-variant-numeric:tabular-nums}
-.metric:nth-child(1) strong{color:var(--red)}.metric:nth-child(2) strong{color:var(--gold)}.metric:nth-child(3) strong{color:var(--green)}
-.metric span{font-size:11px;color:var(--muted)}
-canvas{width:100%;height:140px;border-radius:12px;background:#0d120b;display:block}
-#plate{height:auto;aspect-ratio:1/1;max-width:420px;margin:0 auto;background:#1a1408;border:2px solid #3a2e12}
-.plateinfo{display:flex;justify-content:space-between;gap:8px;margin:10px 0 4px;font-size:13px;color:var(--muted);flex-wrap:wrap}
-.plateinfo b{color:var(--gold)}
-.note{font-size:12px;line-height:1.6;color:var(--muted)}
-label{font-weight:650;font-size:13px;display:block;margin:9px 0 5px}
+.status{font-size:13px;color:var(--muted);margin-top:10px}
+.grid2{display:grid;grid-template-columns:1fr;gap:0 16px}
+@media(min-width:720px){.grid2{grid-template-columns:1.05fr .95fr}}
+.big{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.big .note{font-size:clamp(54px,16vw,84px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.big .sub{font-size:15px;color:var(--muted);line-height:1.5}
+.big .sub b{color:var(--fg)}
+.needle{position:relative;height:30px;margin:12px 0 4px;border-radius:8px;background:linear-gradient(90deg,#3a1512,#2a2a10 35%,#173a22 45%,#173a22 55%,#2a2a10 65%,#3a1512)}
+.needle i{position:absolute;top:-3px;bottom:-3px;width:4px;margin-left:-2px;background:var(--fg);border-radius:2px;left:50%;transition:left .08s}
+.needle span{position:absolute;top:5px;font-size:11px;color:var(--muted)}
+.minis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.mini{background:#0f140d;border:1px solid var(--line);border-radius:12px;padding:9px 6px;text-align:center}
+.mini strong{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.mini span{font-size:11px;color:var(--muted)}
+.caption{margin-top:12px;padding:10px 12px;border-radius:12px;background:#1b170a;border:1px solid #4a3d14;font-size:14px;line-height:1.5}
+.caption b{color:var(--gold)}
+canvas{width:100%;height:130px;border-radius:12px;background:#0d120b;display:block}
+#plate{height:auto;aspect-ratio:1/1;max-width:380px;margin:0 auto;background:#1a1408;border:2px solid #3a2e12}
+.figwrap{display:flex;justify-content:center}
+svg#fig{width:100%;max-width:320px;height:auto;display:block}
+.pt{cursor:pointer;transition:r .15s}
+.tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.08em;padding:3px 8px;border-radius:999px;margin:10px 0 6px}
+.t-m{background:#123321;color:#8fe0b2}.t-t{background:#33240f;color:#f4c98a}.t-l{background:#152236;color:#9cc4f4}.t-f{background:#361620;color:#f49cb3}.t-r{background:#2a1c36;color:#cfa6f4}
+.card{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#10150e}
+.card .top{padding:12px 14px;color:#111;font-weight:900}
+.card .top small{display:block;font-weight:600;opacity:.8}
+.card .body{padding:4px 14px 14px}
+.kv{display:grid;grid-template-columns:118px 1fr;gap:4px 10px;font-size:14px;line-height:1.4}
+.kv div:nth-child(odd){color:var(--muted)}
+.note{font-size:12px;line-height:1.55;color:var(--muted)}
+.journey{display:flex;gap:6px;margin:10px 0}
+.journey span{flex:1;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;border:2px solid transparent;opacity:.35;color:#111}
+.journey span.done{opacity:1}.journey span.cur{opacity:.85;border-color:#fff}
+label{font-weight:650;font-size:13px;display:block;margin:10px 0 5px}
 textarea,select{width:100%;color:var(--fg);background:#0f140d;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
-textarea{min-height:70px;resize:vertical}
-details{border-top:1px solid var(--line);padding:12px 0}details:first-of-type{border-top:0}
+textarea{min-height:64px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:#0f140d;color:var(--fg);border-radius:999px;padding:7px 11px;font-size:13px}
+.chips button.on{border-color:var(--gold);background:#2b230b}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}
+th{color:var(--gold)}
+details{border-top:1px solid var(--line);padding:11px 0}details:first-of-type{border-top:0}
 summary{cursor:pointer;font-weight:700}
-details p{line-height:1.55;color:var(--muted);font-size:14px}
-footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:22px}
-@media(max-width:370px){main{padding:14px 10px}.panel{padding:12px}.metrics{gap:4px}}
+details p,details li{line-height:1.55;color:var(--muted);font-size:14px}
+.band{display:flex;gap:4px;margin:8px 0}
+.band div{flex:1;text-align:center;font-size:11px;padding:6px 2px;border-radius:6px;background:#0f140d;border:1px solid var(--line);color:var(--muted)}
+.band div.on{background:#2b230b;border-color:var(--gold);color:var(--fg);font-weight:800}
+footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 </style>
 </head>
 <body>
 <div class="flag"></div>
-<main>
-<div class="eyebrow">FIELD INSTRUMENT 01 · PHONE FIRST · v1.1</div>
+<header>
+<div class="eyebrow">FIELD INSTRUMENT 01 · v1.2 · SEVEN STATIONS</div>
 <h1>Resonance Lab</h1>
-<p class="lead">See sound. Measure a signal. Watch it become geometry. No AI or account needed. Your microphone sound stays on this phone.</p>
+</header>
+<nav><div class="in">
+<button data-v="live" class="on">🎙 Live</button>
+<button data-v="sound">🌀 Sound shapes</button>
+<button data-v="journal">📓 Journal</button>
+<button data-v="library">📚 Library</button>
+</div></nav>
+<main>
 
-<section class="panel gold">
+<!-- ================= LIVE ================= -->
+<section class="view on" id="v-live">
+<div class="panel gold">
 <div class="controls">
-<button id="start">🎙 Start microphone</button>
-<button class="secondary" id="stop" disabled>Stop</button>
-<button class="secondary" id="save" disabled>Save observation (CSV)</button>
+<button class="b" id="start">🎙 Start microphone</button>
+<button class="s" id="stop" disabled>Stop</button>
+<span style="flex:1"></span>
+<label style="margin:0;font-size:12px;display:flex;gap:6px;align-items:center">Tuning
+<select id="tuning" style="width:auto;padding:6px"><option value="440">A = 440</option><option value="432">A = 432</option></select></label>
 </div>
-<div id="status" class="status" role="status">Microphone is off. Press Start and allow the microphone.</div>
+<div id="status" class="status">Microphone is off. Press Start and allow the microphone. Nothing is recorded or uploaded.</div>
+</div>
+
+<div class="grid2">
+<div>
+<div class="panel">
+<div class="big"><div class="note" id="bigNote">—</div>
+<div class="sub"><b id="hz">— Hz</b><br><span id="solf">solfège —</span> · <span id="conf">confidence —</span></div></div>
+<div class="needle"><span style="left:4px">♭ flat</span><span style="right:4px">sharp ♯</span><i id="needle"></i></div>
+<div class="note" style="text-align:center" id="cents">tuning: —</div>
+<div class="minis">
+<div class="mini"><strong id="sustain">0.0s</strong><span>Sustain (best <b id="best">0.0</b>s)</span></div>
+<div class="mini"><strong id="vib">—</strong><span>Wobble rhythm (Hz)</span></div>
+<div class="mini"><strong id="lvl">—</strong><span>Level (dBFS)</span></div>
+</div>
+<div class="caption" id="caption">🎶 Play or hum one steady note to begin.</div>
+</div>
+
+<div class="panel">
+<h2>Pitch trail</h2>
+<canvas id="trail" aria-label="Pitch over the last seconds"></canvas>
+<p class="note">Your pitch over the last 6 seconds. Flat line = steady breath. Waves = vibrato. Steps = note changes. Lines are notes; colored lines are the 7 stations.</p>
+</div>
+
+<div class="panel">
+<h2>Harmonic ladder</h2>
+<canvas id="ladder" aria-label="Harmonics of the current note"></canvas>
+<p class="note">1× is your note. 2×, 3×… are overtones that ring above it. More overtones = brighter, breathier tone. Fewer = purer, rounder tone.</p>
+</div>
+
+<div class="panel red">
+<h2>Rhythm ↔ brainwave bands</h2>
+<div class="band" id="bands"><div>Delta<br>0.5–4</div><div>Theta<br>4–8</div><div>Alpha<br>8–13</div><div>Beta<br>13–30</div><div>Gamma<br>30+</div></div>
+<p class="note" id="bandText">When your note wobbles (vibrato), the app counts the wobbles per second and shows which brainwave range that number falls in. It compares numbers only: the phone hears your sound, not your brain.</p>
+</div>
+</div>
+
+<div>
+<div class="panel">
+<h2>Seven stations</h2>
+<div class="figwrap"><svg id="fig" viewBox="0 0 200 250" aria-label="Meditating figure with seven stations"></svg></div>
+<p class="note" style="text-align:center">Play a note to light its station, or tap a point to read it. Sharps and flats sit between two stations.</p>
+</div>
+<div class="panel gold">
+<h2>Practice journey · C → B</h2>
+<div class="journey" id="journey"></div>
+<div class="controls"><button class="s" id="jStart">▶ Start journey</button><span class="note" id="jText">Play each note and hold it steady 1.5 s to climb from Root to Crown.</span></div>
+</div>
+<div id="cardBox"></div>
+</div>
+</div>
 </section>
 
-<section class="panel">
-<h2>Live measurements</h2>
-<div class="metrics">
-<div class="metric"><strong id="freq">—</strong><span>Peak frequency (Hz)</span></div>
-<div class="metric"><strong id="noteName">—</strong><span>Nearest note (A=440)</span></div>
-<div class="metric"><strong id="level">—</strong><span>Signal level (dBFS)</span></div>
-</div>
-<p class="note">Peak frequency is the strongest part of the sound. The note is the closest musical note, with how many cents sharp (+) or flat (−). dBFS is a digital level, not a calibrated loudness meter.</p>
-</section>
-
-<section class="panel red">
+<!-- ================= SOUND SHAPES ================= -->
+<section class="view" id="v-sound">
+<div class="grid2">
+<div class="panel red">
 <h2>Sacred Geometry · sand plate</h2>
-<canvas id="plate" aria-label="Simulated sand plate pattern"></canvas>
-<div class="plateinfo"><span>Pattern: <b id="mode">waiting for sound</b></span><span>Plate tuned to: <b id="modeHz">—</b></span></div>
-<div class="controls" style="margin-top:8px">
-<button class="secondary" id="scatter">✋ Scatter the sand</button>
-<button class="secondary" id="hold">📌 Hold pattern</button>
+<canvas id="plate" aria-label="Simulated sand plate"></canvas>
+<div class="controls" style="margin-top:8px;justify-content:space-between"><span class="note">Pattern: <b id="mode">waiting</b></span>
+<span><button class="s" id="scatter">✋ Scatter</button> <button class="s" id="hold">📌 Hold</button></span></div>
+<p class="note">A simulation of a Chladni plate: sand gathers on the still lines of a vibrating plate. Higher notes make more detailed shapes. This shows how a plate moves, not what happens in the body.</p>
 </div>
-<p class="note">This is a <b>simulation</b> of a Chladni plate: a metal plate with sand on it. When the plate vibrates, sand bounces off the moving parts and gathers on the still lines, called nodes. Higher notes make more detailed patterns. The same idea is called <b>cymatics</b>.</p>
+<div>
+<div class="panel"><h2>Waveform</h2><canvas id="wave"></canvas><p class="note">The microphone signal as a moving line.</p></div>
+<div class="panel gold"><h2>Spectrum</h2><canvas id="spectrum"></canvas><p class="note">50–4,000 Hz. Red = low, gold = middle, green = high.</p></div>
+</div>
+</div>
 </section>
 
-<section class="panel">
-<h2>Waveform · amplitude over time</h2>
-<canvas id="wave" aria-label="Real-time microphone waveform"></canvas>
-<p class="note">The microphone's signal as a moving line. A taller wave means a stronger recorded signal.</p>
+<!-- ================= JOURNAL ================= -->
+<section class="view" id="v-journal">
+<div class="grid2">
+<div class="panel">
+<h2>After you play · how did it feel?</h2>
+<label>Feeling word (emotion wheel)</label>
+<div class="chips" id="emo"></div>
+<label for="egs">Emotional Guidance Scale (1 = joy/freedom · 22 = fear/powerless)</label>
+<select id="egs"></select>
+<label for="source">What did you play?</label>
+<select id="source"><option>Native flute</option><option>Guitar</option><option>Voice / humming</option><option>Singing bowl</option><option>Other</option></select>
+<label for="body">Where did you feel it in your body?</label>
+<textarea id="body" placeholder="Example: G note — warmth in my throat, shoulders relaxed."></textarea>
+<label for="notes">Notes or questions</label>
+<textarea id="notes" placeholder="Example: Low C felt grounding again. Does it repeat tomorrow?"></textarea>
+<div class="controls" style="margin-top:10px"><button class="b" id="save">💾 Save this moment</button><span class="note" id="saveMsg"></span></div>
+<p class="note">Saves on this phone: time, note, Hz, cents, station, sustain, wobble rhythm, feeling, scale number and your notes. No audio.</p>
+</div>
+<div class="panel gold">
+<h2>Your log</h2>
+<div id="summary" class="note">No saved moments yet.</div>
+<div style="overflow-x:auto;margin-top:8px"><table id="logTable"></table></div>
+<div class="controls" style="margin-top:10px"><button class="s" id="export">⬇ Export all (CSV)</button><button class="s" id="clear">🗑 Clear log</button></div>
+</div>
+</div>
 </section>
 
-<section class="panel gold">
-<h2>Spectrum · frequency content</h2>
-<canvas id="spectrum" aria-label="Real-time frequency spectrum"></canvas>
-<p class="note">Bars from about 50 to 4,000 Hz. Red = low, gold = middle, green = high. A clean whistle shows one tall bar; flute and voice show several (harmonics).</p>
+<!-- ================= LIBRARY ================= -->
+<section class="view" id="v-library">
+<div class="panel">
+<h2>How the layers connect</h2>
+<p class="note"><span class="tag t-m">🎙 MEASURED</span> live from the mic: Hz, note, tuning, sustain, overtones, wobble rhythm.<br>
+<span class="tag t-r">🎼 MUSIC</span> note name, solfège, distance from C.<br>
+<span class="tag t-t">🕉 TRADITION</span> from your chakra charts: name, seed sound, element, affirmation, body area.<br>
+<span class="tag t-l">🌈 LIGHT</span> the real wavelength of each color.<br>
+<span class="tag t-f">❤️ FEELING</span> what you report after playing.<br>
+The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (DO RE MI FA SO LA TI), the same pairing as your "Figure 13" spine chart.</p>
+</div>
+<div class="panel gold">
+<h2>Reference cards</h2>
+<details open><summary>🧠 Brainwave bands</summary><p>Measured with EEG sensors on the head. Delta 0.5–4 Hz: deep sleep. Theta 4–8 Hz: deep relaxation, dreaming, creativity. Alpha 8–13 Hz: calm, relaxed awareness. Beta 13–30 Hz: alert thinking, problem solving. Gamma 30–100 Hz: high focus and perception. Flute notes vibrate hundreds of times per second, so they sit far above these bands; the link this app shows is your rhythm (wobbles per second).</p></details>
+<details><summary>🌙 Yoga nidra states</summary><p>Vishva: the waking state (beta). Pratyahara: turning awareness inward (alpha). Taijasa: the dreaming state (theta). Prajna: deep dreamless sleep (delta). Yoga nidra teaches being aware while the body rests as if asleep.</p></details>
+<details><summary>🌈 Color and light</summary><p>Visible light runs about 400–700 nanometres. Red ≈ 635–700, orange ≈ 590–635, yellow ≈ 560–590, green ≈ 520–560, cyan ≈ 490–520, blue ≈ 450–490, violet ≈ 400–450. A sound note and a light color are different kinds of waves; the stations pair them by tradition, not by physics.</p></details>
+<details><summary>❤️ Emotion wheel (Plutchik)</summary><p>Eight core feelings: joy, trust, fear, surprise, sadness, disgust, anger, anticipation. Each has a softer and stronger version (for example serenity → joy → ecstasy). Blends make new ones: joy + trust = love.</p></details>
+<details><summary>🌀 Emotional Guidance Scale</summary><p>A 22-step ladder from joy, freedom and love (1) down to fear, grief and powerlessness (22). It's a self-reflection tool from spiritual teaching. Use it to track how you feel over time.</p></details>
+<details><summary>🧍 Roby Chart</summary><p>Links beliefs and emotions to body areas (based on Louise Hay, Caroline Myss and others). Useful as a reflection prompt, not a medical map.</p></details>
+<details><summary>🎨 Color psychology & birth-month wheel</summary><p>Colors carry common associations, such as red for energy and blue for calm, which change by culture and context. The birth-month wheel is a symbolic reference.</p></details>
+<details><summary>🖐 Left / right brain learners</summary><p>Both halves of the brain work together on almost every task. "Left or right brain" is a way to talk about learning styles: you can be both analytical and visual. You learn best with images, so this app teaches with pictures.</p></details>
+</div>
 </section>
 
-<section class="panel">
-<h2>Field notes</h2>
-<label for="source">What are you testing?</label>
-<select id="source"><option>Native flute</option><option>Guitar</option><option>Voice / humming</option><option>Singing bowl</option><option>Environmental sound</option><option>Quiet room control</option><option>Other</option></select>
-<label for="body">What did you feel in your body? (where, how)</label>
-<textarea id="body" placeholder="Example: Low note — buzzing in my chest, breath slowed down."></textarea>
-<label for="notes">Your observation or question</label>
-<textarea id="notes" placeholder="Example: The pattern got more detailed on the higher flute note. Does it repeat?"></textarea>
-<p class="note">Save exports one row: time, instrument, Hz, note, level, sand pattern, your body notes and observation. No audio is saved. Over many sessions, your own notes become the data for comparing notes and feelings.</p>
-</section>
-
-<section class="panel red">
-<h2>Learn while you measure</h2>
-<details open><summary>What is frequency?</summary><p>How many vibrations happen each second, measured in hertz (Hz). 440 Hz means the air moves back and forth 440 times a second. Higher Hz sounds like a higher pitch.</p></details>
-<details><summary>What is a Chladni pattern?</summary><p>In 1787 Ernst Chladni put sand on a metal plate and played it with a violin bow. The sand formed shapes. Each shape belongs to one way the plate can vibrate, called a mode. The sand shows where the plate stands still.</p></details>
-<details><summary>Does the pattern show what happens in my body?</summary><p>No. The pattern shows how a plate vibrates at that frequency. Your body is different: it is soft, full of water, and made of many shapes. What you feel is real experience. Log it in "What did you feel" so you can compare notes over time and look for patterns that repeat.</p></details>
-<details><summary>What is amplitude?</summary><p>How big the vibration is. More amplitude = stronger signal. The phone's microphone and settings also change this number.</p></details>
-<details><summary>How do I design a real experiment?</summary><p>Write a prediction. Measure a quiet baseline. Change one thing at a time. Repeat. Compare. A pattern you notice once is a clue, not proof yet.</p></details>
-</section>
-
-<footer>Resonance Lab v1.1 · Standalone instrument by Jah Rasta. CSV exports stay portable for later ESSI integration. One love. 🟥🟨🟩</footer>
+<footer>Resonance Lab v1.2 · by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
 </main>
+
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-let ctx=null,stream=null,source=null,analyser=null,raf=0,td=null,fd=null,running=false;
-let latest={peak:null,dbfs:null,rms:0,note:'',mode:''};
-const wave=$('wave'),spec=$('spectrum'),plate=$('plate');
 const DPR=()=>window.devicePixelRatio||1;
 function fit(c){const r=c.getBoundingClientRect();const w=Math.max(1,Math.round(r.width*DPR())),h=Math.max(1,Math.round(r.height*DPR()));if(c.width!==w||c.height!==h){c.width=w;c.height=h}return c.getContext('2d')}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
 
-/* ---------- notes ---------- */
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
+  if(b.dataset.v==='journal')renderLog();
+}));
+
+/* ---------- station data (summarised from Jah's charts) ---------- */
+const ST=[
+ {pc:0,n:'C',so:'DO',name:'Root',sk:'Muladhara',col:'#e2382b',seed:'LAM',el:'Earth',aff:'I am',loc:'Base of the spine',gl:'Adrenals',sp:'L5–S5 (lower spine)',theme:'Safety, grounding, belonging, physical strength',sense:'Smell',cry:'Garnet, onyx, hematite',pose:'Warrior I',act:'Walking, hiking, gardening',nm:'≈ 635–700 nm (red)'},
+ {pc:2,n:'D',so:'RE',name:'Sacral',sk:'Svadhisthana',col:'#f07a1f',seed:'VAM',el:'Water',aff:'I feel',loc:'Lower belly, below the navel',gl:'Reproductive glands',sp:'T9–L4',theme:'Creativity, feelings, pleasure, relationships',sense:'Taste',cry:'Moonstone, carnelian',pose:'Camel',act:'Dance, warm baths, creative play',nm:'≈ 590–635 nm (orange)'},
+ {pc:4,n:'E',so:'MI',name:'Solar Plexus',sk:'Manipura',col:'#f4c430',seed:'RAM',el:'Fire',aff:'I do',loc:'Upper belly',gl:'Pancreas, adrenals',sp:'T5–T9',theme:'Confidence, personal power, self-worth, gut instinct',sense:'Sight',cry:'Citrine, yellow calcite',pose:'Bow',act:'Power walking, sunlight, taking action',nm:'≈ 560–590 nm (yellow)'},
+ {pc:5,n:'F',so:'FA',name:'Heart',sk:'Anahata',col:'#22a25a',seed:'YAM',el:'Air',aff:'I love',loc:'Center of the chest',gl:'Thymus',sp:'T1–T5',theme:'Love, compassion, forgiveness, giving and receiving',sense:'Touch',cry:'Rose quartz, malachite',pose:'Cobra',act:'Time in nature, kindness, gratitude',nm:'≈ 520–560 nm (green)'},
+ {pc:7,n:'G',so:'SO',name:'Throat',sk:'Vishuddha',col:'#2f8fe0',seed:'HAM',el:'Sound / ether',aff:'I speak',loc:'Throat and neck',gl:'Thyroid',sp:'C3–C7 (neck)',theme:'Expression, truth, communication, listening',sense:'Hearing',cry:'Turquoise, aquamarine',pose:'Fish',act:'Singing, chanting, writing',nm:'≈ 450–490 nm (blue)'},
+ {pc:9,n:'A',so:'LA',name:'Third Eye',sk:'Ajna',col:'#5b4fd6',seed:'OM (some charts: SHAM)',el:'Light',aff:'I see',loc:'Forehead, between the eyes',gl:'Pineal / pituitary (charts differ)',sp:'C1–C2 (top of neck)',theme:'Intuition, insight, wisdom, the bigger picture',sense:'Inner vision',cry:'Lapis, kyanite, sapphire',pose:'Bridge',act:'Dream journal, meditation',nm:'≈ 420–450 nm (indigo)'},
+ {pc:11,n:'B',so:'TI',name:'Crown',sk:'Sahasrara',col:'#b05fd6',seed:'OM (or silence)',el:'Thought / consciousness',aff:'I understand',loc:'Top of the head',gl:'Pituitary / pineal (charts differ)',sp:'Above C1',theme:'Spiritual connection, awareness, oneness, letting go',sense:'Oneness',cry:'Clear quartz, amethyst',pose:'Downward dog',act:'Silent meditation, prayer',nm:'≈ 400–420 nm (violet / white)'}
+];
+const Y=[202,170,143,113,79,42,14]; // point heights on figure (root..crown)
 const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-function noteOf(f){if(!f)return null;const n=Math.round(12*Math.log2(f/440))+69;const ref=440*Math.pow(2,(n-69)/12);const cents=Math.round(1200*Math.log2(f/ref));return {name:NAMES[(n%12+12)%12]+(Math.floor(n/12)-1),cents}}
 
-/* ---------- Chladni plate ---------- */
-const MODES=[];for(let n=1;n<=9;n++)for(let m=n+1;m<=10;m++)if((n+m)%2===1)MODES.push({n,m,k:n*n+m*m});
-MODES.sort((a,b)=>a.k-b.k);
-const BASE=40; // Hz per unit of n²+m² (plate tuning)
-let mode=MODES[2],targetMode=mode,hold=false,energy=0;
-const N=2600;const px=new Float32Array(N),py=new Float32Array(N);
-function scatter(){for(let i=0;i<N;i++){px[i]=Math.random();py[i]=Math.random()}}
-scatter();
-function field(x,y,md){const P=Math.PI;return Math.cos(md.n*P*x)*Math.cos(md.m*P*y)-Math.cos(md.m*P*x)*Math.cos(md.n*P*y)}
-function pickMode(f){let best=MODES[0],d=1e9;for(const md of MODES){const e=Math.abs(md.k*BASE-f);if(e<d){d=e;best=md}}return best}
-let modeVotes=0;
+/* ---------- figure ---------- */
+const SVGNS='http://www.w3.org/2000/svg';
+const fig=$('fig');
+fig.innerHTML=`<defs><filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3a24"/><stop offset="1" stop-color="#1a2316"/></linearGradient></defs>
+<g fill="url(#skin)" stroke="#8a7a4a" stroke-width="1.4" stroke-linejoin="round">
+<path d="M18,222 Q100,186 182,222 Q100,248 18,222 Z"/>
+<path d="M60,92 Q100,80 140,92 L134,190 Q100,202 66,190 Z"/>
+<path d="M62,94 Q36,130 44,178 Q50,203 80,206" fill="none" stroke="#8a7a4a" stroke-width="14" stroke-linecap="round"/>
+<path d="M62,94 Q36,130 44,178 Q50,203 80,206" fill="none" stroke="#22301d" stroke-width="11" stroke-linecap="round"/>
+<path d="M138,94 Q164,130 156,178 Q150,203 120,206" fill="none" stroke="#8a7a4a" stroke-width="14" stroke-linecap="round"/>
+<path d="M138,94 Q164,130 156,178 Q150,203 120,206" fill="none" stroke="#22301d" stroke-width="11" stroke-linecap="round"/>
+<rect x="91" y="60" width="18" height="24" rx="6"/>
+<circle cx="100" cy="42" r="22"/>
+</g><line x1="100" y1="14" x2="100" y2="205" stroke="#f4c430" stroke-opacity=".18" stroke-width="2"/>`;
+const pts=ST.map((s,i)=>{const c=document.createElementNS(SVGNS,'circle');c.setAttribute('cx',100);c.setAttribute('cy',Y[i]);c.setAttribute('r',7);c.setAttribute('fill',s.col);c.setAttribute('class','pt');c.style.opacity=.4;c.addEventListener('click',()=>{selected=i;showCard(i)});fig.appendChild(c);return c});
+let lit=-1,selected=-1;
+function lightStation(i){if(i===lit)return;lit=i;pts.forEach((c,k)=>{const on=k===i;c.setAttribute('r',on?13:7);c.style.opacity=on?1:.4;c.setAttribute('filter',on?'url(#glow)':'')});if(i>=0){selected=i;showCard(i)}}
+
+/* ---------- station card ---------- */
+function showCard(i){const s=ST[i];$('cardBox').innerHTML=`<div class="card">
+<div class="top" style="background:${s.col}">${s.name} · ${s.sk}<small>Station ${i+1} · note ${s.n} · ${s.so} · seed sound ${s.seed}</small></div>
+<div class="body">
+<span class="tag t-m">🎙 MEASURED (live)</span>
+<div class="kv"><div>Now playing</div><div id="cardLive">—</div><div>Station pitch</div><div>${s.n}4 = ${noteHz(60+s.pc).toFixed(1)} Hz · ${s.n}5 = ${noteHz(72+s.pc).toFixed(1)} Hz</div></div>
+<div class="controls" style="margin-top:8px"><button class="s" id="tone">🔊 Hear ${s.n}4</button><button class="s" id="tone5">🔊 Hear ${s.n}5</button></div>
+<span class="tag t-r">🎼 MUSIC</span>
+<div class="kv"><div>Solfège</div><div>${s.so} (fixed-Do: C = DO)</div><div>Steps above C</div><div>${s.pc} half-steps</div></div>
+<span class="tag t-t">🕉 TRADITION · from your charts</span>
+<div class="kv"><div>Seed sound</div><div>${s.seed}</div><div>Element</div><div>${s.el}</div><div>Affirmation</div><div>“${s.aff}”</div><div>Body area</div><div>${s.loc}</div><div>Glands</div><div>${s.gl}</div><div>Spine level</div><div>${s.sp}</div><div>Themes</div><div>${s.theme}</div><div>Sense</div><div>${s.sense}</div><div>Crystals</div><div>${s.cry}</div><div>Yoga pose</div><div>${s.pose}</div><div>Activities</div><div>${s.act}</div></div>
+<span class="tag t-l">🌈 LIGHT</span>
+<div class="kv"><div>Color wavelength</div><div>${s.nm}</div></div>
+<span class="tag t-f">❤️ FEELING</span>
+<div class="note">After playing ${s.n}, open 📓 Journal and log what you felt. Over time your log shows whether ${s.name} notes bring the same feeling again.</div>
+</div></div>`;
+$('tone').onclick=()=>tone(noteHz(60+s.pc));$('tone5').onclick=()=>tone(noteHz(72+s.pc));}
+
+/* ---------- tuning ---------- */
+let A4=440;$('tuning').addEventListener('change',e=>{A4=+e.target.value;if(selected>=0)showCard(selected)});
+const noteHz=m=>A4*Math.pow(2,(m-69)/12);
+const midiOf=f=>69+12*Math.log2(f/A4);
+let toneCtx=null;
+function tone(f){try{toneCtx=toneCtx||new (window.AudioContext||window.webkitAudioContext)();const o=toneCtx.createOscillator(),g=toneCtx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,toneCtx.currentTime);g.gain.linearRampToValueAtTime(.25,toneCtx.currentTime+.05);g.gain.linearRampToValueAtTime(0,toneCtx.currentTime+1.8);o.connect(g).connect(toneCtx.destination);o.start();o.stop(toneCtx.currentTime+1.9)}catch(e){}}
+
+/* ---------- pitch detection (YIN) ---------- */
+let yinBuf=null;
+function yin(buf,sr){
+  const W=Math.min(2048,buf.length>>1),tMin=Math.floor(sr/2400),tMax=Math.min(W-1,Math.floor(sr/70));
+  if(!yinBuf||yinBuf.length!==tMax+1)yinBuf=new Float32Array(tMax+1);const d=yinBuf;d[0]=1;let run=0;
+  for(let t=1;t<=tMax;t++){let s=0;for(let i=0;i<W;i++){const x=buf[i]-buf[i+t];s+=x*x}run+=s;d[t]=run?s*t/run:1}
+  let tau=-1;for(let t=tMin;t<=tMax;t++){if(d[t]<0.15){while(t+1<=tMax&&d[t+1]<d[t])t++;tau=t;break}}
+  if(tau<0){let m=1e9;for(let t=tMin;t<=tMax;t++)if(d[t]<m){m=d[t];tau=t}if(m>0.35)return null}
+  let bt=tau;if(tau>0&&tau<tMax){const a=d[tau-1],b=d[tau],c=d[tau+1],den=a-2*b+c;if(den)bt=tau+0.5*(a-c)/den}
+  return {f:sr/bt,conf:Math.max(0,Math.min(1,1-d[tau]))};
+}
+
+/* ---------- live state ---------- */
+let ctx=null,stream=null,src=null,an=null,td=null,fd=null,running=false,frame=0;
+const trail=[];let cur={f:null,midi:null,conf:0,rms:0,db:null,cents:null,name:null,pc:null,vib:null};
+let susStart=0,susNote=null,sustain=0,best=0;
+function updateSustain(now){
+  if(cur.f&&cur.conf>.75){const n=Math.round(cur.midi);if(n===susNote&&Math.abs(cur.cents)<45){sustain=(now-susStart)/1000}else{susNote=n;susStart=now;sustain=0}}
+  else{susNote=null;sustain=0}
+  if(sustain>best)best=sustain;
+}
+function vibratoRate(now){
+  const win=trail.filter(p=>now-p.t<1600&&p.m!==null);if(win.length<30)return null;
+  const span=(win[win.length-1].t-win[0].t)/1000;if(span<1)return null;
+  const base=Math.round(win[win.length-1].m);if(win.some(p=>Math.abs(p.m-base)>0.9))return null;
+  const n=win.length,mx=win.reduce((a,p)=>a+p.t,0)/n,my=win.reduce((a,p)=>a+p.m,0)/n;let sxy=0,sxx=0;for(const p of win){sxy+=(p.t-mx)*(p.m-my);sxx+=(p.t-mx)*(p.t-mx)}const k=sxx?sxy/sxx:0;
+  const r=win.map(p=>(p.m-my-k*(p.t-mx))*100);const amp=Math.sqrt(r.reduce((a,v)=>a+v*v,0)/n);if(amp<8)return null;
+  let z=0;for(let i=1;i<r.length;i++)if((r[i-1]<0)!==(r[i]<0))z++;const hz=z/2/span;return hz>=1.5&&hz<=14?{hz,amp}:null;
+}
+function bandOf(hz){return hz<4?0:hz<8?1:hz<13?2:hz<30?3:4}
+const BANDS=['Delta','Theta','Alpha','Beta','Gamma'];
+const BMEAN=['deep sleep','deep relaxation and dreaming','calm, relaxed awareness','alert thinking','high focus'];
+
+function analyse(now){
+  an.getFloatTimeDomainData(td);an.getFloatFrequencyData(fd);
+  let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];const rms=Math.sqrt(sq/td.length);
+  cur.rms=rms;cur.db=rms>0?20*Math.log10(rms):null;
+  let p=null;if(rms>0.004)p=yin(td,ctx.sampleRate);
+  if(p&&p.f>70&&p.f<2400&&p.conf>.6){cur.f=p.f;cur.conf=p.conf;cur.midi=midiOf(p.f);const r=Math.round(cur.midi);cur.cents=Math.round((cur.midi-r)*100);cur.pc=((r%12)+12)%12;cur.name=NAMES[cur.pc]+(Math.floor(r/12)-1)}
+  else{cur.f=null;cur.conf=p?p.conf:0;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null}
+  trail.push({t:now,m:cur.midi});while(trail.length&&now-trail[0].t>6000)trail.shift();
+  updateSustain(now);cur.vib=vibratoRate(now);
+}
+
+/* ---------- readouts ---------- */
+function stationOfPc(pc){return ST.findIndex(s=>s.pc===pc)}
+function caption(){
+  if(!running)return '🎶 Press <b>Start microphone</b>, then play or hum one steady note.';
+  if(!cur.f)return cur.rms>0.004?'👂 <b>Pitch unclear.</b> Try one clean, steady note; noise or two sounds at once confuse the meter.':'🎶 Listening… play or hum one steady note.';
+  const s=stationOfPc(cur.pc),st=s>=0?ST[s]:null;let t='';
+  if(Math.abs(cur.cents)<=10)t=`✅ <b>${cur.name} is in tune.</b> `;else if(cur.cents>10)t=`⬆ <b>${cur.name} is ${cur.cents}¢ sharp.</b> On flute, a little less air or a slightly shaded hole brings it down. `;else t=`⬇ <b>${cur.name} is ${-cur.cents}¢ flat.</b> On flute, a little more air brings it up. `;
+  if(cur.vib)t+=`Your note wobbles about <b>${cur.vib.hz.toFixed(1)} times a second</b> (vibrato). `;else if(sustain>2)t+=`Steady breath: held <b>${sustain.toFixed(1)} s</b>. `;
+  t+=st?`This note lights <b>${st.name}</b> (${st.so}, seed sound ${st.seed.split(' ')[0]}).`:`${NAMES[cur.pc]} sits between two stations, so no single point lights up.`;
+  return t;
+}
+let capT=0;
+function readouts(now){
+  $('bigNote').textContent=cur.name||'—';$('bigNote').style.color=cur.pc!==null&&stationOfPc(cur.pc)>=0?ST[stationOfPc(cur.pc)].col:'var(--fg)';
+  $('hz').textContent=cur.f?cur.f.toFixed(1)+' Hz':'— Hz';
+  const s=cur.pc!==null?stationOfPc(cur.pc):-1;$('solf').textContent=s>=0?'solfège '+ST[s].so:(cur.pc!==null?'between stations':'solfège —');
+  $('conf').textContent='confidence '+(cur.f?Math.round(cur.conf*100)+'%':'—');
+  const c=cur.cents;$('needle').style.left=(c===null?50:50+Math.max(-50,Math.min(50,c)))+'%';
+  $('cents').textContent=c===null?'tuning: —':(Math.abs(c)<=10?'in tune ('+(c>=0?'+':'')+c+'¢)':(c>0?'+'+c+'¢ sharp':c+'¢ flat'))+' · A='+A4;
+  $('sustain').textContent=sustain.toFixed(1)+'s';$('best').textContent=best.toFixed(1);
+  $('vib').textContent=cur.vib?cur.vib.hz.toFixed(1):'—';
+  $('lvl').textContent=cur.db!==null?cur.db.toFixed(0):'—';
+  if(now-capT>400){capT=now;$('caption').innerHTML=caption()}
+  const bi=cur.vib?bandOf(cur.vib.hz):-1;[...$('bands').children].forEach((d,k)=>d.classList.toggle('on',k===bi));
+  $('bandText').textContent=cur.vib?`Your sound's wobble rhythm is ${cur.vib.hz.toFixed(1)} Hz. That number falls in the ${BANDS[bi]} range (${BMEAN[bi]} in EEG research). The phone measured your sound's rhythm, not your brainwaves.`:'When your note wobbles (vibrato), the app counts the wobbles per second and shows which brainwave range that number falls in. It compares numbers only: the phone hears your sound, not your brain.';
+  lightStation(cur.f&&cur.conf>.75&&s>=0?s:(running&&!cur.f?lit:-1));
+  const cl=$('cardLive');if(cl)cl.textContent=cur.f?`${cur.name} · ${cur.f.toFixed(1)} Hz · ${c>=0?'+':''}${c}¢`:'—';
+  journeyStep();
+}
+
+/* ---------- drawings ---------- */
+function drawTrail(now){
+  const g=fit($('trail')),W=$('trail').width,H=$('trail').height;g.fillStyle='#0d120b';g.fillRect(0,0,W,H);
+  const ms=trail.filter(p=>p.m!==null).map(p=>p.m);const center=ms.length?Math.round(ms[ms.length-1]):60;const lo=center-6,hi=center+6;
+  const y=m=>H-(m-lo)/(hi-lo)*H;g.font=`${10*DPR()}px system-ui`;
+  for(let m=lo;m<=hi;m++){const pc=((m%12)+12)%12,s=stationOfPc(pc);g.strokeStyle=s>=0?ST[s].col+'66':'#1f2a1b';g.lineWidth=DPR();g.beginPath();g.moveTo(0,y(m));g.lineTo(W,y(m));g.stroke();if(s>=0){g.fillStyle=ST[s].col;g.fillText(NAMES[pc]+(Math.floor(m/12)-1),4,y(m)-2)}}
+  g.strokeStyle='#f6f1de';g.lineWidth=2.2*DPR();g.beginPath();let pen=false;
+  for(const p of trail){const x=W-(now-p.t)/6000*W;if(p.m===null||p.m<lo-1||p.m>hi+1){pen=false;continue}const yy=y(p.m);if(!pen){g.moveTo(x,yy);pen=true}else g.lineTo(x,yy)}g.stroke();
+}
+function drawLadder(){
+  const g=fit($('ladder')),W=$('ladder').width,H=$('ladder').height;g.fillStyle='#0d120b';g.fillRect(0,0,W,H);
+  const cols=['#e2382b','#f07a1f','#f4c430','#22a25a','#2f8fe0','#b05fd6'];g.font=`${11*DPR()}px system-ui`;g.textAlign='center';
+  if(!cur.f||!fd){g.fillStyle='#c3bfa8';g.fillText('Play a note to see its overtones',W/2,H/2);return}
+  const bin=ctx.sampleRate/an.fftSize;const lv=[];for(let k=1;k<=6;k++){const b=Math.round(k*cur.f/bin);let v=-140;for(let j=b-2;j<=b+2;j++)if(j>0&&j<fd.length)v=Math.max(v,fd[j]);lv.push(v)}
+  const ref=lv[0];const bw=W/6;
+  lv.forEach((v,i)=>{const rel=Math.max(-60,Math.min(10,v-ref));const h=(rel+60)/70*(H-34*DPR());g.fillStyle=cols[i];g.fillRect(i*bw+bw*.18,H-20*DPR()-h,bw*.64,h);g.fillStyle='#f6f1de';g.fillText(`${i+1}×`,i*bw+bw/2,H-6*DPR());g.fillStyle='#c3bfa8';g.fillText(Math.round(cur.f*(i+1))+'Hz',i*bw+bw/2,H-24*DPR()-h)});
+  g.textAlign='left';
+}
+function drawWave(){const g=fit($('wave')),w=$('wave').width,h=$('wave').height;g.fillStyle='#0d120b';g.fillRect(0,0,w,h);if(!td)return;const lg=g.createLinearGradient(0,0,w,0);lg.addColorStop(0,'#e2382b');lg.addColorStop(.5,'#f4c430');lg.addColorStop(1,'#22a25a');g.strokeStyle=lg;g.lineWidth=2*DPR();g.beginPath();const n=Math.min(td.length,2048);for(let i=0;i<n;i++){const x=i*w/(n-1),yy=h/2-td[i]*h*.44;i?g.lineTo(x,yy):g.moveTo(x,yy)}g.stroke()}
+function drawSpec(){const g=fit($('spectrum')),w=$('spectrum').width,h=$('spectrum').height;g.fillStyle='#0d120b';g.fillRect(0,0,w,h);if(!fd)return;const bin=ctx.sampleRate/an.fftSize,bars=80,L=Math.log(50),R=Math.log(4000);for(let j=0;j<bars;j++){const a=Math.max(1,Math.floor(Math.exp(L+j/bars*(R-L))/bin)),b=Math.min(fd.length-1,Math.max(a,Math.ceil(Math.exp(L+(j+1)/bars*(R-L))/bin)));let v=-120;for(let k=a;k<=b;k++)v=Math.max(v,fd[k]);const bh=Math.max(0,Math.min(1,(v+100)/85))*h*.92;g.fillStyle=j<27?'#e2382b':j<54?'#f4c430':'#22a25a';g.fillRect(j*w/bars,h-bh,Math.max(1,w/bars-1),bh)}}
+
+/* ---------- sand plate ---------- */
+const MODES=[];for(let n=1;n<=9;n++)for(let m=n+1;m<=10;m++)if((n+m)%2)MODES.push({n,m,k:n*n+m*m});MODES.sort((a,b)=>a.k-b.k);
+let mode=MODES[2],cand=null,votes=0,hold=false,energy=0;const N=2400,px=new Float32Array(N),py=new Float32Array(N);
+function scatter(){for(let i=0;i<N;i++){px[i]=Math.random();py[i]=Math.random()}}scatter();
+const F=(x,y,md)=>Math.cos(md.n*Math.PI*x)*Math.cos(md.m*Math.PI*y)-Math.cos(md.m*Math.PI*x)*Math.cos(md.n*Math.PI*y);
 function stepPlate(){
-  const g=fit(plate),W=plate.width,H=plate.height;
-  if(!hold&&latest.peak){const cand=pickMode(latest.peak);if(cand===targetMode){modeVotes++}else{targetMode=cand;modeVotes=0}if(modeVotes>8&&cand!==mode){mode=cand}}
-  const drive=running?Math.min(1,Math.max(0,(latest.rms-0.004)*25)):0;
-  energy=energy*0.9+drive*0.1;
-  const amp=0.004+energy*0.03;
-  for(let i=0;i<N;i++){const v=Math.abs(field(px[i],py[i],mode));const s=amp*v*(0.4+energy);px[i]+=(Math.random()-.5)*s*2;py[i]+=(Math.random()-.5)*s*2;if(px[i]<0)px[i]=-px[i];if(px[i]>1)px[i]=2-px[i];if(py[i]<0)py[i]=-py[i];if(py[i]>1)py[i]=2-py[i]}
-  g.fillStyle='#1a1408';g.fillRect(0,0,W,H);
-  const grd=g.createRadialGradient(W/2,H/2,W*.1,W/2,H/2,W*.75);grd.addColorStop(0,'rgba(244,196,48,.08)');grd.addColorStop(1,'rgba(0,0,0,.25)');g.fillStyle=grd;g.fillRect(0,0,W,H);
-  const r=Math.max(1,1.3*DPR());
-  for(let i=0;i<N;i++){const v=Math.abs(field(px[i],py[i],mode));g.fillStyle=v<0.15?'#f4c430':(v<0.45?'#e9d9a0':'#8a7a4a');g.fillRect(px[i]*W-r/2,py[i]*H-r/2,r,r)}
-  g.strokeStyle='rgba(226,56,43,.6)';g.lineWidth=2*DPR();g.strokeRect(1,1,W-2,H-2);
-  latest.mode=mode.n+','+mode.m;
-  $('mode').textContent='mode '+mode.n+' × '+mode.m+(hold?' (held)':'');
-  $('modeHz').textContent='≈ '+(mode.k*BASE)+' Hz';
+  if(!hold&&cur.f){let b=MODES[0],d=1e9;for(const md of MODES){const e=Math.abs(md.k*40-cur.f);if(e<d){d=e;b=md}}if(b===cand)votes++;else{cand=b;votes=0}if(votes>8)mode=b}
+  energy=energy*.9+(running?Math.min(1,Math.max(0,(cur.rms-.004)*25)):0)*.1;const amp=.004+energy*.03;
+  for(let i=0;i<N;i++){const s=amp*Math.abs(F(px[i],py[i],mode))*(.4+energy);px[i]+=(Math.random()-.5)*s*2;py[i]+=(Math.random()-.5)*s*2;if(px[i]<0)px[i]=-px[i];if(px[i]>1)px[i]=2-px[i];if(py[i]<0)py[i]=-py[i];if(py[i]>1)py[i]=2-py[i]}
+  const c=$('plate');if(!c.offsetParent)return;const g=fit(c),W=c.width,H=c.height;g.fillStyle='#1a1408';g.fillRect(0,0,W,H);const r=Math.max(1,1.3*DPR());
+  for(let i=0;i<N;i++){const v=Math.abs(F(px[i],py[i],mode));g.fillStyle=v<.15?'#f4c430':v<.45?'#e9d9a0':'#8a7a4a';g.fillRect(px[i]*W-r/2,py[i]*H-r/2,r,r)}
+  $('mode').textContent=`mode ${mode.n}×${mode.m} ≈ ${mode.k*40} Hz`+(hold?' (held)':'');
+}
+$('scatter').onclick=scatter;$('hold').onclick=()=>{hold=!hold;$('hold').textContent=hold?'▶ Follow':'📌 Hold'};
+
+/* ---------- practice journey ---------- */
+let jOn=false,jIdx=0,jHold=0,jLast=0;
+function renderJourney(){$('journey').innerHTML=ST.map((s,i)=>`<span style="background:${s.col}" class="${i<jIdx?'done':''} ${jOn&&i===jIdx?'cur':''}">${s.n}</span>`).join('')}
+renderJourney();
+$('jStart').onclick=()=>{jOn=true;jIdx=0;jHold=0;renderJourney();$('jText').textContent=`Play ${ST[0].n} (${ST[0].so}) · Root · hold it steady.`;selected=0;showCard(0)};
+function journeyStep(){
+  if(!jOn)return;const now=performance.now(),dt=jLast?(now-jLast)/1000:0;jLast=now;const t=ST[jIdx];
+  if(cur.f&&cur.pc===t.pc&&cur.conf>.75)jHold+=dt;else jHold=Math.max(0,jHold-dt*2);
+  $('jText').textContent=`Play ${t.n} (${t.so}) · ${t.name} · held ${jHold.toFixed(1)} / 1.5 s`;
+  if(jHold>=1.5){jIdx++;jHold=0;if(jIdx>=ST.length){jOn=false;renderJourney();$('jText').textContent='🌟 Journey complete: Root to Crown! Log how you feel in 📓 Journal.';return}renderJourney();showCard(jIdx)}
 }
 
-/* ---------- audio drawing ---------- */
-function blank(){for(const c of [wave,spec]){const g=fit(c);g.fillStyle='#0d120b';g.fillRect(0,0,c.width,c.height);g.strokeStyle='#2c3a27';g.beginPath();g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke()}}
-function drawAudio(){
-  analyser.getFloatTimeDomainData(td);analyser.getFloatFrequencyData(fd);
-  let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];
-  const rms=Math.sqrt(sq/td.length),dbfs=rms>0?20*Math.log10(rms):-Infinity;
-  const sr=ctx.sampleRate,binHz=sr/analyser.fftSize;
-  let best=-Infinity,bi=-1;for(let i=Math.max(1,Math.ceil(50/binHz));i<Math.min(fd.length,Math.floor(4000/binHz));i++){if(fd[i]>best){best=fd[i];bi=i}}
-  let peak=null;if(rms>0.003&&best>-85&&bi>0){const a=fd[bi-1],b=fd[bi],c=fd[bi+1];const p=0.5*(a-c)/(a-2*b+c||1);peak=(bi+(isFinite(p)?p:0))*binHz}
-  const nt=noteOf(peak);
-  latest={...latest,peak,dbfs:Number.isFinite(dbfs)?dbfs:null,rms,note:nt?nt.name+(nt.cents>=0?' +':' ')+nt.cents+'¢':''};
-  $('freq').textContent=peak===null?'—':Math.round(peak);
-  $('noteName').textContent=nt?nt.name:'—';
-  $('noteName').title=latest.note;
-  $('level').textContent=Number.isFinite(dbfs)?dbfs.toFixed(1):'—';
-  let g=fit(wave),w=wave.width,h=wave.height;g.fillStyle='#0d120b';g.fillRect(0,0,w,h);g.strokeStyle='#2c3a27';g.beginPath();g.moveTo(0,h/2);g.lineTo(w,h/2);g.stroke();
-  const lg=g.createLinearGradient(0,0,w,0);lg.addColorStop(0,'#e2382b');lg.addColorStop(.5,'#f4c430');lg.addColorStop(1,'#22a25a');
-  g.strokeStyle=lg;g.lineWidth=2*DPR();g.beginPath();for(let i=0;i<td.length;i++){const x=i*w/(td.length-1),y=h/2-td[i]*h*.44;i?g.lineTo(x,y):g.moveTo(x,y)}g.stroke();
-  g=fit(spec);w=spec.width;h=spec.height;g.fillStyle='#0d120b';g.fillRect(0,0,w,h);
-  const bars=80,s0=50,e0=Math.min(4000,sr/2),L=Math.log(s0),R=Math.log(e0);
-  for(let j=0;j<bars;j++){const f1=Math.exp(L+j/bars*(R-L)),f2=Math.exp(L+(j+1)/bars*(R-L));const a=Math.max(1,Math.floor(f1/binHz)),b=Math.min(fd.length-1,Math.max(a,Math.ceil(f2/binHz)));let v=-120;for(let k=a;k<=b;k++)v=Math.max(v,fd[k]);const nm=Math.max(0,Math.min(1,(v+100)/85));const bh=nm*h*.92;g.fillStyle=j<27?'#e2382b':(j<54?'#f4c430':'#22a25a');g.fillRect(j*w/bars,h-bh,Math.max(1,w/bars-1),bh)}
+/* ---------- loop ---------- */
+function loop(now){
+  frame++;
+  if(running&&an){analyse(now)}
+  readouts(now);
+  if($('v-live').classList.contains('on')){drawTrail(now);if(frame%3===0)drawLadder()}
+  if($('v-sound').classList.contains('on')){drawWave();drawSpec()}
+  stepPlate();
+  requestAnimationFrame(loop);
 }
-function loop(){if(running)drawAudio();stepPlate();raf=requestAnimationFrame(loop)}
 
 async function start(){
   if(running)return;
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('status').textContent='Microphone unavailable here. Open this page in Chrome.';return}
   try{
     $('status').textContent='Asking for microphone permission…';
-    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     ctx=new (window.AudioContext||window.webkitAudioContext)();await ctx.resume();
-    source=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=8192;analyser.smoothingTimeConstant=.6;source.connect(analyser);
-    td=new Float32Array(analyser.fftSize);fd=new Float32Array(analyser.frequencyBinCount);
-    running=true;$('start').disabled=true;$('stop').disabled=false;$('save').disabled=false;
-    $('status').textContent='Live · microphone on · '+ctx.sampleRate+' Hz sample rate. Nothing is uploaded or recorded.';
-  }catch(e){$('status').textContent='Could not start microphone: '+(e.message||e.name)+'. Check Chrome permissions.';stop()}
+    src=ctx.createMediaStreamSource(stream);an=ctx.createAnalyser();an.fftSize=8192;an.smoothingTimeConstant=.5;src.connect(an);
+    td=new Float32Array(an.fftSize);fd=new Float32Array(an.frequencyBinCount);running=true;
+    $('start').disabled=true;$('stop').disabled=false;$('status').textContent='Live · '+ctx.sampleRate+' Hz · nothing is recorded or uploaded.';
+  }catch(e){$('status').textContent='Could not start microphone: '+(e.message||e.name)+'. Check Chrome permissions.'}
 }
-function stop(){
-  running=false;
-  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
-  if(source){source.disconnect();source=null}
-  if(ctx){ctx.close().catch(()=>{});ctx=null}
-  analyser=null;$('start').disabled=false;$('stop').disabled=true;$('save').disabled=true;
-  if(!$('status').textContent.startsWith('Could not'))$('status').textContent='Microphone off. Nothing is being recorded.';
-  blank();
-}
-function csv(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
-function save(){
-  const row=[new Date().toISOString(),$('source').value,latest.peak===null?'':latest.peak.toFixed(1),latest.note,latest.dbfs===null?'':latest.dbfs.toFixed(1),latest.rms.toFixed(5),'mode '+latest.mode+' (simulated plate)',$('body').value,$('notes').value];
-  const body='timestamp_utc,source,peak_hz,nearest_note,digital_level_dbfs,waveform_rms,sand_pattern,body_feeling,observation\n'+row.map(csv).join(',')+'\n';
-  const url=URL.createObjectURL(new Blob([body],{type:'text/csv;charset=utf-8'}));
-  const a=document.createElement('a');a.href=url;a.download='resonance-observation-'+new Date().toISOString().replace(/[:.]/g,'-')+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);
-}
-$('start').addEventListener('click',start);
-$('stop').addEventListener('click',stop);
-$('save').addEventListener('click',save);
-$('scatter').addEventListener('click',scatter);
-$('hold').addEventListener('click',()=>{hold=!hold;$('hold').textContent=hold?'▶ Follow my sound':'📌 Hold pattern'});
+function stop(){running=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(src)src.disconnect();src=null;if(ctx)ctx.close().catch(()=>{});ctx=null;an=null;cur={f:null,midi:null,conf:0,rms:0,db:null,cents:null,name:null,pc:null,vib:null};$('start').disabled=false;$('stop').disabled=true;$('status').textContent='Microphone off. Nothing is being recorded.'}
+$('start').onclick=start;$('stop').onclick=stop;
 window.addEventListener('pagehide',()=>{if(running)stop()});
-blank();loop();
+
+/* ---------- journal ---------- */
+const EMO=['Joy','Trust','Fear','Surprise','Sadness','Disgust','Anger','Anticipation','Serenity','Love','Awe','Optimism'];
+let emo='';$('emo').innerHTML=EMO.map(e=>`<button>${e}</button>`).join('');
+$('emo').querySelectorAll('button').forEach(b=>b.onclick=()=>{emo=emo===b.textContent?'':b.textContent;$('emo').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.textContent===emo))});
+const EGS=['Joy / knowledge / empowerment / freedom / love / appreciation','Passion','Enthusiasm / eagerness / happiness','Positive expectation / belief','Optimism','Hopefulness','Contentment','Boredom','Pessimism','Frustration / irritation / impatience','Overwhelm','Disappointment','Doubt','Worry','Blame','Discouragement','Anger','Revenge','Hatred / rage','Jealousy','Insecurity / guilt / unworthiness','Fear / grief / depression / powerlessness'];
+$('egs').innerHTML='<option value="">— choose —</option>'+EGS.map((e,i)=>`<option value="${i+1}">${i+1}. ${e}</option>`).join('');
+let lastHeard=null;setInterval(()=>{if(cur.f&&cur.conf>.75)lastHeard={...cur,sustain:best}},250);
+function getLog(){return store('rl_log')||[]}
+$('save').onclick=()=>{
+  const h=lastHeard;const si=h?stationOfPc(h.pc):-1;
+  const row={time:new Date().toISOString(),source:$('source').value,note:h?h.name:'',hz:h?h.f.toFixed(1):'',cents:h?h.cents:'',tuning:'A'+A4,station:si>=0?ST[si].name:'',best_sustain_s:best.toFixed(1),wobble_hz:h&&h.vib?h.vib.hz.toFixed(1):'',wobble_band:h&&h.vib?BANDS[bandOf(h.vib.hz)]:'',feeling:emo,scale:$('egs').value,body:$('body').value,notes:$('notes').value};
+  const log=getLog();log.push(row);store('rl_log',log);$('saveMsg').textContent='Saved ✓ ('+log.length+' moments)';$('body').value='';$('notes').value='';renderLog();
+};
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function renderLog(){
+  const log=getLog();if(!log.length){$('summary').textContent='No saved moments yet.';$('logTable').innerHTML='';return}
+  const by={};for(const r of log){if(!r.station)continue;(by[r.station]=by[r.station]||[]).push(r)}
+  $('summary').innerHTML='<b>By station</b> (what you felt most, average scale):<br>'+ST.filter(s=>by[s.name]).map(s=>{const rs=by[s.name],f={};rs.forEach(r=>{if(r.feeling)f[r.feeling]=(f[r.feeling]||0)+1});const top=Object.entries(f).sort((a,b)=>b[1]-a[1])[0];const sc=rs.filter(r=>r.scale).map(r=>+r.scale);return `<span style="color:${s.col}">●</span> ${s.name}: ${rs.length}× · ${top?top[0]:'—'} · scale ${sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):'—'}`}).join('<br>');
+  $('logTable').innerHTML='<tr><th>When</th><th>Note</th><th>Station</th><th>Feeling</th><th>Scale</th><th>Body</th></tr>'+log.slice(-25).reverse().map(r=>`<tr><td>${esc(new Date(r.time).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}</td><td>${esc(r.note)}</td><td>${esc(r.station)}</td><td>${esc(r.feeling)}</td><td>${esc(r.scale)}</td><td>${esc(r.body)}</td></tr>`).join('');
+}
+$('export').onclick=()=>{const log=getLog();if(!log.length)return;const keys=Object.keys(log[0]);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=keys.join(',')+'\n'+log.map(r=>keys.map(k=>q(r[k])).join(',')).join('\n')+'\n';const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='resonance-log-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)};
+let clearArm=0;$('clear').onclick=()=>{if(Date.now()-clearArm<3000){store('rl_log',[]);renderLog();$('clear').textContent='🗑 Clear log';clearArm=0}else{clearArm=Date.now();$('clear').textContent='Tap again to erase';setTimeout(()=>$('clear').textContent='🗑 Clear log',3000)}};
+
+showCard(0);selected=0;
+requestAnimationFrame(loop);
 })();
 </script>
 </body>
