@@ -90,14 +90,17 @@ canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-
 .et-splash{justify-content:flex-end;padding-bottom:max(34px,6vh)}
 .et-splash > .et-bg{position:absolute;inset:0;overflow:hidden;z-index:0}
 .et-splash > .et-power{position:absolute;inset:0;z-index:0}
-.et-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 42%;animation:et-float 6.5s ease-in-out infinite;transform-origin:50% 60%}
-@media (min-aspect-ratio:3/4){.et-bg img{object-position:50% 30%}}
+.et-bg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 42%}
+.et-bg .et-plate{transform-origin:50% 40%;animation:et-drift 28s ease-in-out infinite alternate,et-breathe 9s ease-in-out infinite;will-change:transform,filter}
+@keyframes et-drift{0%{transform:scale(1.12) translate(-1.5%,1%) rotate(-1.2deg)}50%{transform:scale(1.18) translate(1.5%,-1.5%) rotate(.6deg)}100%{transform:scale(1.13) translate(-.5%,1.5%) rotate(1.4deg)}}
+@keyframes et-breathe{0%,100%{filter:brightness(.92) saturate(1)}50%{filter:brightness(1.12) saturate(1.15)}}
+@media (min-aspect-ratio:3/4){.et-bg img{object-position:50% 30%}.et-bg .et-plate{transform-origin:50% 30%}}
 .et-power{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 30% 14% at 50% 80%,rgba(255,214,90,.55),transparent 70%),radial-gradient(ellipse 22% 40% at 50% 46%,rgba(120,255,170,.12),transparent 70%);mix-blend-mode:screen;animation:et-power 2.6s ease-in-out infinite}
 .et-splash::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;z-index:0;pointer-events:none;background:linear-gradient(to top,rgba(3,8,5,.85),transparent)}
 .et-splash .et-splash-title,.et-splash .et-splash-credit,.et-splash .et-skip{z-index:2}
 @keyframes et-float{0%,100%{transform:translateY(0) scale(1.03)}50%{transform:translateY(-1.6%) scale(1.045)}}
 @keyframes et-power{0%,100%{opacity:.55}50%{opacity:1}}
-@media(prefers-reduced-motion:reduce){.et-bg img,.et-power{animation:none}}
+@media(prefers-reduced-motion:reduce){.et-bg img,.et-power{animation:none}.et-bg .et-plate{transform:scale(1.12)}}
 .et-enter{z-index:2;margin-top:16px;border:1px solid rgba(244,196,48,.6);background:rgba(3,8,5,.55);color:#f6f1de;border-radius:999px;padding:12px 20px;font-weight:800;font-size:14px;letter-spacing:.04em;box-shadow:0 0 22px rgba(244,196,48,.35);animation:et-enterpulse 2.4s ease-in-out infinite}
 @keyframes et-enterpulse{0%,100%{box-shadow:0 0 14px rgba(244,196,48,.25)}50%{box-shadow:0 0 30px rgba(244,196,48,.6)}}
 .et-splash.is-exiting{opacity:0;pointer-events:none}
@@ -165,7 +168,7 @@ body.d-viber .saiyan{display:none!important}
 <body>
 <div class="et-splash" id="splash" role="dialog" aria-label="Electro Tuner">
 <canvas class="stars" id="splashStars"></canvas>
-<div class="et-bg"><img src="intro.jpg" alt="Jah Rasta floating in the galaxy"></div>
+<div class="et-bg"><img class="et-plate" src="intro-bg.jpg" alt="" onerror="this.src='intro.jpg'"><img class="et-fig" src="intro-fig.webp" alt="Jah Rasta floating in the galaxy" onerror="this.remove()"></div>
 <div class="et-power"></div>
 <div class="et-splash-title" style="margin-top:auto">ELECTRO TUNER</div>
 <div class="et-splash-credit">Created by Jah Rasta</div>
@@ -921,7 +924,7 @@ function uiOK(){return uiOn&&!running}
 const PENTA=[523.25,587.33,659.25,783.99,880];let lastP=-1;
 function softTap(){if(!uiOK())return;try{const c=actx(),t=c.currentTime;let k;do{k=Math.random()*PENTA.length|0}while(k===lastP);lastP=k;const f=PENTA[k];
   const out=c.createGain();out.gain.value=1;out.connect(c.destination);
-  [[1,.028,1.6],[2.76,.009,.9],[5.4,.004,.5]].forEach(([r,a,dec])=>{[0,1.2].forEach(det=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*r+det;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a/2,t+.012);g.gain.exponentialRampToValueAtTime(.00015,t+dec);o.connect(g).connect(out);o.start(t);o.stop(t+dec+.05)})})}catch(e){}}
+  [[1,.009,1.4],[2.76,.0025,.8],[5.4,.001,.45]].forEach(([r,a,dec])=>{[0,1.2].forEach(det=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*r+det;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a/2,t+.012);g.gain.exponentialRampToValueAtTime(.00015,t+dec);o.connect(g).connect(out);o.start(t);o.stop(t+dec+.05)})})}catch(e){}}
 function welcome(){if(!uiOn)return;try{const c=actx(),t=c.currentTime;const out=c.createGain();out.gain.value=.9;out.connect(c.destination);
   const d=c.createDelay(1.2),fb=c.createGain(),wet=c.createGain();d.delayTime.value=.32;fb.gain.value=.38;wet.gain.value=.35;out.connect(d);d.connect(fb).connect(d);d.connect(wet).connect(c.destination);
   [[261.63,0],[392,.18],[523.25,.36],[659.25,.54]].forEach(([f,dt])=>{[[1,.06],[2.76,.018],[5.4,.008]].forEach(([r,a])=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*r;g.gain.setValueAtTime(0,t+dt);g.gain.linearRampToValueAtTime(a,t+dt+.02);g.gain.exponentialRampToValueAtTime(.0002,t+dt+2.6/r);o.connect(g).connect(out);o.start(t+dt);o.stop(t+dt+2.7)})});
