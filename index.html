@@ -4,7 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f0a">
-<title>Resonance Lab · v1.4 · Zion 3000</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Resonance Lab · v1.5 · Zion 3000</title>
 <style>
 :root{color-scheme:dark;--bg:#0b0f0a;--panel:#141a12;--line:#2c3a27;--fg:#f6f1de;--muted:#c3bfa8;--red:#e2382b;--gold:#f4c430;--green:#22a25a}
 *{box-sizing:border-box}
@@ -112,7 +115,7 @@ body.d-viber .saiyan{display:none!important}
 <body>
 <div class="flag"></div>
 <header>
-<div class="eyebrow">FIELD INSTRUMENT 01 · v1.4 · ZION 3000</div>
+<div class="eyebrow">FIELD INSTRUMENT 01 · v1.5 · ZION 3000</div>
 <h1>Resonance Lab</h1>
 <div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
 <button class="sessbtn" id="sessOpen">🧘 Session mode</button></div>
@@ -133,7 +136,7 @@ body.d-viber .saiyan{display:none!important}
 <button class="s" id="stop" disabled>Stop</button>
 <span style="flex:1"></span>
 <label style="margin:0;font-size:12px;display:flex;gap:6px;align-items:center">Instrument
-<select id="inst" style="width:auto;padding:6px"><option value="flute">🪈 Native flute</option><option value="voice">🎤 Voice</option><option value="guitar">🎸 Guitar</option><option value="keys">🎹 Keyboard (mic)</option><option value="midi">🎛 MIDI instrument</option></select></label>
+<select id="inst" style="width:auto;padding:6px"><option value="flute">🪈 Native flute</option><option value="voice">🎤 Voice</option><option value="guitar">🎸 Guitar</option><option value="bowl">🥣 Tibetan bowl</option><option value="keys">🎹 Keyboard (mic)</option><option value="midi">🎛 MIDI instrument</option></select></label>
 <label style="margin:0;font-size:12px;display:flex;gap:6px;align-items:center">Tuning
 <select id="tuning" style="width:auto;padding:6px"><option value="440">A = 440</option><option value="432">A = 432</option></select></label>
 </div>
@@ -190,6 +193,7 @@ body.d-viber .saiyan{display:none!important}
 <div class="controls"><button class="b" id="jStart">▶ Start lesson</button><button class="s" id="jAgain" disabled>🔁 Hear again</button><button class="s" id="jSkip" disabled>⏭ Skip</button><button class="s" id="jStop" disabled>■ Stop</button></div>
 <div class="controls" style="margin-top:8px"><label style="margin:0;font-size:12px">Octave <select id="jOct" style="width:auto;padding:5px"><option value="3">Low (3)</option><option value="4" selected>Middle (4)</option><option value="5">High (5)</option></select></label>
 <label style="margin:0;font-size:12px">Match <select id="jTol" style="width:auto;padding:5px"><option value="35">Easy ±35¢</option><option value="20" selected>Normal ±20¢</option><option value="10">Pro ±10¢</option></select></label>
+<label style="margin:0;font-size:12px">Sound <select class="voiceSel" style="width:auto;padding:5px"><option value="bowl">🥣 Bowl</option><option value="flute">🪈 Flute</option></select></label>
 <label style="margin:0;font-size:12px"><input type="checkbox" id="jDrone"> Drone while I play (use headphones)</label></div>
 </div>
 <div id="cardBox"></div>
@@ -277,10 +281,10 @@ The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (D
 <div class="saff" id="sAff"></div>
 <div class="note" style="text-align:center;margin-top:6px" id="sBody"></div>
 <div class="prog"><i id="sProg"></i></div>
-<div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="30">30 s each</option><option value="60" selected>60 s each</option><option value="90">90 s each</option></select><button class="s" id="sNext">▶</button></div>
+<div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="60">1 min each</option><option value="120" selected>2 min each</option><option value="180">3 min each</option><option value="300">5 min each</option></select><select class="voiceSel" style="width:auto;padding:6px"><option value="bowl">🥣 Bowl</option><option value="flute">🪈 Flute</option></select><button class="s" id="sNext">▶</button></div>
 <p class="note" style="text-align:center;margin-top:8px">Sound healing here is a relaxation and reflection practice, not a medical treatment.</p>
 </div></div>
-<footer>Resonance Lab v1.4 · by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
+<footer>Resonance Lab v1.5 · by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
 </main>
 
 <script>
@@ -393,7 +397,7 @@ function showCard(i){const s=ST[i];$('cardBox').innerHTML=`<div class="card">
 <span class="tag t-f">❤️ FEELING</span>
 <div class="note">After playing ${s.n}, open 📓 Journal and log what you felt.</div>
 </div></div></div>`;
-$('tone').onclick=()=>tone(noteHz(60+s.pc));$('tone5').onclick=()=>tone(noteHz(72+s.pc));}
+$('tone').onclick=()=>sound(noteHz(60+s.pc));$('tone5').onclick=()=>sound(noteHz(72+s.pc));}
 
 /* ---------- tuning ---------- */
 let A4=440;$('tuning').addEventListener('change',e=>{A4=+e.target.value;if(selected>=0)showCard(selected)});
@@ -402,6 +406,11 @@ const midiOf=f=>69+12*Math.log2(f/A4);
 let toneCtx=null;
 let toneUntil=0,droneNode=null;
 function actx(){toneCtx=toneCtx||new (window.AudioContext||window.webkitAudioContext)();if(toneCtx.state==='suspended')toneCtx.resume();return toneCtx}
+let voiceSel=store('rl_voice')||'bowl';
+function bowl(f,dur,vol){dur=Math.max(dur||6,4);vol=(vol||.22)*1.1;try{const c=actx(),t0=c.currentTime,out=c.createGain();out.gain.value=vol;out.connect(c.destination);
+  [[1,1,1],[2.76,.45,.6],[5.4,.22,.38],[8.93,.1,.25]].forEach(([r,a,decay])=>{[0,1.6].forEach(det=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*r+det*r*.6;g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(a*.5,t0+.015);g.gain.exponentialRampToValueAtTime(.0004,t0+dur*decay);o.connect(g).connect(out);o.start(t0);o.stop(t0+dur*decay+.05)})});
+  toneUntil=performance.now()+Math.min(dur,3.2)*1000+350}catch(e){}}
+function sound(f,dur,vol){if(voiceSel==='bowl')bowl(f,(dur||2)*2.2,vol);else tone(f,dur,vol)}
 function tone(f,dur,vol){dur=dur||1.8;vol=vol||.22;try{const c=actx(),t0=c.currentTime,out=c.createGain();out.gain.setValueAtTime(0,t0);out.gain.linearRampToValueAtTime(vol,t0+.12);out.gain.setValueAtTime(vol,t0+dur-.35);out.gain.linearRampToValueAtTime(0,t0+dur);out.connect(c.destination);
   const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=5;lg.gain.value=f*.0035;lfo.connect(lg);
   [[1,1],[2,.14],[3,.05]].forEach(([h,a])=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*h;lg.connect(o.frequency);g.gain.value=a;o.connect(g).connect(out);o.start(t0);o.stop(t0+dur+.05)});
@@ -415,6 +424,7 @@ const INST={
  flute:{lo:180,label:'Native flute',sharp:'On flute, a little less air or a slightly shaded hole brings it down.',flat:'On flute, a little more air brings it up.'},
  voice:{lo:70,label:'Voice',sharp:'Relax and aim a touch lower.',flat:'Lift the note a touch; more breath support helps.'},
  guitar:{lo:70,label:'Guitar',sharp:'Loosen the string slightly (tuning peg).',flat:'Tighten the string slightly (tuning peg).'},
+ bowl:{lo:55,label:'Tibetan bowl',sharp:'A bowl’s pitch is set by its size and shape. This bowl sits a little sharp of the note; pair it with the station it is closest to.',flat:'A bowl’s pitch is set by its size and shape. This bowl sits a little flat of the note; pair it with the station it is closest to.'},
  keys:{lo:40,label:'Keyboard',sharp:'Keyboard notes are fixed; this shows the instrument or sound is tuned sharp.',flat:'Keyboard notes are fixed; this shows the instrument or sound is tuned flat.'},
  midi:{lo:40,label:'MIDI instrument',sharp:'',flat:''}
 };
@@ -488,7 +498,7 @@ function caption(){
   const s=stationOfPc(cur.pc),st=s>=0?ST[s]:null;let t='';
   if(inst==='midi'&&held.size>1){const ns=midiNotes();const sts=[...new Set(ns.map(n=>stationOfPc(n%12)).filter(x=>x>=0))].map(i=>ST[i].name);return `🎛 <b>Chord: ${ns.map(n=>NAMES[n%12]).join(' ')}</b> lights ${sts.join(', ')||'no single station'}. Newest note: ${cur.name}.`}
   if(Math.abs(cur.cents)<=10)t=`✅ <b>${cur.name} is in tune.</b> `;else if(cur.cents>10)t=`⬆ <b>${cur.name} is ${cur.cents}¢ sharp.</b> ${INST[inst].sharp} `;else t=`⬇ <b>${cur.name} is ${-cur.cents}¢ flat.</b> ${INST[inst].flat} `;
-  if(cur.vib)t+=`Your note wobbles about <b>${cur.vib.hz.toFixed(1)} times a second</b> (vibrato). `;else if(sustain>2)t+=`Steady breath: held <b>${sustain.toFixed(1)} s</b>. `;
+  if(cur.vib)t+=`Your note wobbles about <b>${cur.vib.hz.toFixed(1)} times a second</b> (vibrato). `;else if(sustain>2)t+=`${inst==='bowl'?'Steady ring':inst==='keys'||inst==='midi'?'Held':inst==='guitar'?'Sustain':'Steady breath'}: <b>${sustain.toFixed(1)} s</b>. `;
   t+=st?`This note lights <b>${st.name}</b> (${st.so}, seed sound ${st.seed.split(' ')[0]}).`:`${NAMES[cur.pc]} sits between two stations, so no single point lights up.`;
   return t;
 }
@@ -599,7 +609,7 @@ function renderJourney(){$('journey').innerHTML=ST.map((s2,i)=>`<span style="bac
 renderJourney();
 function tMidi(){return 12*(+$('jOct').value+1)+ST[T.i].pc}
 function teachPlay(){const st=ST[T.i];T.phase='listen';T.hold=0;$('jText').innerHTML=`👂 <b>Listen:</b> ${st.n}${$('jOct').value} · ${st.so} · <span style="color:${st.col}">${st.name}</span>`;$('jSub').textContent=st.chill;setRing(0,'🔊');selected=T.i;showCard(T.i);glowPts(LF,[T.i]);lit='t';
-  tone(noteHz(tMidi()),2.5);setTimeout(()=>{if(!T.on)return;T.phase='turn';T.t0=performance.now();$('jText').innerHTML=`🎤 <b>Your turn:</b> sing or play <b style="color:${st.col}">${st.n}</b> (${st.so}, “${st.seed.split(' ')[0]}”) and hold it.`;if($('jDrone').checked)drone(noteHz(tMidi()-12))},2750)}
+  sound(noteHz(tMidi()),2.5);setTimeout(()=>{if(!T.on)return;T.phase='turn';T.t0=performance.now();$('jText').innerHTML=`🎤 <b>Your turn:</b> sing or play <b style="color:${st.col}">${st.n}</b> (${st.so}, “${st.seed.split(' ')[0]}”) and hold it.`;if($('jDrone').checked)drone(noteHz(tMidi()-12))},2750)}
 function setRing(p,txt,col){const L=2*Math.PI*32;$('mRing').setAttribute('stroke-dasharray',`${(p*L).toFixed(1)} ${L.toFixed(1)}`);$('mRing').setAttribute('stroke',col||'#f4c430');$('mTxt').textContent=txt}
 async function teachStart(){if(inst!=='midi'&&!running)await start();T={on:true,i:0,phase:'idle',hold:0,last:0,done:false};['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=false);$('jStart').disabled=true;renderJourney();teachPlay()}
 function teachNext(){droneOff();T.i++;if(T.i>=ST.length){T.on=false;T.done=true;T.phase='idle';renderJourney();setRing(1,'🌟','#22a25a');$('jText').innerHTML='🌟 <b>Lesson complete:</b> Root to Crown! Log how you feel in 📓 Journal.';$('jSub').textContent='';['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=true);$('jStart').disabled=false;$('jStart').textContent='▶ Again';lit=-1;return}renderJourney();teachPlay()}
@@ -617,16 +627,16 @@ function journeyStep(){
 
 /* ---------- session mode ---------- */
 let SF=null,sI=0,sGuide=null;
-function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').textContent=`${st.sk} · ${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;$('sessCount').textContent=`Station ${sI+1} of 7`;glowPts(SF,[sI])}
+function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').textContent=`${st.sk} · ${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;$('sessCount').textContent=`Station ${sI+1} of 7`+(sGuide?' · auto':' · tap ▶ for the next sound');glowPts(SF,[sI])}
 $('sessOpen').onclick=()=>{if(!SF){SF=buildFigure($('sfig'),'s',i=>sShow(i));}applyLayer(SF);$('session').classList.add('on');sShow(selected>=0?selected:0);try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}catch(e){}};
 function sStopGuide(){if(sGuide){clearInterval(sGuide.timer);sGuide=null}$('sGuide').textContent='▶ Guided journey';$('sProg').style.width='0'}
 $('sessClose').onclick=()=>{sStopGuide();$('session').classList.remove('on');try{document.fullscreenElement&&document.exitFullscreen()}catch(e){}};
-$('sPrev').onclick=()=>{sStopGuide();sShow(sI-1)};$('sNext').onclick=()=>{sStopGuide();sShow(sI+1)};
-$('sTone').onclick=()=>tone(noteHz(60+ST[sI].pc),4,.2);
-$('sGuide').onclick=()=>{if(sGuide){sStopGuide();return}const dur=+$('sDur').value;sGuide={i:0,t0:performance.now()};$('sGuide').textContent='⏸ Stop guide';sShow(0);tone(noteHz(60),4,.2);
+$('sPrev').onclick=()=>{sStopGuide();sShow(sI-1);sound(noteHz(60+ST[sI].pc),4,.2)};$('sNext').onclick=()=>{sStopGuide();sShow(sI+1);sound(noteHz(60+ST[sI].pc),4,.2)};
+$('sTone').onclick=()=>sound(noteHz(60+ST[sI].pc),4,.2);
+$('sGuide').onclick=()=>{if(sGuide){sStopGuide();return}const dur=+$('sDur').value;sGuide={i:0,t0:performance.now(),lastT:0};$('sGuide').textContent='⏸ Stop guide';sShow(0);sound(noteHz(60),4,.2);
   sGuide.timer=setInterval(()=>{const el=(performance.now()-sGuide.t0)/1000;const k=Math.floor(el/dur);$('sProg').style.width=Math.min(100,el/(dur*7)*100)+'%';
     if(k>=7){sStopGuide();$('sLine').textContent='Rest here in silence. Notice how your whole body feels now.';glowPts(SF,[0,1,2,3,4,5,6]);return}
-    if(k!==sGuide.i){sGuide.i=k;sShow(k);tone(noteHz(60+ST[k].pc),4,.2)}else{const w=el-k*dur;if(Math.abs(w-dur/2)<.26)tone(noteHz(60+ST[k].pc),4,.16)}},250)};
+    if(k!==sGuide.i){sGuide.i=k;sShow(k);sound(noteHz(60+ST[k].pc),4,.2);sGuide.lastT=el}else if(el-sGuide.lastT>=20&&dur-(el-k*dur)>8){sGuide.lastT=el;sound(noteHz(60+ST[k].pc),4,.13)}},250)};
 function ringPulse(){const lvl=demo?0.6:(cur.f?Math.min(1,cur.rms*14):0)+(performance.now()<toneUntil?0.5:0);const sc=1+Math.min(.12,lvl*.12);[LF,SF].forEach(F=>{if(F&&F.ring){F.ring.setAttribute('transform',`translate(180 118) scale(${sc.toFixed(3)}) translate(-180 -118)`);F.ring.style.opacity=.55+Math.min(.45,lvl)}});
   if(SF&&$('session').classList.contains('on')&&!sGuide&&cur.f&&cur.conf>.8){const k=stationOfPc(cur.pc);if(k>=0&&k!==sI)sShow(k)}}
 
@@ -680,11 +690,13 @@ function renderLog(){
 $('export').onclick=()=>{const log=getLog();if(!log.length)return;const keys=Object.keys(log[0]);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=keys.join(',')+'\n'+log.map(r=>keys.map(k=>q(r[k])).join(',')).join('\n')+'\n';const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='resonance-log-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)};
 let clearArm=0;$('clear').onclick=()=>{if(Date.now()-clearArm<3000){store('rl_log',[]);renderLog();$('clear').textContent='🗑 Clear log';clearArm=0}else{clearArm=Date.now();$('clear').textContent='Tap again to erase';setTimeout(()=>$('clear').textContent='🗑 Clear log',3000)}};
 
-function setInst(v){inst=v;store('rl_inst',v);$('inst').value=v;$('midiBox').style.display=v==='midi'?'block':'none';const map={flute:'Native flute',voice:'Voice / humming',guitar:'Guitar',keys:'Keyboard',midi:'MIDI instrument'};$('source').value=map[v];held.clear();capT=0}
+function setInst(v){inst=v;store('rl_inst',v);$('inst').value=v;$('midiBox').style.display=v==='midi'?'block':'none';const map={bowl:'Singing bowl',flute:'Native flute',voice:'Voice / humming',guitar:'Guitar',keys:'Keyboard',midi:'MIDI instrument'};$('source').value=map[v];held.clear();capT=0}
 $('inst').addEventListener('change',e=>setInst(e.target.value));$('midiBtn').onclick=connectMidi;setInst(inst);
 let depth=store('rl_depth')||'viber';
 function setDepth(d){depth=d;store('rl_depth',d);document.body.classList.remove('d-chill','d-viber','d-saiyan');document.body.classList.add('d-'+d);document.querySelectorAll('#depth button').forEach(b=>b.classList.toggle('on',b.dataset.d===d));capT=0}
 document.querySelectorAll('#depth button').forEach(b=>b.onclick=()=>setDepth(b.dataset.d));setDepth(depth);setLayer(layer);
+document.querySelectorAll('.voiceSel').forEach(el=>{el.value=voiceSel;el.addEventListener('change',e=>{voiceSel=e.target.value;store('rl_voice',voiceSel);document.querySelectorAll('.voiceSel').forEach(x=>x.value=voiceSel)})});
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 showCard(0);selected=0;
 requestAnimationFrame(loop);
 })();
