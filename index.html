@@ -299,7 +299,7 @@ body.d-viber .saiyan{display:none!important}
 <span class="tag t-t">🕉 TRADITION</span> from your chakra charts: name, seed sound, element, affirmation, body area.<br>
 <span class="tag t-l">🌈 LIGHT</span> the real wavelength of each color.<br>
 <span class="tag t-f">❤️ FEELING</span> what you report after playing.<br>
-The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (DO RE MI FA SO LA TI), the same pairing as your "Figure 13" spine chart.</p>
+Each station shows its original Sanskrit name in Devanagari script, its spelling in Latin letters, how to say it, and what it means. The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (DO RE MI FA SO LA TI), the same pairing as your "Figure 13" spine chart.</p>
 </div>
 <div class="panel gold">
 <h2>Reference cards</h2>
@@ -379,6 +379,16 @@ const EXTRA=[
  {chill:'Rest in stillness. Feel your connection to life, peace and the Most High.',near:'Cerebral cortex at the top of the brain; pineal gland deep in the center of the brain',note:'Charts differ on pineal vs pituitary for the top two stations.'}
 ];
 ST.forEach((s,i)=>Object.assign(s,EXTRA[i]));
+const SKT=[
+ {dev:'मूलाधार',iast:'Mūlādhāra',say:'MOO-lah-DHAA-rah',mean:'root support',bija:'लं'},
+ {dev:'स्वाधिष्ठान',iast:'Svādhiṣṭhāna',say:'swah-dhish-TAH-nah',mean:'one’s own seat',bija:'वं'},
+ {dev:'मणिपूर',iast:'Maṇipūra',say:'mah-nee-POO-rah',mean:'city of jewels',bija:'रं'},
+ {dev:'अनाहत',iast:'Anāhata',say:'ah-NAH-hah-tah',mean:'unstruck (sound)',bija:'यं'},
+ {dev:'विशुद्ध',iast:'Viśuddha',say:'vee-SHOOD-dhah',mean:'especially pure',bija:'हं'},
+ {dev:'आज्ञा',iast:'Ājñā',say:'AAG-nyah',mean:'command, perception',bija:'ॐ'},
+ {dev:'सहस्रार',iast:'Sahasrāra',say:'sah-HAHS-rah-rah',mean:'thousand-petaled',bija:'ॐ / silence'}
+];
+ST.forEach((s,i)=>Object.assign(s,SKT[i]));
 const ANAT=[
  {st:6,x:180,y:25,t:'Cerebral cortex'},
  {st:6,x:180,y:39,t:'Pineal gland (deep)'},
@@ -430,7 +440,7 @@ document.querySelectorAll('#layers button,#sLayers button').forEach(b=>b.addEven
 
 /* ---------- station card ---------- */
 function showCard(i){const s=ST[i];$('cardBox').innerHTML=`<div class="card">
-<div class="top" style="background:linear-gradient(90deg,${s.col},${s.col}cc)">${s.name} · ${s.sk}<small>Station ${i+1} · note ${s.n} · ${s.so} · seed sound ${s.seed}</small></div>
+<div class="top" style="background:linear-gradient(90deg,${s.col},${s.col}cc)">${s.name} · ${s.dev}<small>${s.iast} (${s.say}) · “${s.mean}”</small><small>Station ${i+1} · note ${s.n} · ${s.so} · seed sound ${s.seed}</small></div>
 <div class="body">
 <div class="chill-line">${s.chill}</div>
 <div class="aff" style="color:${s.col}">“${s.aff}”</div>
@@ -719,23 +729,23 @@ function markBody(svg,pre,on){svg.querySelectorAll('.zn').forEach(g=>{const a=on
 function herbList(h){return h.split(', ').map(x=>{const k=x.toLowerCase();return HERB_CAUTION[k]?`${x}<sup style="color:#f4c430">*</sup>`:x}).join(', ')}
 function herbNotes(h){return h.split(', ').map(x=>HERB_CAUTION[x.toLowerCase()]?`* ${x}: ${HERB_CAUTION[x.toLowerCase()]}`:'').filter(Boolean).join(' · ')}
 function showBody(i){bodySel=i;const s=ST[i],b=BODY[i],inF=focus.includes(i);
-  $('bodyCard').innerHTML=`<div class="card"><div class="top" style="background:linear-gradient(90deg,${s.col},${s.col}cc)">${i+1} · ${s.name} · ${s.sk}<small>Note ${s.n} · ${s.so} · seed sound ${s.seed} · ${s.el}</small></div><div class="body">
+  $('bodyCard').innerHTML=`<div class="card"><div class="top" style="background:linear-gradient(90deg,${s.col},${s.col}cc)">${i+1} · ${s.name} · ${s.dev}<small>${s.iast} (${s.say}) · “${s.mean}”</small><small>Note ${s.n} · ${s.so} · seed sound ${s.seed} · ${s.el}</small></div><div class="body">
 <span class="tag t-l">📍 PINPOINT</span><div class="chill-line" style="margin-top:2px">${b.pt}</div>
 <div class="kv"><div>Body area</div><div>${b.zone}</div><div>Organs & glands</div><div>${b.organs}</div><div>Color</div><div><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${s.col};vertical-align:-1px"></span> ${s.nm}</div><div>Stones</div><div>${b.stones}</div><div>Herbs</div><div>${herbList(b.herbs)}</div><div>Affirmation</div><div style="color:${s.col};font-weight:800">“${s.aff}”</div></div>
 ${herbNotes(b.herbs)?`<div class="note" style="margin-top:4px">${herbNotes(b.herbs)}</div>`:''}
 <div class="grid2" style="gap:10px;margin-top:10px"><div style="background:#0f2416;border:1px solid #22a25a55;border-radius:12px;padding:10px"><b style="color:#8fe0b2">✅ Balanced</b><ul style="margin:6px 0 0 18px;padding:0;line-height:1.55">${b.bal.map(x=>`<li>${x}</li>`).join('')}</ul></div>
 <div style="background:#2a1512;border:1px solid #e2382b55;border-radius:12px;padding:10px"><b style="color:#f4a79e">⚠ Out of balance</b><ul style="margin:6px 0 0 18px;padding:0;line-height:1.55">${b.imb.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>
-<span class="tag t-m">🎶 WORK THIS AREA</span><div class="kv"><div>Sound</div><div>${s.n} note · bowl or flute · chant ${s.seed.split(' ')[0]}</div><div>Breath</div><div>${b.breath}</div></div>
+<span class="tag t-m">🎶 WORK THIS AREA</span><div class="kv"><div>Sound</div><div>${s.n} note · bowl or flute · chant ${s.seed.split(' ')[0]} (${s.bija})</div><div>Breath</div><div>${b.breath}</div></div>
 <div class="controls" style="margin-top:10px"><button class="b" id="bcTone">🔊 Play ${s.n}</button><button class="s" id="bcFocus">${inF?'✓ In today’s focus':'＋ Add to today’s focus'}</button></div>
 </div></div>`;
   $('bcTone').onclick=()=>sound(noteHz(60+s.pc),4,.2);$('bcFocus').onclick=()=>{focus=inF?focus.filter(x=>x!==i):[...focus,i].sort();store('rl_focus',focus);renderFocus();showBody(i)};
   markBody($('bodyfig'),'b',[...new Set([i,...focus])]);}
 function renderFocus(){$('focusList').innerHTML=focus.length?'Today\'s focus: '+focus.map(i=>`<b style="color:${ST[i].col}">${ST[i].name}</b>`).join(' · '):'Today\'s focus: none yet. Open an area and tap “＋ Add to today\'s focus”.'}
 buildBody($('bodyfig'),'b',showBody);
-$('chart').innerHTML='<tr><th>#</th><th>Chakra</th><th>Pinpoint</th><th>Color</th><th>Note · seed</th><th>Organs & glands</th><th>Stones</th><th>Herbs</th></tr>'+ST.map((s,i)=>`<tr><td style="color:${s.col};font-weight:900">${i+1}</td><td><b style="color:${s.col}">${s.name}</b><br><span class="note">${s.sk}</span></td><td>${BODY[i].pt}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${s.col}"></span> ${s.nm.replace('≈ ','')}</td><td>${s.n} · ${s.seed.split(' ')[0]}</td><td>${BODY[i].organs}</td><td>${BODY[i].stones}</td><td>${herbList(BODY[i].herbs)}</td></tr>`).join('');
+$('chart').innerHTML='<tr><th>#</th><th>Chakra</th><th>Pinpoint</th><th>Color</th><th>Note · seed</th><th>Organs & glands</th><th>Stones</th><th>Herbs</th></tr>'+ST.map((s,i)=>`<tr><td style="color:${s.col};font-weight:900">${i+1}</td><td><b style="color:${s.col}">${s.name}</b><br><span style="font-size:15px">${s.dev}</span><br><span class="note"><i>${s.iast}</i><br>“${s.mean}”</span></td><td>${BODY[i].pt}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${s.col}"></span> ${s.nm.replace('≈ ','')}</td><td>${s.n} · ${s.seed.split(' ')[0]}</td><td>${BODY[i].organs}</td><td>${BODY[i].stones}</td><td>${herbList(BODY[i].herbs)}</td></tr>`).join('');
 let cmBuilt=false;
 $('cmOpen').onclick=()=>{const list=focus.length?focus:[bodySel];if(!cmBuilt){buildBody($('cmfig'),'c',i=>{});cmBuilt=true}markBody($('cmfig'),'c',list);
-  $('cmList').innerHTML=list.map(i=>{const s=ST[i],b=BODY[i];return `<div class="card" style="margin:10px 0"><div class="top" style="background:${s.col}">${s.name} · ${b.zone}<small>${b.pt}</small></div><div class="body"><div class="chill-line">${s.chill}</div><div class="note">Working toward: ${b.bal.join(' · ')}</div><div class="kv" style="margin-top:6px"><div>Sound</div><div>${s.n} · ${s.seed.split(' ')[0]}</div><div>Stones</div><div>${b.stones}</div><div>Affirmation</div><div style="color:${s.col};font-weight:900">“${s.aff}”</div></div></div></div>`}).join('');
+  $('cmList').innerHTML=list.map(i=>{const s=ST[i],b=BODY[i];return `<div class="card" style="margin:10px 0"><div class="top" style="background:${s.col}">${s.name} · ${s.dev} · ${s.iast}<small>${b.zone} · ${b.pt}</small></div><div class="body"><div class="chill-line">${s.chill}</div><div class="note">Working toward: ${b.bal.join(' · ')}</div><div class="kv" style="margin-top:6px"><div>Sound</div><div>${s.n} · ${s.seed.split(' ')[0]}</div><div>Stones</div><div>${b.stones}</div><div>Affirmation</div><div style="color:${s.col};font-weight:900">“${s.aff}”</div></div></div></div>`}).join('');
   $('clientMap').style.display='flex'};
 $('cmClose').onclick=()=>$('clientMap').style.display='none';
 $('focusClear').onclick=()=>{focus=[];store('rl_focus',focus);renderFocus();showBody(bodySel)};
@@ -743,7 +753,7 @@ renderFocus();showBody(0);
 
 /* ---------- session mode ---------- */
 let SF=null,sI=0,sGuide=null;
-function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').textContent=`${st.sk} · ${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;$('sessCount').textContent=`Station ${sI+1} of 7`+(sGuide?' · auto':' · tap ▶ for the next sound');glowPts(SF,[sI])}
+function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').innerHTML=`<span style="font-size:1.25em">${st.dev}</span> · <i>${st.iast}</i> · “${st.mean}”<br>${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;$('sessCount').textContent=`Station ${sI+1} of 7`+(sGuide?' · auto':' · tap ▶ for the next sound');glowPts(SF,[sI])}
 $('sessOpen').onclick=()=>{if(!SF){SF=buildFigure($('sfig'),'s',i=>sShow(i));}applyLayer(SF);$('session').classList.add('on');sShow(selected>=0?selected:0);try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}catch(e){}};
 function sStopGuide(){if(sGuide){clearInterval(sGuide.timer);sGuide=null}$('sGuide').textContent='▶ Guided journey';$('sProg').style.width='0'}
 $('sessClose').onclick=()=>{sStopGuide();$('session').classList.remove('on');try{document.fullscreenElement&&document.exitFullscreen()}catch(e){}};
