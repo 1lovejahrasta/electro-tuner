@@ -1513,6 +1513,11 @@ function sysFind(){
   Object.keys(SYSEL).forEach(k=>delete SYSEL[k]);Object.assign(SYSEL,{tuner:tw,coach,body:fig,healing:hm,journal:$('cjPanel'),study:$('study'),trail:$('trail')&&$('trail').closest('.panel'),ladder:P(/Harmonic ladder|Resonance layers/),bands:$('bands')&&$('bands').closest('.panel'),teacher:P(/^Teacher/),plate:P(/sand plate/i),scope:$('wave')&&$('wave').closest('.panel')});
   const sp=$('spectrum')&&$('spectrum').closest('.panel');if(sp)SYSEL.scope2=sp;
 }
+function sysNeedsMic(d){return d&&(d.needsMic||d.dep==='tuner'||['plate','scope','teacher'].includes(d.id))}
+window.sysNeedsMic=sysNeedsMic;
+function sysMicStrip(id){const d=SYSDEF.find(x=>x.id===id),el=SYSEL[id];if(!el||!sysNeedsMic(d)||id==='tuner'||el.querySelector(':scope>.sys-micoff'))return;
+  const m=document.createElement('div');m.className='sys-micoff';m.innerHTML='🎙 <span>Mic is off, so this has nothing to show yet.</span><button class="b" onclick="start()">Start listening</button>';
+  const bar=el.querySelector(':scope>.sys-bar');if(bar)bar.after(m);else el.prepend(m)}
 function sysHeader(id){const d=SYSDEF.find(x=>x.id===id),el=SYSEL[id];if(!el||el.querySelector(':scope>.sys-bar'))return;
   const bar=document.createElement('div');bar.className='sys-bar';
   bar.innerHTML=`<span class="sys-name">${d.icon} ${d.label}</span><span class="sys-state" data-st="${id}"></span><span style="flex:1"></span>${d.help?`<button class="guide-i" onclick="guideOpen('${d.help}')" aria-label="How to read it">?</button>`:''}<button class="sys-btn" onclick="sysMin('${id}')" title="Minimize">–</button><button class="sys-btn pw" onclick="sysPower('${id}')" title="Turn off">⏻</button>`;
@@ -1524,14 +1529,15 @@ function sysApply(){
     const st=document.querySelector(`[data-st="${d.id}"]`);if(st)st.textContent=d.id==='tuner'?(running?'● LISTENING':'○ MIC OFF'):(s.on?'● ON':'')});
   // the drone follows its switch
   if(typeof med!=='undefined'){if(SYS.drone.on&&!med&&!running){try{medStart()}catch(e){}}else if(!SYS.drone.on&&med){try{medStop()}catch(e){}}}
-  dockRender();sysSave();
+  dockRender();sysSave();if(typeof LV!=='undefined')lvSoon();
 }
 function sysPower(id,force){const s=SYS[id],d=SYSDEF.find(x=>x.id===id);const on=force!==undefined?force:!s.on;s.on=on;if(on)s.min=false;if(on&&force===undefined)wakeVoice();
   if(on&&d.dep&&!SYS[d.dep].on){SYS[d.dep].on=true;SYS[d.dep].min=false}
+  if(on&&force===undefined&&sysNeedsMic(d)&&!running&&inst!=='midi'){try{start()}catch(e){}}
   if(id==='tuner'&&!on){SYSDEF.filter(x=>x.dep==='tuner').forEach(x=>{if(x.id!=='study'||!SM.on)SYS[x.id].on=false});if(running)stop()}
   if(id==='study'&&!on&&SM.on)smFinish();
   if(on&&d.tab){const b=document.querySelector(`[data-v="${d.tab.replace('v-','')}"]`);if(b&&!$(d.tab).classList.contains('on'))b.click()}
-  sysApply();if(on&&SYSEL[id]&&!d.audio)setTimeout(()=>SYSEL[id].scrollIntoView({behavior:'smooth',block:'start'}),60)}
+  sysApply();if(on&&SYSEL[id]&&!d.audio)setTimeout(()=>sysFocus(id),260)}
 function sysMin(id){SYS[id].min=!SYS[id].min;sysApply()}
 const WORKSPACES={
  tune:{label:'🎯 Tune only',sys:['tuner']},
@@ -1542,7 +1548,7 @@ const WORKSPACES={
 };
 function sysWorkspace(k){const W=WORKSPACES[k];if(k!=='off')wakeVoice();SYSDEF.forEach(d=>{if(d.id==='drone')return;SYS[d.id]={on:W.sys.includes(d.id),min:false}});if(k==='off'){if(running)stop();if(SM.on)smFinish()}sysApply();dockClose();window.scrollTo({top:0,behavior:'smooth'})}
 function dockRender(){let dk=$('sysDock');if(!dk){dk=document.createElement('div');dk.id='sysDock';dk.className='sys-dock';document.body.appendChild(dk)}
-  const chips=SYSDEF.filter(d=>SYS[d.id].on).map(d=>`<button class="dock-chip${SYS[d.id].min?' min':''}" onclick="${SYS[d.id].min?`sysMin('${d.id}')`:`(SYSEL['${d.id}']||document.body).scrollIntoView({behavior:'smooth',block:'start'})`}" title="${d.label}">${d.icon}<i></i></button>`).join('');
+  const chips=SYSDEF.filter(d=>SYS[d.id].on).map(d=>`<button class="dock-chip${SYS[d.id].min?' min':''}" onclick="sysGo('${d.id}')" title="${d.label}${SYS[d.id].min?' · minimized, tap to open':' · tap to go, tap again to minimize'}">${d.icon}<i></i></button>`).join('');
   dk.innerHTML=`<button class="dock-main" onclick="dockOpen()">⚙ Systems <b>${SYSDEF.filter(d=>SYS[d.id].on).length}</b></button><div class="dock-chips">${chips||'<span class="note">Nothing on · tap Systems</span>'}</div><button class="dock-mic${running?' on':''}" onclick="running?stop():start()" title="Microphone">🎙</button>`;
 }
 function dockOpen(){let s=$('dockSheet');if(!s){s=document.createElement('div');s.id='dockSheet';s.className='guide-sheet';document.body.appendChild(s);s.addEventListener('click',e=>{if(e.target===s)dockClose()})}
@@ -1554,9 +1560,62 @@ function dockOpen(){let s=$('dockSheet');if(!s){s=document.createElement('div');
   s.classList.add('on')}
 function dockClose(){const s=$('dockSheet');if(s)s.classList.remove('on')}
 Object.assign(window,{sysPower,sysMin,sysWorkspace,dockOpen,dockClose,SYSEL});
-sysFind();SYSDEF.forEach(d=>{if(d.id!=='drone')sysHeader(d.id)});
+sysFind();SYSDEF.forEach(d=>{if(d.id!=='drone'){sysHeader(d.id);sysMicStrip(d.id)}});
+/* ===== Live layout: two balanced columns on the open Fold, one column on the cover screen =====
+   Shortest-column masonry in a fixed priority order; the tuner is pinned top-left.
+   Reflows only on power / minimize / restore / rotate / fold, never on live sound updates. */
+var LV={order:['tuner','station','coach','body','healing','teacher','study','journal','trail','ladder','bands'],el:{},wide:null,t:0};
+(function lvInit(){
+  const g=document.querySelector('#v-live .grid2');if(!g)return;const cols=[...g.children];LV.cols=cols;
+  const wrap=(id,nodes)=>{const w=document.createElement('div');w.className='panel lv-card';w.dataset.sys=id;nodes.filter(Boolean).forEach(n=>w.appendChild(n));return w};
+  // tuner card carries its stats and caption with it
+  const big=SYSEL.tuner&&SYSEL.tuner.closest('.panel');
+  const minis=big&&big.querySelector(':scope>.minis'),cap=big&&big.querySelector(':scope>#caption'),mm=$('miniMon');
+  LV.el.tuner=wrap('tuner',[mm,SYSEL.tuner,minis,cap]);
+  ['coach','healing','journal','study'].forEach(k=>{const e=SYSEL[k];if(!e)return;LV.el[k]=e.classList.contains('panel')?e:wrap(k,[e])});
+  ['body','teacher','trail','ladder','bands'].forEach(k=>{if(SYSEL[k])LV.el[k]=SYSEL[k]});
+  const cb=$('cardBox');if(cb){LV.el.station=cb;cb.classList.add('lv-card');cb.dataset.sys='station'}
+  // tuner wrapper replaces the old shared panel
+  Object.values(LV.el).forEach(e=>e.classList.add('lv-card'));
+  if(big&&big.parentNode){big.parentNode.insertBefore(LV.el.tuner,big);if(!big.children.length)big.remove();else big.classList.add('lv-left')}
+  // systems now point at their whole card, so power/minimize hide the whole card
+  ['tuner','coach','healing','journal','study'].forEach(k=>{if(LV.el[k])SYSEL[k]=LV.el[k]});
+})();
+function lvVisible(id){const e=LV.el[id];return e&&!e.classList.contains('sys-hidden')&&e.offsetParent!==null||(e&&id==='station')}
+function lvLayout(){
+  if(!LV.cols)return;const wide=innerWidth>=760;LV.wide=wide;
+  const live=$('v-live').classList.contains('on');if(!live){LV.dirty=true;return}LV.dirty=false;
+  // keep the reader's place: remember the first card on screen
+  let anchor=null,anchorTop=0;for(const id of LV.order){const e=LV.el[id];if(!e||e.classList.contains('sys-hidden'))continue;const r=e.getBoundingClientRect();if(r.bottom>70){anchor=e;anchorTop=r.top;break}}
+  const [A,B]=LV.cols;const h=[0,0];
+  for(const id of LV.order){const e=LV.el[id];if(!e)continue;
+    if(e.classList.contains('sys-hidden')){if(e.parentNode!==A&&e.parentNode!==B)A.appendChild(e);continue}
+    const c=(!wide||id==='tuner')?0:(h[0]<=h[1]?0:1);const col=c?B:A;col.appendChild(e);h[c]+=e.offsetHeight+12}
+  g2Mode(wide);
+  if(anchor){const d=anchor.getBoundingClientRect().top-anchorTop;if(Math.abs(d)>2)scrollBy(0,d)}
+}
+function g2Mode(w){const g=document.querySelector('#v-live .grid2');if(g)g.classList.toggle('lv-two',w)}
+function lvSoon(){clearTimeout(LV.t);LV.t=setTimeout(lvLayout,200)}
+window.lvLayout=lvLayout;
+addEventListener('resize',()=>{const w=innerWidth>=760;if(w!==LV.wide)lvSoon();else lvSoon()});
+document.querySelectorAll('nav button[data-v]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.v==='live')setTimeout(lvLayout,30)}));
+/* dock chip: off → power on + go; minimized → restore + go; open but away → go; open and on screen → minimize */
+function lvOnScreen(el){const r=el.getBoundingClientRect();const top=Math.max(r.top,60),bot=Math.min(r.bottom,innerHeight-70);return bot-top>=60}
+function sysGo(id){const d=SYSDEF.find(x=>x.id===id);if(!d)return;const s=SYS[id];
+  if(d.audio){sysPower(id);return}
+  if(!s.on){sysPower(id);setTimeout(()=>sysFocus(id),260);return}
+  if(s.min){s.min=false;sysApply();setTimeout(()=>sysFocus(id),260);return}
+  const el=SYSEL[id];if(!el)return;
+  if(d.tab&&!$(d.tab).classList.contains('on')){const b=document.querySelector(`[data-v="${d.tab.replace('v-','')}"]`);if(b)b.click();setTimeout(()=>sysFocus(id),120);return}
+  if(!d.tab&&!$('v-live').classList.contains('on')){const b=document.querySelector('[data-v="live"]');if(b)b.click();setTimeout(()=>sysFocus(id),120);return}
+  if(lvOnScreen(el)){sysMin(id)}else sysFocus(id)}
+function sysFocus(id){const el=SYSEL[id];if(!el)return;const y=el.getBoundingClientRect().top+scrollY-62;
+  scrollTo({top:Math.max(0,y),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  el.classList.remove('lv-pulse');void el.offsetWidth;el.classList.add('lv-pulse')}
+window.sysGo=sysGo;window.sysFocus=sysFocus;
+
 if(typeof med!=='undefined'&&med)SYS.drone.on=true;
 sysApply();setInterval(()=>{const st=document.querySelector('[data-st="tuner"]');if(st)st.textContent=running?'● LISTENING':'○ MIC OFF';const m=document.querySelector('.dock-mic');if(m)m.classList.toggle('on',running);if(typeof med!=='undefined'&&SYS.drone.on!==!!med){SYS.drone.on=!!med;dockRender();sysSave()}},500);
 
-setInterval(()=>{const b=$('tmPower');if(!b)return;b.classList.toggle('on',running);b.querySelector('span').textContent=running?'ON':'OFF'},300);
+setInterval(()=>{document.documentElement.classList.toggle('mic-live',!!running);const dm=document.querySelector('.dock-mic');if(dm)dm.classList.toggle('on',!!running);const b=$('tmPower');if(!b)return;b.classList.toggle('on',running);b.querySelector('span').textContent=running?'ON':'OFF'},300);
 })();

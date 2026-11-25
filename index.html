@@ -287,6 +287,21 @@ main{padding-top:4px}
 #v-live>.panel.gold{margin-top:4px}
 .dialwrap{max-width:clamp(230px,calc((100dvh - 480px)/.92),520px)}
 @media(max-width:520px){.mic-w{display:none}#tuneBtn{font-size:12px!important;padding:7px 9px!important}#v-live>.panel.gold .controls>span[style*="flex:1"]{display:none}}
+
+.sys-micoff{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;padding:8px 10px;border-radius:12px;border:1px dashed #FFC92899;background:rgba(255,201,40,.07);font-size:13px;color:var(--fg)}
+.sys-micoff span{flex:1;min-width:150px}.sys-micoff .b{padding:6px 12px;font-size:13px}
+.mic-live .sys-micoff{display:none}
+
+/* masonry columns (v52) */
+@media(min-width:720px){.grid2{grid-template-columns:1fr}}
+.grid2.lv-two{grid-template-columns:1fr 1fr!important;gap:0 12px;align-items:start}
+.grid2>div{min-width:0}
+.lv-card{margin:0 0 12px!important}
+.lv-pulse{animation:lvPulse .6s ease-out}
+@keyframes lvPulse{0%{box-shadow:0 0 0 2px #FFC928,0 0 18px #FFC92888}100%{box-shadow:0 0 0 0 transparent}}
+@media(prefers-reduced-motion:reduce){.lv-pulse{animation:none}}
+.dock-chip.min{opacity:.75;border-color:#FFC92899}
+.panel.lv-left{display:none}
 </style>
 </head>
 <body>
@@ -540,6 +555,6 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <footer>Electro Tuner · created by Jah Rasta · One love 🟥🟨🟩</footer>
 </main>
 
-<script src="app.js?v=51"></script>
+<script src="app.js?v=53"></script>
 </body>
 </html>
