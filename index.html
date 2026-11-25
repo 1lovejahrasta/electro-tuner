@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Resonance Lab · v1.5 · Zion 3000</title>
+<title>Electro Tuner · Created by Jah Rasta</title>
 <style>
 :root{color-scheme:dark;--bg:#0b0f0a;--panel:#141a12;--line:#2c3a27;--fg:#f6f1de;--muted:#c3bfa8;--red:#e2382b;--gold:#f4c430;--green:#22a25a}
 *{box-sizing:border-box}
@@ -116,7 +116,8 @@ body.d-viber .saiyan{display:none!important}
 <div class="flag"></div>
 <header>
 <div class="eyebrow">FIELD INSTRUMENT 01 · v1.5 · ZION 3000</div>
-<h1>Resonance Lab</h1>
+<h1>Electro Tuner</h1>
+<div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin:-4px 0 10px;text-transform:uppercase">Created by Jah Rasta</div>
 <div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
 <button class="sessbtn" id="sessOpen">🧘 Session mode</button></div>
 </header>
@@ -284,7 +285,7 @@ The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (D
 <div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="60">1 min each</option><option value="120" selected>2 min each</option><option value="180">3 min each</option><option value="300">5 min each</option></select><select class="voiceSel" style="width:auto;padding:6px"><option value="bowl">🥣 Bowl</option><option value="flute">🪈 Flute</option></select><button class="s" id="sNext">▶</button></div>
 <p class="note" style="text-align:center;margin-top:8px">Sound healing here is a relaxation and reflection practice, not a medical treatment.</p>
 </div></div>
-<footer>Resonance Lab v1.5 · by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
+<footer>Electro Tuner v1.5 · created by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
 </main>
 
 <script>
@@ -687,7 +688,7 @@ function renderLog(){
   $('summary').innerHTML='<b>By station</b> (what you felt most, average scale):<br>'+ST.filter(s=>by[s.name]).map(s=>{const rs=by[s.name],f={};rs.forEach(r=>{if(r.feeling)f[r.feeling]=(f[r.feeling]||0)+1});const top=Object.entries(f).sort((a,b)=>b[1]-a[1])[0];const sc=rs.filter(r=>r.scale).map(r=>+r.scale);return `<span style="color:${s.col}">●</span> ${s.name}: ${rs.length}× · ${top?top[0]:'—'} · scale ${sc.length?(sc.reduce((a,b)=>a+b,0)/sc.length).toFixed(1):'—'}`}).join('<br>');
   $('logTable').innerHTML='<tr><th>When</th><th>Note</th><th>Station</th><th>Feeling</th><th>Scale</th><th>Body</th></tr>'+log.slice(-25).reverse().map(r=>`<tr><td>${esc(new Date(r.time).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}))}</td><td>${esc(r.note)}</td><td>${esc(r.station)}</td><td>${esc(r.feeling)}</td><td>${esc(r.scale)}</td><td>${esc(r.body)}</td></tr>`).join('');
 }
-$('export').onclick=()=>{const log=getLog();if(!log.length)return;const keys=Object.keys(log[0]);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=keys.join(',')+'\n'+log.map(r=>keys.map(k=>q(r[k])).join(',')).join('\n')+'\n';const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='resonance-log-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)};
+$('export').onclick=()=>{const log=getLog();if(!log.length)return;const keys=Object.keys(log[0]);const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const csv=keys.join(',')+'\n'+log.map(r=>keys.map(k=>q(r[k])).join(',')).join('\n')+'\n';const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download='electro-tuner-log-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)};
 let clearArm=0;$('clear').onclick=()=>{if(Date.now()-clearArm<3000){store('rl_log',[]);renderLog();$('clear').textContent='🗑 Clear log';clearArm=0}else{clearArm=Date.now();$('clear').textContent='Tap again to erase';setTimeout(()=>$('clear').textContent='🗑 Clear log',3000)}};
 
 function setInst(v){inst=v;store('rl_inst',v);$('inst').value=v;$('midiBox').style.display=v==='midi'?'block':'none';const map={bowl:'Singing bowl',flute:'Native flute',voice:'Voice / humming',guitar:'Guitar',keys:'Keyboard',midi:'MIDI instrument'};$('source').value=map[v];held.clear();capT=0}
