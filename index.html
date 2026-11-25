@@ -1,5 +1,220 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#102821"><title>Resonance Lab · Field Instrument 01</title><style>
-:root{color-scheme:dark;--bg:#0d1e19;--panel:#18352b;--line:#436c5a;--fg:#f3f0df;--muted:#b4c9bb;--accent:#d7c281;--mint:#80d6ad}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0%,#26493a,#0d1e19 55%);font-family:system-ui,-apple-system,Arial,sans-serif;color:var(--fg)}main{max-width:760px;margin:auto;padding:22px 16px 60px}.eyebrow{letter-spacing:.17em;font-size:11px;color:var(--mint);font-weight:700}h1{font-size:clamp(29px,7vw,48px);margin:5px 0}h2{font-size:19px;margin:0 0 10px}.lead{color:var(--muted);line-height:1.5;margin:0 0 22px}.panel{background:rgba(24,53,43,.9);border:1px solid var(--line);border-radius:18px;padding:16px;margin:14px 0}.controls{display:flex;gap:9px;flex-wrap:wrap}button{border:1px solid var(--accent);background:var(--accent);color:#18281f;border-radius:12px;padding:12px 16px;font-weight:750;font-size:14px}button.secondary{background:transparent;color:var(--fg);border-color:var(--line)}button:disabled{opacity:.4}.status{font-size:13px;color:var(--muted);margin-top:12px;min-height:20px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{background:#102b22;border:1px solid #365f4b;border-radius:12px;padding:12px 6px;text-align:center}.metric strong{display:block;font-size:clamp(17px,5vw,26px);color:var(--accent);font-variant-numeric:tabular-nums}.metric span{font-size:11px;color:var(--muted)}canvas{width:100%;height:140px;border-radius:12px;background:#0e251e;display:block}.note{font-size:12px;line-height:1.6;color:var(--muted)}label{font-weight:650;font-size:13px;display:block;margin:9px 0 5px}textarea,select{width:100%;color:var(--fg);background:#102b22;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}textarea{min-height:75px;resize:vertical}details{border-top:1px solid var(--line);padding:12px 0}details:first-of-type{border-top:0}summary{cursor:pointer;font-weight:700}details p{line-height:1.55;color:var(--muted);font-size:14px}footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:22px}a{color:#a7e4c1}@media(max-width:370px){main{padding:14px 10px}.panel{padding:12px}.metrics{gap:4px}}
-</style></head><body><main><div class="eyebrow">FIELD INSTRUMENT 01 · PHONE FIRST</div><h1>Resonance Lab</h1><p class="lead">See sound. Measure a signal. Understand what the numbers mean. No AI or account required. Microphone data stays in this browser while you use the instrument.</p><section class="panel"><div class="controls"><button id="start">🎙 Start microphone</button><button class="secondary" id="stop" disabled>Stop</button><button class="secondary" id="save" disabled>Save observation (CSV)</button></div><div id="status" class="status" role="status">Microphone is off. Press Start and grant permission.</div></section><section class="panel"><h2>Live measurements</h2><div class="metrics"><div class="metric"><strong id="freq">—</strong><span>Peak frequency (Hz)</span></div><div class="metric"><strong id="level">—</strong><span>Signal level (dBFS)</span></div><div class="metric"><strong id="rms">—</strong><span>Waveform RMS</span></div></div><p class="note">Peak frequency is the strongest spectral bin, not guaranteed to be the musical note or fundamental. dBFS is a digital signal level, <strong>not</strong> a calibrated sound-pressure level (dB SPL).</p></section><section class="panel"><h2>Waveform · amplitude over time</h2><canvas id="wave" aria-label="Real-time microphone waveform"></canvas><p class="note">This line shows the microphone's electrical signal after digitization. A taller wave generally means a stronger recorded signal.</p></section><section class="panel"><h2>Spectrum · frequency content</h2><canvas id="spectrum" aria-label="Real-time microphone frequency spectrum"></canvas><p class="note">Bars show spectral energy from approximately 50 to 4,000 Hz. A clean whistle produces a narrow peak; speech and flute tones may show multiple peaks or harmonics.</p></section><section class="panel"><h2>Field notes</h2><label for="source">What are you testing?</label><select id="source"><option>Native flute</option><option>Guitar</option><option>Voice / humming</option><option>Environmental sound</option><option>Quiet room control</option><option>Other</option></select><label for="notes">Your observation or question</label><textarea id="notes" placeholder="Example: The peak changed when I played a higher flute note. Does it repeat?"></textarea><p class="note">Save observation exports one row with a timestamp, instrument, measured values and notes. No raw audio is saved.</p></section><section class="panel"><h2>Learn while you measure</h2><details open><summary>What is frequency?</summary><p>The number of cycles per second, measured in hertz (Hz). Sound pitch is usually associated with fundamental frequency, but this simple meter shows the strongest spectral peak.</p></details><details><summary>What is amplitude?</summary><p>The size of a vibration or signal. This instrument calculates RMS, a useful summary of the waveform's signal magnitude. It is affected by microphone sensitivity and phone processing.</p></details><details><summary>What is resonance?</summary><p>A system can respond more strongly near certain frequencies. To test it, vary one input at a time, observe the response, and repeat under the same conditions.</p></details><details><summary>How do I design a real experiment?</summary><p>Write a prediction; measure a baseline or control; change only one variable; repeat; compare results. A detected pattern is not automatically evidence of its cause.</p></details><details><summary>What can this instrument NOT measure?</summary><p>It does not measure biological healing, spiritual messages, electromagnetic fields, time, or the spatial shape of sound in a room. A phone microphone and FFT alone cannot establish those things.</p></details></section><footer>Resonance Lab v1 · Standalone experimental instrument. For microphone access use Chrome/another compatible browser over HTTPS or a supported local file origin; browsers may refuse microphone access when opened in some file viewers. For later ESSI integration, CSV exports remain portable.</footer></main><script>
-(()=>{let ctx=null,stream=null,source=null,analyser=null,raf=0,td=null,fd=null,running=false,latest={peak:null,dbfs:null,rms:null};const $=id=>document.getElementById(id);const wave=$('wave'),spec=$('spectrum');function canvasContext(canvas){const dpr=window.devicePixelRatio||1,r=canvas.getBoundingClientRect();canvas.width=Math.max(1,Math.round(r.width*dpr));canvas.height=Math.max(1,Math.round(r.height*dpr));return canvas.getContext('2d')}function blank(){for(const c of [wave,spec]){const g=canvasContext(c);g.fillStyle='#0e251e';g.fillRect(0,0,c.width,c.height);g.strokeStyle='#416452';g.beginPath();g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke()}}function draw(){if(!running)return;analyser.getFloatTimeDomainData(td);analyser.getFloatFrequencyData(fd);let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];const rms=Math.sqrt(sq/td.length),dbfs=rms>0?20*Math.log10(rms):-Infinity;const sampleRate=ctx.sampleRate,binHz=sampleRate/analyser.fftSize;let best=-Infinity,bestIndex=-1;for(let i=Math.max(1,Math.ceil(50/binHz));i<Math.min(fd.length,Math.floor(4000/binHz));i++){if(fd[i]>best){best=fd[i];bestIndex=i}}const peak=rms>0.003&&best>-85?bestIndex*binHz:null;latest={peak,dbfs:Number.isFinite(dbfs)?dbfs:null,rms};$('freq').textContent=peak===null?'—':Math.round(peak);$('level').textContent=Number.isFinite(dbfs)?dbfs.toFixed(1):'—';$('rms').textContent=rms.toFixed(3);let g=canvasContext(wave),w=wave.width,h=wave.height;g.fillStyle='#0e251e';g.fillRect(0,0,w,h);g.strokeStyle='#294f3e';g.beginPath();g.moveTo(0,h/2);g.lineTo(w,h/2);g.stroke();g.strokeStyle='#80d6ad';g.lineWidth=2*(window.devicePixelRatio||1);g.beginPath();for(let i=0;i<td.length;i++){const x=i*w/(td.length-1),y=h/2-td[i]*h*.44;i?g.lineTo(x,y):g.moveTo(x,y)}g.stroke();g=canvasContext(spec);w=spec.width;h=spec.height;g.fillStyle='#0e251e';g.fillRect(0,0,w,h);const bars=80,start=50,end=Math.min(4000,sampleRate/2),left=Math.log(start),right=Math.log(end);for(let j=0;j<bars;j++){const f1=Math.exp(left+j/bars*(right-left)),f2=Math.exp(left+(j+1)/bars*(right-left));const a=Math.max(1,Math.floor(f1/binHz)),b=Math.min(fd.length-1,Math.max(a,Math.ceil(f2/binHz)));let v=-120;for(let k=a;k<=b;k++)v=Math.max(v,fd[k]);const norm=Math.max(0,Math.min(1,(v+100)/85));const bh=norm*h*.92;g.fillStyle=j%2?'#7fcfaa':'#d7c281';g.fillRect(j*w/bars,h-bh,Math.max(1,w/bars-1),bh)}raf=requestAnimationFrame(draw)}async function start(){if(running)return;if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('status').textContent='Microphone unavailable in this viewer. Open this page in a compatible browser using HTTPS or a supported file URL.';return}try{$('status').textContent='Requesting microphone permission…';stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});ctx=new (window.AudioContext||window.webkitAudioContext)();await ctx.resume();source=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=4096;analyser.smoothingTimeConstant=.65;source.connect(analyser);td=new Float32Array(analyser.fftSize);fd=new Float32Array(analyser.frequencyBinCount);running=true;$('start').disabled=true;$('stop').disabled=false;$('save').disabled=false;$('status').textContent='Live · microphone enabled · sample rate '+ctx.sampleRate+' Hz. Audio is not uploaded or recorded.';draw()}catch(e){$('status').textContent='Could not start microphone: '+(e.message||e.name)+'. Check browser permissions and whether this page uses HTTPS.';stop()}}function stop(){running=false;cancelAnimationFrame(raf);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}if(source){source.disconnect();source=null}if(ctx){ctx.close().catch(()=>{});ctx=null}analyser=null;$('start').disabled=false;$('stop').disabled=true;$('save').disabled=true;if(!$('status').textContent.startsWith('Could not'))$('status').textContent='Microphone off. Nothing is being recorded.';blank()}function csv(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}function save(){const line=[new Date().toISOString(),$('source').value,latest.peak===null?'':latest.peak.toFixed(1),latest.dbfs===null?'':latest.dbfs.toFixed(1),latest.rms===null?'':latest.rms.toFixed(5),$('notes').value];const body='timestamp_utc,source,peak_hz,digital_level_dbfs,waveform_rms,observation\n'+line.map(csv).join(',')+'\n';const url=URL.createObjectURL(new Blob([body],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='resonance-observation-'+new Date().toISOString().replace(/[:.]/g,'-')+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500)}$('start').addEventListener('click',start);$('stop').addEventListener('click',stop);$('save').addEventListener('click',save);window.addEventListener('pagehide',()=>{if(running)stop()});blank()})();
-</script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f0a">
+<title>Resonance Lab · Field Instrument 01</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0f0a;--panel:#141a12;--line:#2c3a27;--fg:#f6f1de;--muted:#c3bfa8;--red:#e2382b;--gold:#f4c430;--green:#22a25a}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 15% 0%,#1d2a17,#0b0f0a 60%);font-family:system-ui,-apple-system,Arial,sans-serif;color:var(--fg)}
+.flag{height:6px;background:linear-gradient(90deg,var(--red) 0 33.3%,var(--gold) 33.3% 66.6%,var(--green) 66.6%)}
+main{max-width:760px;margin:auto;padding:20px 16px 60px}
+.eyebrow{letter-spacing:.17em;font-size:11px;color:var(--green);font-weight:800}
+h1{font-size:clamp(30px,7.5vw,50px);margin:4px 0;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:19px;margin:0 0 10px;color:var(--gold)}
+.lead{color:var(--muted);line-height:1.5;margin:0 0 20px}
+.panel{background:rgba(20,26,18,.92);border:1px solid var(--line);border-left:4px solid var(--green);border-radius:16px;padding:16px;margin:14px 0}
+.panel.gold{border-left-color:var(--gold)}.panel.red{border-left-color:var(--red)}
+.controls{display:flex;gap:9px;flex-wrap:wrap}
+button{border:1px solid var(--gold);background:var(--gold);color:#1a1405;border-radius:12px;padding:12px 16px;font-weight:800;font-size:14px}
+button.secondary{background:transparent;color:var(--fg);border-color:var(--line)}
+button:disabled{opacity:.4}
+.status{font-size:13px;color:var(--muted);margin-top:12px;min-height:20px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.metric{background:#0f140d;border:1px solid var(--line);border-radius:12px;padding:12px 6px;text-align:center}
+.metric strong{display:block;font-size:clamp(17px,5vw,26px);font-variant-numeric:tabular-nums}
+.metric:nth-child(1) strong{color:var(--red)}.metric:nth-child(2) strong{color:var(--gold)}.metric:nth-child(3) strong{color:var(--green)}
+.metric span{font-size:11px;color:var(--muted)}
+canvas{width:100%;height:140px;border-radius:12px;background:#0d120b;display:block}
+#plate{height:auto;aspect-ratio:1/1;max-width:420px;margin:0 auto;background:#1a1408;border:2px solid #3a2e12}
+.plateinfo{display:flex;justify-content:space-between;gap:8px;margin:10px 0 4px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.plateinfo b{color:var(--gold)}
+.note{font-size:12px;line-height:1.6;color:var(--muted)}
+label{font-weight:650;font-size:13px;display:block;margin:9px 0 5px}
+textarea,select{width:100%;color:var(--fg);background:#0f140d;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
+textarea{min-height:70px;resize:vertical}
+details{border-top:1px solid var(--line);padding:12px 0}details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:700}
+details p{line-height:1.55;color:var(--muted);font-size:14px}
+footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:22px}
+@media(max-width:370px){main{padding:14px 10px}.panel{padding:12px}.metrics{gap:4px}}
+</style>
+</head>
+<body>
+<div class="flag"></div>
+<main>
+<div class="eyebrow">FIELD INSTRUMENT 01 · PHONE FIRST · v1.1</div>
+<h1>Resonance Lab</h1>
+<p class="lead">See sound. Measure a signal. Watch it become geometry. No AI or account needed. Your microphone sound stays on this phone.</p>
+
+<section class="panel gold">
+<div class="controls">
+<button id="start">🎙 Start microphone</button>
+<button class="secondary" id="stop" disabled>Stop</button>
+<button class="secondary" id="save" disabled>Save observation (CSV)</button>
+</div>
+<div id="status" class="status" role="status">Microphone is off. Press Start and allow the microphone.</div>
+</section>
+
+<section class="panel">
+<h2>Live measurements</h2>
+<div class="metrics">
+<div class="metric"><strong id="freq">—</strong><span>Peak frequency (Hz)</span></div>
+<div class="metric"><strong id="noteName">—</strong><span>Nearest note (A=440)</span></div>
+<div class="metric"><strong id="level">—</strong><span>Signal level (dBFS)</span></div>
+</div>
+<p class="note">Peak frequency is the strongest part of the sound. The note is the closest musical note, with how many cents sharp (+) or flat (−). dBFS is a digital level, not a calibrated loudness meter.</p>
+</section>
+
+<section class="panel red">
+<h2>Sacred Geometry · sand plate</h2>
+<canvas id="plate" aria-label="Simulated sand plate pattern"></canvas>
+<div class="plateinfo"><span>Pattern: <b id="mode">waiting for sound</b></span><span>Plate tuned to: <b id="modeHz">—</b></span></div>
+<div class="controls" style="margin-top:8px">
+<button class="secondary" id="scatter">✋ Scatter the sand</button>
+<button class="secondary" id="hold">📌 Hold pattern</button>
+</div>
+<p class="note">This is a <b>simulation</b> of a Chladni plate: a metal plate with sand on it. When the plate vibrates, sand bounces off the moving parts and gathers on the still lines, called nodes. Higher notes make more detailed patterns. The same idea is called <b>cymatics</b>.</p>
+</section>
+
+<section class="panel">
+<h2>Waveform · amplitude over time</h2>
+<canvas id="wave" aria-label="Real-time microphone waveform"></canvas>
+<p class="note">The microphone's signal as a moving line. A taller wave means a stronger recorded signal.</p>
+</section>
+
+<section class="panel gold">
+<h2>Spectrum · frequency content</h2>
+<canvas id="spectrum" aria-label="Real-time frequency spectrum"></canvas>
+<p class="note">Bars from about 50 to 4,000 Hz. Red = low, gold = middle, green = high. A clean whistle shows one tall bar; flute and voice show several (harmonics).</p>
+</section>
+
+<section class="panel">
+<h2>Field notes</h2>
+<label for="source">What are you testing?</label>
+<select id="source"><option>Native flute</option><option>Guitar</option><option>Voice / humming</option><option>Singing bowl</option><option>Environmental sound</option><option>Quiet room control</option><option>Other</option></select>
+<label for="body">What did you feel in your body? (where, how)</label>
+<textarea id="body" placeholder="Example: Low note — buzzing in my chest, breath slowed down."></textarea>
+<label for="notes">Your observation or question</label>
+<textarea id="notes" placeholder="Example: The pattern got more detailed on the higher flute note. Does it repeat?"></textarea>
+<p class="note">Save exports one row: time, instrument, Hz, note, level, sand pattern, your body notes and observation. No audio is saved. Over many sessions, your own notes become the data for comparing notes and feelings.</p>
+</section>
+
+<section class="panel red">
+<h2>Learn while you measure</h2>
+<details open><summary>What is frequency?</summary><p>How many vibrations happen each second, measured in hertz (Hz). 440 Hz means the air moves back and forth 440 times a second. Higher Hz sounds like a higher pitch.</p></details>
+<details><summary>What is a Chladni pattern?</summary><p>In 1787 Ernst Chladni put sand on a metal plate and played it with a violin bow. The sand formed shapes. Each shape belongs to one way the plate can vibrate, called a mode. The sand shows where the plate stands still.</p></details>
+<details><summary>Does the pattern show what happens in my body?</summary><p>No. The pattern shows how a plate vibrates at that frequency. Your body is different: it is soft, full of water, and made of many shapes. What you feel is real experience. Log it in "What did you feel" so you can compare notes over time and look for patterns that repeat.</p></details>
+<details><summary>What is amplitude?</summary><p>How big the vibration is. More amplitude = stronger signal. The phone's microphone and settings also change this number.</p></details>
+<details><summary>How do I design a real experiment?</summary><p>Write a prediction. Measure a quiet baseline. Change one thing at a time. Repeat. Compare. A pattern you notice once is a clue, not proof yet.</p></details>
+</section>
+
+<footer>Resonance Lab v1.1 · Standalone instrument by Jah Rasta. CSV exports stay portable for later ESSI integration. One love. 🟥🟨🟩</footer>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+let ctx=null,stream=null,source=null,analyser=null,raf=0,td=null,fd=null,running=false;
+let latest={peak:null,dbfs:null,rms:0,note:'',mode:''};
+const wave=$('wave'),spec=$('spectrum'),plate=$('plate');
+const DPR=()=>window.devicePixelRatio||1;
+function fit(c){const r=c.getBoundingClientRect();const w=Math.max(1,Math.round(r.width*DPR())),h=Math.max(1,Math.round(r.height*DPR()));if(c.width!==w||c.height!==h){c.width=w;c.height=h}return c.getContext('2d')}
+
+/* ---------- notes ---------- */
+const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function noteOf(f){if(!f)return null;const n=Math.round(12*Math.log2(f/440))+69;const ref=440*Math.pow(2,(n-69)/12);const cents=Math.round(1200*Math.log2(f/ref));return {name:NAMES[(n%12+12)%12]+(Math.floor(n/12)-1),cents}}
+
+/* ---------- Chladni plate ---------- */
+const MODES=[];for(let n=1;n<=9;n++)for(let m=n+1;m<=10;m++)if((n+m)%2===1)MODES.push({n,m,k:n*n+m*m});
+MODES.sort((a,b)=>a.k-b.k);
+const BASE=40; // Hz per unit of n²+m² (plate tuning)
+let mode=MODES[2],targetMode=mode,hold=false,energy=0;
+const N=2600;const px=new Float32Array(N),py=new Float32Array(N);
+function scatter(){for(let i=0;i<N;i++){px[i]=Math.random();py[i]=Math.random()}}
+scatter();
+function field(x,y,md){const P=Math.PI;return Math.cos(md.n*P*x)*Math.cos(md.m*P*y)-Math.cos(md.m*P*x)*Math.cos(md.n*P*y)}
+function pickMode(f){let best=MODES[0],d=1e9;for(const md of MODES){const e=Math.abs(md.k*BASE-f);if(e<d){d=e;best=md}}return best}
+let modeVotes=0;
+function stepPlate(){
+  const g=fit(plate),W=plate.width,H=plate.height;
+  if(!hold&&latest.peak){const cand=pickMode(latest.peak);if(cand===targetMode){modeVotes++}else{targetMode=cand;modeVotes=0}if(modeVotes>8&&cand!==mode){mode=cand}}
+  const drive=running?Math.min(1,Math.max(0,(latest.rms-0.004)*25)):0;
+  energy=energy*0.9+drive*0.1;
+  const amp=0.004+energy*0.03;
+  for(let i=0;i<N;i++){const v=Math.abs(field(px[i],py[i],mode));const s=amp*v*(0.4+energy);px[i]+=(Math.random()-.5)*s*2;py[i]+=(Math.random()-.5)*s*2;if(px[i]<0)px[i]=-px[i];if(px[i]>1)px[i]=2-px[i];if(py[i]<0)py[i]=-py[i];if(py[i]>1)py[i]=2-py[i]}
+  g.fillStyle='#1a1408';g.fillRect(0,0,W,H);
+  const grd=g.createRadialGradient(W/2,H/2,W*.1,W/2,H/2,W*.75);grd.addColorStop(0,'rgba(244,196,48,.08)');grd.addColorStop(1,'rgba(0,0,0,.25)');g.fillStyle=grd;g.fillRect(0,0,W,H);
+  const r=Math.max(1,1.3*DPR());
+  for(let i=0;i<N;i++){const v=Math.abs(field(px[i],py[i],mode));g.fillStyle=v<0.15?'#f4c430':(v<0.45?'#e9d9a0':'#8a7a4a');g.fillRect(px[i]*W-r/2,py[i]*H-r/2,r,r)}
+  g.strokeStyle='rgba(226,56,43,.6)';g.lineWidth=2*DPR();g.strokeRect(1,1,W-2,H-2);
+  latest.mode=mode.n+','+mode.m;
+  $('mode').textContent='mode '+mode.n+' × '+mode.m+(hold?' (held)':'');
+  $('modeHz').textContent='≈ '+(mode.k*BASE)+' Hz';
+}
+
+/* ---------- audio drawing ---------- */
+function blank(){for(const c of [wave,spec]){const g=fit(c);g.fillStyle='#0d120b';g.fillRect(0,0,c.width,c.height);g.strokeStyle='#2c3a27';g.beginPath();g.moveTo(0,c.height/2);g.lineTo(c.width,c.height/2);g.stroke()}}
+function drawAudio(){
+  analyser.getFloatTimeDomainData(td);analyser.getFloatFrequencyData(fd);
+  let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];
+  const rms=Math.sqrt(sq/td.length),dbfs=rms>0?20*Math.log10(rms):-Infinity;
+  const sr=ctx.sampleRate,binHz=sr/analyser.fftSize;
+  let best=-Infinity,bi=-1;for(let i=Math.max(1,Math.ceil(50/binHz));i<Math.min(fd.length,Math.floor(4000/binHz));i++){if(fd[i]>best){best=fd[i];bi=i}}
+  let peak=null;if(rms>0.003&&best>-85&&bi>0){const a=fd[bi-1],b=fd[bi],c=fd[bi+1];const p=0.5*(a-c)/(a-2*b+c||1);peak=(bi+(isFinite(p)?p:0))*binHz}
+  const nt=noteOf(peak);
+  latest={...latest,peak,dbfs:Number.isFinite(dbfs)?dbfs:null,rms,note:nt?nt.name+(nt.cents>=0?' +':' ')+nt.cents+'¢':''};
+  $('freq').textContent=peak===null?'—':Math.round(peak);
+  $('noteName').textContent=nt?nt.name:'—';
+  $('noteName').title=latest.note;
+  $('level').textContent=Number.isFinite(dbfs)?dbfs.toFixed(1):'—';
+  let g=fit(wave),w=wave.width,h=wave.height;g.fillStyle='#0d120b';g.fillRect(0,0,w,h);g.strokeStyle='#2c3a27';g.beginPath();g.moveTo(0,h/2);g.lineTo(w,h/2);g.stroke();
+  const lg=g.createLinearGradient(0,0,w,0);lg.addColorStop(0,'#e2382b');lg.addColorStop(.5,'#f4c430');lg.addColorStop(1,'#22a25a');
+  g.strokeStyle=lg;g.lineWidth=2*DPR();g.beginPath();for(let i=0;i<td.length;i++){const x=i*w/(td.length-1),y=h/2-td[i]*h*.44;i?g.lineTo(x,y):g.moveTo(x,y)}g.stroke();
+  g=fit(spec);w=spec.width;h=spec.height;g.fillStyle='#0d120b';g.fillRect(0,0,w,h);
+  const bars=80,s0=50,e0=Math.min(4000,sr/2),L=Math.log(s0),R=Math.log(e0);
+  for(let j=0;j<bars;j++){const f1=Math.exp(L+j/bars*(R-L)),f2=Math.exp(L+(j+1)/bars*(R-L));const a=Math.max(1,Math.floor(f1/binHz)),b=Math.min(fd.length-1,Math.max(a,Math.ceil(f2/binHz)));let v=-120;for(let k=a;k<=b;k++)v=Math.max(v,fd[k]);const nm=Math.max(0,Math.min(1,(v+100)/85));const bh=nm*h*.92;g.fillStyle=j<27?'#e2382b':(j<54?'#f4c430':'#22a25a');g.fillRect(j*w/bars,h-bh,Math.max(1,w/bars-1),bh)}
+}
+function loop(){if(running)drawAudio();stepPlate();raf=requestAnimationFrame(loop)}
+
+async function start(){
+  if(running)return;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('status').textContent='Microphone unavailable here. Open this page in Chrome.';return}
+  try{
+    $('status').textContent='Asking for microphone permission…';
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});
+    ctx=new (window.AudioContext||window.webkitAudioContext)();await ctx.resume();
+    source=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=8192;analyser.smoothingTimeConstant=.6;source.connect(analyser);
+    td=new Float32Array(analyser.fftSize);fd=new Float32Array(analyser.frequencyBinCount);
+    running=true;$('start').disabled=true;$('stop').disabled=false;$('save').disabled=false;
+    $('status').textContent='Live · microphone on · '+ctx.sampleRate+' Hz sample rate. Nothing is uploaded or recorded.';
+  }catch(e){$('status').textContent='Could not start microphone: '+(e.message||e.name)+'. Check Chrome permissions.';stop()}
+}
+function stop(){
+  running=false;
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  if(source){source.disconnect();source=null}
+  if(ctx){ctx.close().catch(()=>{});ctx=null}
+  analyser=null;$('start').disabled=false;$('stop').disabled=true;$('save').disabled=true;
+  if(!$('status').textContent.startsWith('Could not'))$('status').textContent='Microphone off. Nothing is being recorded.';
+  blank();
+}
+function csv(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+function save(){
+  const row=[new Date().toISOString(),$('source').value,latest.peak===null?'':latest.peak.toFixed(1),latest.note,latest.dbfs===null?'':latest.dbfs.toFixed(1),latest.rms.toFixed(5),'mode '+latest.mode+' (simulated plate)',$('body').value,$('notes').value];
+  const body='timestamp_utc,source,peak_hz,nearest_note,digital_level_dbfs,waveform_rms,sand_pattern,body_feeling,observation\n'+row.map(csv).join(',')+'\n';
+  const url=URL.createObjectURL(new Blob([body],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download='resonance-observation-'+new Date().toISOString().replace(/[:.]/g,'-')+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);
+}
+$('start').addEventListener('click',start);
+$('stop').addEventListener('click',stop);
+$('save').addEventListener('click',save);
+$('scatter').addEventListener('click',scatter);
+$('hold').addEventListener('click',()=>{hold=!hold;$('hold').textContent=hold?'▶ Follow my sound':'📌 Hold pattern'});
+window.addEventListener('pagehide',()=>{if(running)stop()});
+blank();loop();
+})();
+</script>
+</body>
+</html>
