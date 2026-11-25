@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0f0a">
-<title>Resonance Lab · v1.3 · Seven Stations</title>
+<title>Resonance Lab · v1.4 · Zion 3000</title>
 <style>
 :root{color-scheme:dark;--bg:#0b0f0a;--panel:#141a12;--line:#2c3a27;--fg:#f6f1de;--muted:#c3bfa8;--red:#e2382b;--gold:#f4c430;--green:#22a25a}
 *{box-sizing:border-box}
@@ -75,13 +75,47 @@ details p,details li{line-height:1.55;color:var(--muted);font-size:14px}
 .band div{flex:1;text-align:center;font-size:11px;padding:6px 2px;border-radius:6px;background:#0f140d;border:1px solid var(--line);color:var(--muted)}
 .band div.on{background:#2b230b;border-color:var(--gold);color:var(--fg);font-weight:800}
 footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
+/* ===== v1.4 · Zion 3000 theme ===== */
+body{background:#050806;background-image:radial-gradient(ellipse at 20% -10%,rgba(34,162,90,.22),transparent 55%),radial-gradient(ellipse at 90% 10%,rgba(226,56,43,.14),transparent 50%),radial-gradient(ellipse at 50% 110%,rgba(244,196,48,.12),transparent 55%);background-attachment:fixed}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(244,196,48,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(244,196,48,.045) 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 80%);z-index:0}
+header,nav,main{position:relative;z-index:1}
+.panel{background:linear-gradient(160deg,rgba(28,38,26,.78),rgba(10,14,10,.86));border:1px solid rgba(244,196,48,.14);border-left:3px solid var(--green);box-shadow:0 0 0 1px rgba(0,0,0,.4) inset,0 10px 30px rgba(0,0,0,.35)}
+h1{letter-spacing:.02em;filter:drop-shadow(0 0 14px rgba(244,196,48,.25))}
+h2{letter-spacing:.04em;text-transform:uppercase;font-size:14px}
+nav button.on{box-shadow:0 0 16px rgba(244,196,48,.45)}
+button.b{box-shadow:0 0 18px rgba(244,196,48,.35)}
+.toprow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.seg{display:inline-flex;border:1px solid rgba(244,196,48,.3);border-radius:999px;overflow:hidden}
+.seg button{background:transparent;border:0;color:var(--fg);padding:7px 11px;font-size:12px;font-weight:800}
+.seg button.on{background:linear-gradient(90deg,var(--red),var(--gold),var(--green));color:#111}
+.sessbtn{border:1px solid var(--green);background:rgba(34,162,90,.15);color:#bff3d3;border-radius:999px;padding:7px 13px;font-weight:800;font-size:12px}
+body.d-chill .saiyan,body.d-chill .viber{display:none!important}
+body.d-viber .saiyan{display:none!important}
+.chill-line{font-size:17px;line-height:1.5;margin:10px 0 6px}
+.aff{font-size:22px;font-weight:900;letter-spacing:.03em}
+.match{display:flex;gap:14px;align-items:center;margin:10px 0}
+.match svg{width:74px;height:74px;flex:none}
+#session{position:fixed;inset:0;z-index:50;background:radial-gradient(ellipse at 50% 35%,#0f2416,#030503 70%);display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:14px 14px 18px;color:var(--fg)}
+#session.on{display:flex}
+#session .stop{display:flex;width:100%;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+#session svg{width:min(92vw,520px);height:auto;max-height:52vh}
+#session .sname{font-size:clamp(30px,9vw,54px);font-weight:900;text-align:center;line-height:1.05}
+#session .sline{font-size:clamp(16px,4.4vw,22px);text-align:center;max-width:640px;line-height:1.45;margin:8px auto}
+#session .saff{font-size:clamp(20px,6vw,30px);font-weight:900;text-align:center;letter-spacing:.05em}
+#session .sctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#session .prog{height:4px;width:100%;max-width:520px;background:#1a2216;border-radius:3px;overflow:hidden;margin:8px auto}
+#session .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold),var(--green))}
+.layerbar{display:flex;justify-content:center;margin-bottom:6px}
+
 </style>
 </head>
 <body>
 <div class="flag"></div>
 <header>
-<div class="eyebrow">FIELD INSTRUMENT 01 · v1.3 · SEVEN STATIONS</div>
+<div class="eyebrow">FIELD INSTRUMENT 01 · v1.4 · ZION 3000</div>
 <h1>Resonance Lab</h1>
+<div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
+<button class="sessbtn" id="sessOpen">🧘 Session mode</button></div>
 </header>
 <nav><div class="in">
 <button data-v="live" class="on">🎙 Live</button>
@@ -110,7 +144,7 @@ footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 <div class="grid2">
 <div>
 <div class="panel">
-<div class="big"><div class="note" id="bigNote">—</div>
+<div class="big"><div class="note" id="bigNote">♪</div>
 <div class="sub"><b id="hz">— Hz</b><br><span id="solf">solfège —</span> · <span id="conf">confidence —</span></div></div>
 <div class="needle"><span style="left:4px">♭ flat</span><span style="right:4px">sharp ♯</span><i id="needle"></i></div>
 <div class="note" style="text-align:center" id="cents">tuning: —</div>
@@ -122,19 +156,19 @@ footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 <div class="caption" id="caption">🎶 Play or hum one steady note to begin.</div>
 </div>
 
-<div class="panel">
+<div class="panel viber">
 <h2>Pitch trail</h2>
 <canvas id="trail" aria-label="Pitch over the last seconds"></canvas>
 <p class="note">Your pitch over the last 6 seconds. Flat line = steady breath. Waves = vibrato. Steps = note changes. Lines are notes; colored lines are the 7 stations.</p>
 </div>
 
-<div class="panel">
+<div class="panel viber">
 <h2>Harmonic ladder</h2>
 <canvas id="ladder" aria-label="Harmonics of the current note"></canvas>
 <p class="note">1× is your note. 2×, 3×… are overtones that ring above it. More overtones = brighter, breathier tone. Fewer = purer, rounder tone.</p>
 </div>
 
-<div class="panel red">
+<div class="panel red saiyan">
 <h2>Rhythm ↔ brainwave bands</h2>
 <div class="band" id="bands"><div>Delta<br>0.5–4</div><div>Theta<br>4–8</div><div>Alpha<br>8–13</div><div>Beta<br>13–30</div><div>Gamma<br>30+</div></div>
 <p class="note" id="bandText">When your note wobbles (vibrato), the app counts the wobbles per second and shows which brainwave range that number falls in. It compares numbers only: the phone hears your sound, not your brain.</p>
@@ -143,14 +177,20 @@ footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 
 <div>
 <div class="panel">
-<h2>Seven stations</h2>
-<div class="figwrap"><svg id="fig" viewBox="0 0 200 250" aria-label="Meditating figure with seven stations"></svg></div>
-<p class="note" style="text-align:center">Play a note to light its station, or tap a point to read it. Sharps and flats sit between two stations.</p>
+<h2>Seven stations · body match</h2>
+<div class="layerbar"><div class="seg" id="layers"><button data-l="st">🕉 Stations</button><button data-l="both">✨ Both</button><button data-l="body">🫀 Body</button></div></div>
+<div class="figwrap"><svg id="fig" viewBox="-44 0 404 262" style="max-width:520px" aria-label="Meditating figure with seven stations and body anatomy"></svg></div>
+<p class="note" style="text-align:center">Right side: the 7 stations. Left side: real glands and nerve centers, drawn where they actually sit in the body. Tap any point to learn more.</p>
 </div>
 <div class="panel gold">
-<h2>Practice journey · C → B</h2>
+<h2>Teacher · listen, then match</h2>
 <div class="journey" id="journey"></div>
-<div class="controls"><button class="s" id="jStart">▶ Start journey</button><span class="note" id="jText">Play each note and hold it steady 1.5 s to climb from Root to Crown.</span></div>
+<div class="match"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="#1f2a1b" stroke-width="8"/><circle id="mRing" cx="40" cy="40" r="32" fill="none" stroke="#f4c430" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 201" transform="rotate(-90 40 40)"/><text id="mTxt" x="40" y="46" text-anchor="middle" font-size="18" font-weight="900" fill="#f6f1de">—</text></svg>
+<div><div id="jText" style="font-size:15px;line-height:1.45">Tap <b>Start lesson</b>. The teacher plays a note, then you match it with your voice or instrument.</div><div class="note" id="jSub"></div></div></div>
+<div class="controls"><button class="b" id="jStart">▶ Start lesson</button><button class="s" id="jAgain" disabled>🔁 Hear again</button><button class="s" id="jSkip" disabled>⏭ Skip</button><button class="s" id="jStop" disabled>■ Stop</button></div>
+<div class="controls" style="margin-top:8px"><label style="margin:0;font-size:12px">Octave <select id="jOct" style="width:auto;padding:5px"><option value="3">Low (3)</option><option value="4" selected>Middle (4)</option><option value="5">High (5)</option></select></label>
+<label style="margin:0;font-size:12px">Match <select id="jTol" style="width:auto;padding:5px"><option value="35">Easy ±35¢</option><option value="20" selected>Normal ±20¢</option><option value="10">Pro ±10¢</option></select></label>
+<label style="margin:0;font-size:12px"><input type="checkbox" id="jDrone"> Drone while I play (use headphones)</label></div>
 </div>
 <div id="cardBox"></div>
 </div>
@@ -227,7 +267,20 @@ The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (D
 </div>
 </section>
 
-<footer>Resonance Lab v1.3 · by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
+<div id="session">
+<div class="stop"><button class="s" id="sessClose">✕ Exit</button><span id="sessCount">Station 1 of 7</span><span class="seg" id="sLayers"><button data-l="st">🕉</button><button data-l="both">✨</button><button data-l="body">🫀</button></span></div>
+<svg id="sfig" viewBox="-44 0 404 262" aria-label="Session figure"></svg>
+<div style="width:100%">
+<div class="sname" id="sName">Root</div>
+<div class="note" style="text-align:center;font-size:14px" id="sMeta">C · DO · LAM</div>
+<div class="sline" id="sLine"></div>
+<div class="saff" id="sAff"></div>
+<div class="note" style="text-align:center;margin-top:6px" id="sBody"></div>
+<div class="prog"><i id="sProg"></i></div>
+<div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="30">30 s each</option><option value="60" selected>60 s each</option><option value="90">90 s each</option></select><button class="s" id="sNext">▶</button></div>
+<p class="note" style="text-align:center;margin-top:8px">Sound healing here is a relaxation and reflection practice, not a medical treatment.</p>
+</div></div>
+<footer>Resonance Lab v1.4 · by Jah Rasta · built with Claude and ChatGPT as code helpers · Your log stays on this phone · One love 🟥🟨🟩</footer>
 </main>
 
 <script>
@@ -255,44 +308,91 @@ const ST=[
  {pc:11,n:'B',so:'TI',name:'Crown',sk:'Sahasrara',col:'#b05fd6',seed:'OM (or silence)',el:'Thought / consciousness',aff:'I understand',loc:'Top of the head',gl:'Pituitary / pineal (charts differ)',sp:'Above C1',theme:'Spiritual connection, awareness, oneness, letting go',sense:'Oneness',cry:'Clear quartz, amethyst',pose:'Downward dog',act:'Silent meditation, prayer',nm:'≈ 400–420 nm (violet / white)'}
 ];
 const Y=[202,170,143,113,79,42,14]; // point heights on figure (root..crown)
+const EXTRA=[
+ {chill:'Bring your attention to the base of your body. Feel grounded, supported and safe.',near:'Sacral and coccygeal nerve plexus at the base of the spine; pelvic floor',note:'Your charts list the adrenal glands here. In the body, the adrenals sit on top of the kidneys, beside the Solar Plexus station.'},
+ {chill:'Notice your lower belly. Make space for creativity, movement and feeling.',near:'Reproductive organs; sacral and lumbar nerve plexus',note:''},
+ {chill:'Bring awareness to your upper belly. Feel your confidence, intention and inner strength.',near:'Celiac ("solar") nerve plexus; pancreas; adrenal glands on top of the kidneys',note:'The nerve center here is literally named the solar plexus.'},
+ {chill:'Rest your awareness in your chest. Welcome compassion, gratitude and love.',near:'Heart and cardiac nerve plexus; thymus gland behind the breastbone',note:''},
+ {chill:'Notice your throat and breath. Reflect on speaking and living your truth.',near:'Thyroid gland; voice box; pharyngeal nerve plexus',note:''},
+ {chill:'Gently bring your attention to your forehead. Allow clarity and inner vision.',near:'Pituitary gland and hypothalamus, deep behind the forehead and eyes',note:'Charts differ: some place the pineal here and the pituitary at the crown.'},
+ {chill:'Rest in stillness. Feel your connection to life, peace and the Most High.',near:'Cerebral cortex at the top of the brain; pineal gland deep in the center of the brain',note:'Charts differ on pineal vs pituitary for the top two stations.'}
+];
+ST.forEach((s,i)=>Object.assign(s,EXTRA[i]));
+const ANAT=[
+ {st:6,x:180,y:25,t:'Cerebral cortex'},
+ {st:6,x:180,y:39,t:'Pineal gland (deep)'},
+ {st:5,x:180,y:51,t:'Pituitary · hypothalamus'},
+ {st:4,x:180,y:76,t:'Thyroid'},
+ {st:3,x:180,y:98,t:'Thymus'},
+ {st:3,x:187,y:114,t:'Heart · cardiac plexus'},
+ {st:2,x:181,y:141,t:'Solar (celiac) plexus · pancreas'},
+ {st:2,x:192,y:153,t:'Adrenals (on kidneys)',x2:168},
+ {st:1,x:180,y:176,t:'Reproductive organs'},
+ {st:0,x:180,y:199,t:'Sacral & coccygeal plexus'}
+];
+let layer=store('rl_layer')||'both';
 const NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 
-/* ---------- figure ---------- */
+/* ---------- figure (builder used by Live + Session) ---------- */
 const SVGNS='http://www.w3.org/2000/svg';
-const fig=$('fig');
-fig.innerHTML=`<defs><filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3a24"/><stop offset="1" stop-color="#1a2316"/></linearGradient></defs>
-<g fill="url(#skin)" stroke="#8a7a4a" stroke-width="1.4" stroke-linejoin="round">
+function buildFigure(svg,pre,onTap){
+  const LY=[];let last=-99;ANAT.forEach(a=>{let y=Math.max(a.y,last+19);LY.push(y);last=y});
+  svg.innerHTML=`<defs><filter id="${pre}glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<linearGradient id="${pre}skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f3a2a" stop-opacity=".9"/><stop offset="1" stop-color="#0c1a12" stop-opacity=".9"/></linearGradient>
+<linearGradient id="${pre}rasta" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e2382b"/><stop offset=".5" stop-color="#f4c430"/><stop offset="1" stop-color="#22a25a"/></linearGradient>
+<radialGradient id="${pre}aura" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#f4c430" stop-opacity=".16"/><stop offset="1" stop-color="#f4c430" stop-opacity="0"/></radialGradient></defs>
+<circle cx="180" cy="118" r="118" fill="url(#${pre}aura)"/>
+<g class="ring"><circle cx="180" cy="118" r="112" fill="none" stroke="url(#${pre}rasta)" stroke-width="1.4" stroke-opacity=".55" stroke-dasharray="2 5"/><circle cx="180" cy="118" r="102" fill="none" stroke="url(#${pre}rasta)" stroke-width=".8" stroke-opacity=".35"/></g>
+<g transform="translate(80,0)" fill="url(#${pre}skin)" stroke="#c9a94a" stroke-opacity=".7" stroke-width="1.2" stroke-linejoin="round">
 <path d="M18,222 Q100,186 182,222 Q100,248 18,222 Z"/>
 <path d="M60,92 Q100,80 140,92 L134,190 Q100,202 66,190 Z"/>
-<path d="M62,94 Q36,130 44,178 Q50,203 80,206" fill="none" stroke="#8a7a4a" stroke-width="14" stroke-linecap="round"/>
-<path d="M62,94 Q36,130 44,178 Q50,203 80,206" fill="none" stroke="#22301d" stroke-width="11" stroke-linecap="round"/>
-<path d="M138,94 Q164,130 156,178 Q150,203 120,206" fill="none" stroke="#8a7a4a" stroke-width="14" stroke-linecap="round"/>
-<path d="M138,94 Q164,130 156,178 Q150,203 120,206" fill="none" stroke="#22301d" stroke-width="11" stroke-linecap="round"/>
-<rect x="91" y="60" width="18" height="24" rx="6"/>
-<circle cx="100" cy="42" r="22"/>
-</g><line x1="100" y1="14" x2="100" y2="205" stroke="#f4c430" stroke-opacity=".18" stroke-width="2"/>`;
-const pts=ST.map((s,i)=>{const c=document.createElementNS(SVGNS,'circle');c.setAttribute('cx',100);c.setAttribute('cy',Y[i]);c.setAttribute('r',7);c.setAttribute('fill',s.col);c.setAttribute('class','pt');c.style.opacity=.4;c.addEventListener('click',()=>{selected=i;showCard(i)});fig.appendChild(c);return c});
+<path d="M62,94 Q36,130 44,178 Q50,203 80,206" fill="none" stroke-width="13" stroke-linecap="round"/>
+<path d="M62,94 Q36,130 44,178 Q50,203 80,206" fill="none" stroke="#12271a" stroke-opacity="1" stroke-width="10.5" stroke-linecap="round"/>
+<path d="M138,94 Q164,130 156,178 Q150,203 120,206" fill="none" stroke-width="13" stroke-linecap="round"/>
+<path d="M138,94 Q164,130 156,178 Q150,203 120,206" fill="none" stroke="#12271a" stroke-opacity="1" stroke-width="10.5" stroke-linecap="round"/>
+<rect x="91" y="60" width="18" height="24" rx="6"/><circle cx="100" cy="42" r="22"/></g>
+<line x1="180" y1="14" x2="180" y2="205" stroke="url(#${pre}rasta)" stroke-opacity=".5" stroke-width="2"/>
+<g class="anat">${ANAT.map((a,i)=>`<g data-st="${a.st}"><line x1="94" y1="${LY[i]}" x2="${a.x2||a.x}" y2="${a.y}" stroke="${ST[a.st].col}" stroke-opacity=".55" stroke-width=".8" stroke-dasharray="2 2"/><circle cx="${a.x}" cy="${a.y}" r="3.2" fill="#fff" fill-opacity=".9" stroke="${ST[a.st].col}" stroke-width="1.6"/>${a.x2?`<circle cx="${a.x2}" cy="${a.y}" r="3.2" fill="#fff" fill-opacity=".9" stroke="${ST[a.st].col}" stroke-width="1.6"/><line x1="${a.x2}" y1="${a.y}" x2="${a.x}" y2="${a.y}" stroke="${ST[a.st].col}" stroke-opacity=".35"/>`:''}<text x="92" y="${LY[i]+3}" text-anchor="end" font-size="8.6" fill="${ST[a.st].col}" font-weight="700">${a.t}</text></g>`).join('')}</g>
+<g class="stl">${ST.map((s2,i)=>`<g><line x1="192" y1="${Y[i]}" x2="266" y2="${Y[i]}" stroke="${s2.col}" stroke-opacity=".45" stroke-width=".8"/><text x="270" y="${Y[i]+3}" font-size="10" font-weight="800" fill="${s2.col}">${s2.name}</text><text x="270" y="${Y[i]+13}" font-size="7.5" fill="#c3bfa8">${s2.n} · ${s2.so} · ${s2.seed.split(' ')[0]}</text></g>`).join('')}</g>`;
+  const pts=ST.map((s2,i)=>{const c=document.createElementNS(SVGNS,'circle');c.setAttribute('cx',180);c.setAttribute('cy',Y[i]);c.setAttribute('r',7);c.setAttribute('fill',s2.col);c.setAttribute('class','pt');c.style.opacity=.45;c.addEventListener('click',()=>onTap(i));svg.appendChild(c);return c});
+  svg.querySelectorAll('.anat > g').forEach(g=>{g.style.cursor='pointer';g.addEventListener('click',()=>onTap(+g.dataset.st))});
+  return {pts,ring:svg.querySelector('.ring'),anat:svg.querySelector('.anat'),stl:svg.querySelector('.stl')};
+}
+function applyLayer(F){F.anat.style.display=layer==='st'?'none':'';F.stl.style.display=layer==='body'?'none':'';F.pts.forEach(p=>p.style.display=layer==='body'?'none':'')}
+function glowPts(F,on){F.pts.forEach((c,k)=>{const a=on.includes(k);c.setAttribute('r',a?13:7);c.style.opacity=a?1:.45;c.setAttribute('filter',a?`url(#${F===LF?'l':'s'}glow)`:'')});
+  F.anat.querySelectorAll(':scope > g').forEach(g=>{g.style.opacity=on.length&&!on.includes(+g.dataset.st)?.35:1})}
+const LF=buildFigure($('fig'),'l',i=>{selected=i;showCard(i)});
 let lit=-1,selected=-1;
-let litMany=[];
-function lightStation(i){const many=inst==='midi'?midiNotes().map(n=>ST.findIndex(s=>s.pc===n%12)).filter(x=>x>=0):[];const key=i+'|'+many.join(',');if(key===lit)return;lit=key;pts.forEach((c,k)=>{const on=k===i||many.includes(k);c.setAttribute('r',on?13:7);c.style.opacity=on?1:.4;c.setAttribute('filter',on?'url(#glow)':'')});if(i>=0){selected=i;showCard(i)}}
+function lightStation(i){const many=inst==='midi'?midiNotes().map(n=>ST.findIndex(s2=>s2.pc===n%12)).filter(x=>x>=0):[];const on=[...new Set([...(i>=0?[i]:[]),...many])];const key=on.join(',');if(key===lit)return;lit=key;glowPts(LF,on);if(i>=0){selected=i;showCard(i)}}
+function setLayer(l){layer=l;store('rl_layer',l);document.querySelectorAll('#layers button,#sLayers button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));applyLayer(LF);if(typeof SF!=='undefined'&&SF)applyLayer(SF)}
+document.querySelectorAll('#layers button,#sLayers button').forEach(b=>b.addEventListener('click',()=>setLayer(b.dataset.l)));
 
 /* ---------- station card ---------- */
 function showCard(i){const s=ST[i];$('cardBox').innerHTML=`<div class="card">
-<div class="top" style="background:${s.col}">${s.name} · ${s.sk}<small>Station ${i+1} · note ${s.n} · ${s.so} · seed sound ${s.seed}</small></div>
+<div class="top" style="background:linear-gradient(90deg,${s.col},${s.col}cc)">${s.name} · ${s.sk}<small>Station ${i+1} · note ${s.n} · ${s.so} · seed sound ${s.seed}</small></div>
 <div class="body">
+<div class="chill-line">${s.chill}</div>
+<div class="aff" style="color:${s.col}">“${s.aff}”</div>
+<div class="controls" style="margin-top:10px"><button class="s" id="tone">🔊 Hear ${s.n}4</button><button class="s" id="tone5">🔊 Hear ${s.n}5</button></div>
+<div class="viber">
+<span class="tag t-l">🫀 BODY MATCH</span>
+<div class="kv"><div>In the body here</div><div>${s.near}</div><div>Your charts say</div><div>${s.gl}</div>${s.note?`<div>Note</div><div>${s.note}</div>`:''}<div>Spine level</div><div>${s.sp}</div></div>
+<div class="note" style="margin-top:6px">The glands and nerve centers are real anatomy at these places. The energy meaning of each station comes from the chakra tradition.</div>
+<span class="tag t-t">🕉 TRADITION · from your charts</span>
+<div class="kv"><div>Seed sound</div><div>${s.seed}</div><div>Element</div><div>${s.el}</div><div>Themes</div><div>${s.theme}</div></div>
+</div>
+<div class="saiyan">
 <span class="tag t-m">🎙 MEASURED (live)</span>
 <div class="kv"><div>Now playing</div><div id="cardLive">—</div><div>Station pitch</div><div>${s.n}4 = ${noteHz(60+s.pc).toFixed(1)} Hz · ${s.n}5 = ${noteHz(72+s.pc).toFixed(1)} Hz</div></div>
-<div class="controls" style="margin-top:8px"><button class="s" id="tone">🔊 Hear ${s.n}4</button><button class="s" id="tone5">🔊 Hear ${s.n}5</button></div>
 <span class="tag t-r">🎼 MUSIC</span>
 <div class="kv"><div>Solfège</div><div>${s.so} (fixed-Do: C = DO)</div><div>Steps above C</div><div>${s.pc} half-steps</div></div>
-<span class="tag t-t">🕉 TRADITION · from your charts</span>
-<div class="kv"><div>Seed sound</div><div>${s.seed}</div><div>Element</div><div>${s.el}</div><div>Affirmation</div><div>“${s.aff}”</div><div>Body area</div><div>${s.loc}</div><div>Glands</div><div>${s.gl}</div><div>Spine level</div><div>${s.sp}</div><div>Themes</div><div>${s.theme}</div><div>Sense</div><div>${s.sense}</div><div>Crystals</div><div>${s.cry}</div><div>Yoga pose</div><div>${s.pose}</div><div>Activities</div><div>${s.act}</div></div>
+<span class="tag t-t">🕉 MORE FROM YOUR CHARTS</span>
+<div class="kv"><div>Body area</div><div>${s.loc}</div><div>Sense</div><div>${s.sense}</div><div>Crystals</div><div>${s.cry}</div><div>Yoga pose</div><div>${s.pose}</div><div>Activities</div><div>${s.act}</div></div>
 <span class="tag t-l">🌈 LIGHT</span>
 <div class="kv"><div>Color wavelength</div><div>${s.nm}</div></div>
 <span class="tag t-f">❤️ FEELING</span>
-<div class="note">After playing ${s.n}, open 📓 Journal and log what you felt. Over time your log shows whether ${s.name} notes bring the same feeling again.</div>
-</div></div>`;
+<div class="note">After playing ${s.n}, open 📓 Journal and log what you felt.</div>
+</div></div></div>`;
 $('tone').onclick=()=>tone(noteHz(60+s.pc));$('tone5').onclick=()=>tone(noteHz(72+s.pc));}
 
 /* ---------- tuning ---------- */
@@ -300,7 +400,15 @@ let A4=440;$('tuning').addEventListener('change',e=>{A4=+e.target.value;if(selec
 const noteHz=m=>A4*Math.pow(2,(m-69)/12);
 const midiOf=f=>69+12*Math.log2(f/A4);
 let toneCtx=null;
-function tone(f,dur){dur=dur||1.8;try{toneCtx=toneCtx||new (window.AudioContext||window.webkitAudioContext)();const o=toneCtx.createOscillator(),g=toneCtx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,toneCtx.currentTime);g.gain.linearRampToValueAtTime(.25,toneCtx.currentTime+.05);g.gain.linearRampToValueAtTime(.25,toneCtx.currentTime+dur-.3);g.gain.linearRampToValueAtTime(0,toneCtx.currentTime+dur);o.connect(g).connect(toneCtx.destination);o.start();o.stop(toneCtx.currentTime+dur+.1)}catch(e){}}
+let toneUntil=0,droneNode=null;
+function actx(){toneCtx=toneCtx||new (window.AudioContext||window.webkitAudioContext)();if(toneCtx.state==='suspended')toneCtx.resume();return toneCtx}
+function tone(f,dur,vol){dur=dur||1.8;vol=vol||.22;try{const c=actx(),t0=c.currentTime,out=c.createGain();out.gain.setValueAtTime(0,t0);out.gain.linearRampToValueAtTime(vol,t0+.12);out.gain.setValueAtTime(vol,t0+dur-.35);out.gain.linearRampToValueAtTime(0,t0+dur);out.connect(c.destination);
+  const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=5;lg.gain.value=f*.0035;lfo.connect(lg);
+  [[1,1],[2,.14],[3,.05]].forEach(([h,a])=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*h;lg.connect(o.frequency);g.gain.value=a;o.connect(g).connect(out);o.start(t0);o.stop(t0+dur+.05)});
+  lfo.start(t0);lfo.stop(t0+dur+.05);toneUntil=performance.now()+dur*1000+350}catch(e){}}
+function chime(){try{const c=actx(),t0=c.currentTime;[[1,0],[1.5,.12]].forEach(([r,d])=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=880*r;g.gain.setValueAtTime(0,t0+d);g.gain.linearRampToValueAtTime(.08,t0+d+.02);g.gain.exponentialRampToValueAtTime(.0005,t0+d+.9);o.connect(g).connect(c.destination);o.start(t0+d);o.stop(t0+d+1)})}catch(e){}}
+function drone(f){try{droneOff();const c=actx(),o=c.createOscillator(),g=c.createGain();o.frequency.value=f;g.gain.value=0;g.gain.linearRampToValueAtTime(.06,c.currentTime+.6);o.connect(g).connect(c.destination);o.start();droneNode={o,g}}catch(e){}}
+function droneOff(){if(droneNode){try{droneNode.g.gain.linearRampToValueAtTime(0,toneCtx.currentTime+.3);droneNode.o.stop(toneCtx.currentTime+.35)}catch(e){}droneNode=null}}
 
 /* ---------- instruments ---------- */
 const INST={
@@ -363,7 +471,7 @@ function analyse(now){
   an.getFloatTimeDomainData(td);an.getFloatFrequencyData(fd);
   let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];const rms=Math.sqrt(sq/td.length);
   cur.rms=rms;cur.db=rms>0?20*Math.log10(rms):null;
-  let p=null;if(rms>0.004)p=yin(td,ctx.sampleRate);
+  let p=null;if(rms>0.004&&performance.now()>toneUntil)p=yin(td,ctx.sampleRate);
   if(p&&p.f>INST[inst].lo&&p.f<2400&&p.conf>.6){cur.f=p.f;cur.conf=p.conf;cur.midi=midiOf(p.f);const r=Math.round(cur.midi);cur.cents=Math.round((cur.midi-r)*100);cur.pc=((r%12)+12)%12;cur.name=NAMES[cur.pc]+(Math.floor(r/12)-1)}
   else{cur.f=null;cur.conf=p?p.conf:0;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null}
   trail.push({t:now,m:cur.midi});while(trail.length&&now-trail[0].t>6000)trail.shift();
@@ -373,6 +481,7 @@ function analyse(now){
 /* ---------- readouts ---------- */
 function stationOfPc(pc){return ST.findIndex(s=>s.pc===pc)}
 function caption(){
+  if(depth==='chill'&&cur.f&&running||depth==='chill'&&inst==='midi'&&cur.f){const k=stationOfPc(cur.pc);return (Math.abs(cur.cents)<=15?'✅ ':'🎯 ')+`<b>${cur.name}</b> · `+(k>=0?`<span style="color:${ST[k].col}">${ST[k].name}</span> · “${ST[k].aff}”`:'between stations')}
   if(inst==='midi'&&!cur.f)return midiOn?'🎛 MIDI connected. Play a note or a chord; every station in the chord lights up.':'🎛 Tap <b>Connect MIDI</b> above, then play.';
   if(inst!=='midi'&&!running)return '🎶 Press <b>Start microphone</b>, then play or sing one steady note.';
   if(!cur.f)return cur.rms>0.004?'👂 <b>Pitch unclear.</b> Try one clean, steady note; noise or two sounds at once confuse the meter.':'🎶 Listening… play or hum one steady note.';
@@ -385,7 +494,7 @@ function caption(){
 }
 let capT=0;
 function readouts(now){
-  $('bigNote').textContent=cur.name||'—';$('bigNote').style.color=cur.pc!==null&&stationOfPc(cur.pc)>=0?ST[stationOfPc(cur.pc)].col:'var(--fg)';
+  $('bigNote').textContent=cur.name||'♪';$('bigNote').style.color=cur.pc!==null&&stationOfPc(cur.pc)>=0?ST[stationOfPc(cur.pc)].col:'var(--fg)';
   $('hz').textContent=cur.f?cur.f.toFixed(1)+' Hz':'— Hz';
   const s=cur.pc!==null?stationOfPc(cur.pc):-1;$('solf').textContent=s>=0?'solfège '+ST[s].so:(cur.pc!==null?'between stations':'solfège —');
   $('conf').textContent='confidence '+(cur.f?Math.round(cur.conf*100)+'%':'—');
@@ -484,17 +593,42 @@ $('demo').onclick=()=>{if(demo){clearInterval(demo.timer);demo=null;$('demo').te
   let i=0;const step=()=>{if(i>=ST.length){clearInterval(demo.timer);demo=null;$('demo').textContent='▶ Demo C → B';return}const s=ST[i],f=noteHz(60+s.pc);demo.f=f;demo.label=`${s.n}4 · ${s.name}`;tone(f,3.2);i++};
   demo={f:null,label:'',timer:null};$('demo').textContent='■ Stop demo';step();demo.timer=setInterval(step,3500)};
 
-/* ---------- practice journey ---------- */
-let jOn=false,jIdx=0,jHold=0,jLast=0;
-function renderJourney(){$('journey').innerHTML=ST.map((s,i)=>`<span style="background:${s.col}" class="${i<jIdx?'done':''} ${jOn&&i===jIdx?'cur':''}">${s.n}</span>`).join('')}
+/* ---------- teacher: listen, then match ---------- */
+let T={on:false,i:0,phase:'idle',hold:0,last:0,t0:0};
+function renderJourney(){$('journey').innerHTML=ST.map((s2,i)=>`<span style="background:${s2.col}" class="${T.on&&i<T.i||(!T.on&&T.done&&i<=6)?'done':''} ${T.on&&i===T.i?'cur':''}">${s2.n}</span>`).join('')}
 renderJourney();
-$('jStart').onclick=()=>{jOn=true;jIdx=0;jHold=0;renderJourney();$('jText').textContent=`Play ${ST[0].n} (${ST[0].so}) · Root · hold it steady.`;selected=0;showCard(0)};
+function tMidi(){return 12*(+$('jOct').value+1)+ST[T.i].pc}
+function teachPlay(){const st=ST[T.i];T.phase='listen';T.hold=0;$('jText').innerHTML=`👂 <b>Listen:</b> ${st.n}${$('jOct').value} · ${st.so} · <span style="color:${st.col}">${st.name}</span>`;$('jSub').textContent=st.chill;setRing(0,'🔊');selected=T.i;showCard(T.i);glowPts(LF,[T.i]);lit='t';
+  tone(noteHz(tMidi()),2.5);setTimeout(()=>{if(!T.on)return;T.phase='turn';T.t0=performance.now();$('jText').innerHTML=`🎤 <b>Your turn:</b> sing or play <b style="color:${st.col}">${st.n}</b> (${st.so}, “${st.seed.split(' ')[0]}”) and hold it.`;if($('jDrone').checked)drone(noteHz(tMidi()-12))},2750)}
+function setRing(p,txt,col){const L=2*Math.PI*32;$('mRing').setAttribute('stroke-dasharray',`${(p*L).toFixed(1)} ${L.toFixed(1)}`);$('mRing').setAttribute('stroke',col||'#f4c430');$('mTxt').textContent=txt}
+async function teachStart(){if(inst!=='midi'&&!running)await start();T={on:true,i:0,phase:'idle',hold:0,last:0,done:false};['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=false);$('jStart').disabled=true;renderJourney();teachPlay()}
+function teachNext(){droneOff();T.i++;if(T.i>=ST.length){T.on=false;T.done=true;T.phase='idle';renderJourney();setRing(1,'🌟','#22a25a');$('jText').innerHTML='🌟 <b>Lesson complete:</b> Root to Crown! Log how you feel in 📓 Journal.';$('jSub').textContent='';['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=true);$('jStart').disabled=false;$('jStart').textContent='▶ Again';lit=-1;return}renderJourney();teachPlay()}
+function teachStop(){droneOff();T.on=false;T.phase='idle';renderJourney();setRing(0,'—');$('jText').innerHTML='Lesson stopped. Tap <b>Start lesson</b> to begin again.';$('jSub').textContent='';['jAgain','jSkip','jStop'].forEach(id=>$(id).disabled=true);$('jStart').disabled=false;lit=-1}
+$('jStart').onclick=teachStart;$('jAgain').onclick=()=>{droneOff();teachPlay()};$('jSkip').onclick=teachNext;$('jStop').onclick=teachStop;
 function journeyStep(){
-  if(!jOn)return;const now=performance.now(),dt=jLast?(now-jLast)/1000:0;jLast=now;const t=ST[jIdx];
-  if(cur.f&&cur.pc===t.pc&&cur.conf>.75)jHold+=dt;else jHold=Math.max(0,jHold-dt*2);
-  $('jText').textContent=`Play ${t.n} (${t.so}) · ${t.name} · held ${jHold.toFixed(1)} / 1.5 s`;
-  if(jHold>=1.5){jIdx++;jHold=0;if(jIdx>=ST.length){jOn=false;renderJourney();$('jText').textContent='🌟 Journey complete: Root to Crown! Log how you feel in 📓 Journal.';return}renderJourney();showCard(jIdx)}
+  if(!T.on||T.phase!=='turn')return;const now=performance.now(),dt=T.last?Math.min(.1,(now-T.last)/1000):0;T.last=now;const tol=+$('jTol').value,st=ST[T.i];
+  if(!cur.f||cur.conf<.7){T.hold=Math.max(0,T.hold-dt);setRing(T.hold/0.8,'…');$('jSub').textContent='Listening… hold one steady tone.';return}
+  let d=(cur.midi-tMidi())%12;if(d>6)d-=12;if(d<-6)d+=12;const cents=Math.round(d*100);
+  const close=Math.max(0,1-Math.abs(cents)/200);
+  if(Math.abs(cents)<=tol){T.hold+=dt;setRing(Math.min(1,T.hold/0.8),'✓','#22a25a');$('jSub').textContent=`Yes! ${cur.name} matches ${st.n}. Hold it…`}
+  else{T.hold=Math.max(0,T.hold-dt*2);setRing(close,(cents>0?'+':'')+cents,cents>0?'#e2382b':'#2f8fe0');$('jSub').textContent=cents>0?`You're ${cents}¢ high: bring it down a little.`:`You're ${-cents}¢ low: lift it up a little.`}
+  if(T.hold>=0.8){T.phase='done';droneOff();chime();$('jText').innerHTML=`✅ <b>Matched ${st.n} · ${st.name}!</b> “${st.aff}”`;setTimeout(()=>{if(T.on)teachNext()},1400)}
 }
+
+/* ---------- session mode ---------- */
+let SF=null,sI=0,sGuide=null;
+function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').textContent=`${st.sk} · ${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;$('sessCount').textContent=`Station ${sI+1} of 7`;glowPts(SF,[sI])}
+$('sessOpen').onclick=()=>{if(!SF){SF=buildFigure($('sfig'),'s',i=>sShow(i));}applyLayer(SF);$('session').classList.add('on');sShow(selected>=0?selected:0);try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}catch(e){}};
+function sStopGuide(){if(sGuide){clearInterval(sGuide.timer);sGuide=null}$('sGuide').textContent='▶ Guided journey';$('sProg').style.width='0'}
+$('sessClose').onclick=()=>{sStopGuide();$('session').classList.remove('on');try{document.fullscreenElement&&document.exitFullscreen()}catch(e){}};
+$('sPrev').onclick=()=>{sStopGuide();sShow(sI-1)};$('sNext').onclick=()=>{sStopGuide();sShow(sI+1)};
+$('sTone').onclick=()=>tone(noteHz(60+ST[sI].pc),4,.2);
+$('sGuide').onclick=()=>{if(sGuide){sStopGuide();return}const dur=+$('sDur').value;sGuide={i:0,t0:performance.now()};$('sGuide').textContent='⏸ Stop guide';sShow(0);tone(noteHz(60),4,.2);
+  sGuide.timer=setInterval(()=>{const el=(performance.now()-sGuide.t0)/1000;const k=Math.floor(el/dur);$('sProg').style.width=Math.min(100,el/(dur*7)*100)+'%';
+    if(k>=7){sStopGuide();$('sLine').textContent='Rest here in silence. Notice how your whole body feels now.';glowPts(SF,[0,1,2,3,4,5,6]);return}
+    if(k!==sGuide.i){sGuide.i=k;sShow(k);tone(noteHz(60+ST[k].pc),4,.2)}else{const w=el-k*dur;if(Math.abs(w-dur/2)<.26)tone(noteHz(60+ST[k].pc),4,.16)}},250)};
+function ringPulse(){const lvl=demo?0.6:(cur.f?Math.min(1,cur.rms*14):0)+(performance.now()<toneUntil?0.5:0);const sc=1+Math.min(.12,lvl*.12);[LF,SF].forEach(F=>{if(F&&F.ring){F.ring.setAttribute('transform',`translate(180 118) scale(${sc.toFixed(3)}) translate(-180 -118)`);F.ring.style.opacity=.55+Math.min(.45,lvl)}});
+  if(SF&&$('session').classList.contains('on')&&!sGuide&&cur.f&&cur.conf>.8){const k=stationOfPc(cur.pc);if(k>=0&&k!==sI)sShow(k)}}
 
 /* ---------- loop ---------- */
 function loop(now){
@@ -503,7 +637,7 @@ function loop(now){
   readouts(now);
   if($('v-live').classList.contains('on')){drawTrail(now);if(frame%3===0)drawLadder()}
   if($('v-sound').classList.contains('on')){drawWave();drawSpec()}
-  stepPlate();
+  stepPlate();ringPulse();
   requestAnimationFrame(loop);
 }
 
@@ -548,6 +682,9 @@ let clearArm=0;$('clear').onclick=()=>{if(Date.now()-clearArm<3000){store('rl_lo
 
 function setInst(v){inst=v;store('rl_inst',v);$('inst').value=v;$('midiBox').style.display=v==='midi'?'block':'none';const map={flute:'Native flute',voice:'Voice / humming',guitar:'Guitar',keys:'Keyboard',midi:'MIDI instrument'};$('source').value=map[v];held.clear();capT=0}
 $('inst').addEventListener('change',e=>setInst(e.target.value));$('midiBtn').onclick=connectMidi;setInst(inst);
+let depth=store('rl_depth')||'viber';
+function setDepth(d){depth=d;store('rl_depth',d);document.body.classList.remove('d-chill','d-viber','d-saiyan');document.body.classList.add('d-'+d);document.querySelectorAll('#depth button').forEach(b=>b.classList.toggle('on',b.dataset.d===d));capT=0}
+document.querySelectorAll('#depth button').forEach(b=>b.onclick=()=>setDepth(b.dataset.d));setDepth(depth);setLayer(layer);
 showCard(0);selected=0;
 requestAnimationFrame(loop);
 })();
