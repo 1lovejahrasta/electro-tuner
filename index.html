@@ -165,7 +165,7 @@ body.d-viber .saiyan{display:none!important}
 <div class="titlerow"><img class="et-avatar" src="avatar.png" alt="Jah Rasta"><h1>Electro Tuner</h1></div>
 <div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin:-4px 0 10px;text-transform:uppercase">Created by Jah Rasta</div>
 <div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
-<button class="sessbtn" id="sessOpen">🧘 Session mode</button><button class="medbtn" id="medBtn">🎵 Meditation sound: off</button></div>
+<button class="sessbtn" id="sessOpen">🧘 Session mode</button><button class="medbtn" id="medBtn">🎵 Meditation sound: off</button><button class="medbtn" id="uiBtn">🔔 Tap sounds: on</button></div>
 </header>
 <nav><div class="in">
 <button data-v="live" class="on">🎙 Live</button>
@@ -902,6 +902,22 @@ function setDepth(d){depth=d;store('rl_depth',d);document.body.classList.remove(
 document.querySelectorAll('#depth button').forEach(b=>b.onclick=()=>setDepth(b.dataset.d));setDepth(depth);setLayer(layer);
 document.querySelectorAll('.voiceSel').forEach(el=>{el.value=voiceSel;el.addEventListener('change',e=>{voiceSel=e.target.value;store('rl_voice',voiceSel);document.querySelectorAll('.voiceSel').forEach(x=>x.value=voiceSel)})});
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+/* ---------- soft UI sounds + welcome chime ---------- */
+let uiOn=store('rl_ui');if(uiOn===null)uiOn=1;
+function uiOK(){return uiOn&&!running}
+function softTap(){if(!uiOK())return;try{const c=actx(),t=c.currentTime;const o=c.createOscillator(),g=c.createGain(),o2=c.createOscillator(),g2=c.createGain();
+  o.type='sine';o.frequency.setValueAtTime(660,t);o.frequency.exponentialRampToValueAtTime(990,t+.07);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.035,t+.008);g.gain.exponentialRampToValueAtTime(.0004,t+.22);
+  o2.type='sine';o2.frequency.value=1980;g2.gain.setValueAtTime(0,t);g2.gain.linearRampToValueAtTime(.008,t+.01);g2.gain.exponentialRampToValueAtTime(.0002,t+.3);
+  o.connect(g).connect(c.destination);o2.connect(g2).connect(c.destination);o.start(t);o2.start(t);o.stop(t+.25);o2.stop(t+.32)}catch(e){}}
+function welcome(){if(!uiOn)return;try{const c=actx(),t=c.currentTime;const out=c.createGain();out.gain.value=.9;out.connect(c.destination);
+  const d=c.createDelay(1.2),fb=c.createGain(),wet=c.createGain();d.delayTime.value=.32;fb.gain.value=.38;wet.gain.value=.35;out.connect(d);d.connect(fb).connect(d);d.connect(wet).connect(c.destination);
+  [[261.63,0],[392,.18],[523.25,.36],[659.25,.54]].forEach(([f,dt])=>{[[1,.06],[2.76,.018],[5.4,.008]].forEach(([r,a])=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f*r;g.gain.setValueAtTime(0,t+dt);g.gain.linearRampToValueAtTime(a,t+dt+.02);g.gain.exponentialRampToValueAtTime(.0002,t+dt+2.6/r);o.connect(g).connect(out);o.start(t+dt);o.stop(t+dt+2.7)})});
+  const sw=c.createOscillator(),sg=c.createGain();sw.type='sine';sw.frequency.setValueAtTime(130.8,t);sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.05,t+.6);sg.gain.exponentialRampToValueAtTime(.0002,t+3.2);sw.connect(sg).connect(out);sw.start(t);sw.stop(t+3.3)}catch(e){}}
+let welcomed=false;function doWelcome(){if(welcomed)return;welcomed=true;welcome()}
+document.addEventListener('pointerdown',e=>{const b=e.target.closest('button,select,.pp,.pt,[data-z]');if(!welcomed){doWelcome();return}if(b)softTap()},true);
+function uiUI(){$('uiBtn').classList.toggle('on',!!uiOn);$('uiBtn').textContent='🔔 Tap sounds: '+(uiOn?'on':'off')}
+$('uiBtn').addEventListener('click',()=>{uiOn=uiOn?0:1;store('rl_ui',uiOn);uiUI()});uiUI();
+
 /* ---------- meditation sound (generated live, works offline) ---------- */
 let med=null;
 function medStart(){
