@@ -149,6 +149,7 @@ body.d-viber .saiyan{display:none!important}
 <button data-v="live" class="on">🎙 Live</button>
 <button data-v="sound">🌀 Sound shapes</button>
 <button data-v="journal">📓 Journal</button>
+<button data-v="body">🗺 Body Map</button>
 <button data-v="library">📚 Library</button>
 </div></nav>
 <main>
@@ -273,6 +274,23 @@ body.d-viber .saiyan{display:none!important}
 </section>
 
 <!-- ================= LIBRARY ================= -->
+<section class="view" id="v-body">
+<div class="grid2">
+<div class="panel">
+<h2>Body map · tap an area</h2>
+<div class="figwrap"><svg id="bodyfig" viewBox="-110 0 420 420" style="max-width:420px" aria-label="Standing body map with seven chakra points"></svg></div>
+<div class="controls" style="justify-content:center;margin-top:6px"><button class="b" id="cmOpen">🧘 Show client</button><button class="s" id="focusClear">Clear focus</button></div>
+<p class="note" style="text-align:center" id="focusList">Today's focus: none yet. Open an area and tap “＋ Add to today's focus”.</p>
+</div>
+<div id="bodyCard"></div>
+</div>
+<div class="panel gold">
+<h2>Chakra chart · everything linked</h2>
+<div style="overflow-x:auto"><table id="chart"></table></div>
+<p class="note">Stones, herbs, colors, seed sounds and balanced/imbalanced signs come from chakra and herbal traditions (your charts). Organs and glands are real anatomy near each point. Herbs: traditional associations, not treatments. Check with a health professional before taking any herb if pregnant, nursing or on medication.</p>
+</div>
+</section>
+
 <section class="view" id="v-library">
 <div class="panel">
 <h2>How the layers connect</h2>
@@ -296,6 +314,13 @@ The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (D
 </div>
 </section>
 
+<div id="clientMap" style="position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;background:radial-gradient(ellipse at 50% 30%,#0f2416,#030503 72%);padding:14px;overflow:auto">
+<div class="stop" style="display:flex;width:100%;justify-content:space-between;align-items:center"><button class="s" id="cmClose">✕ Close</button><span class="et-splash-credit">Electro Tuner · Jah Rasta</span><span></span></div>
+<div class="et-splash-title" style="font-size:clamp(22px,6vw,34px);margin-top:6px">Today we'll work on</div>
+<svg id="cmfig" viewBox="-110 0 420 420" style="width:min(92vw,440px);max-height:58vh;height:auto"></svg>
+<div id="cmList" style="width:100%;max-width:640px"></div>
+<p class="note" style="text-align:center;max-width:560px">Sound healing is a relaxation and reflection practice. It supports, and doesn't replace, medical care.</p>
+</div>
 <div id="session">
 <div class="et-intro" id="intro">
 <div class="et-aura-stage"><img class="aura-anim" src="aura.gif" data-still="aura.png" alt="Jah Rasta"></div>
@@ -656,6 +681,65 @@ function journeyStep(){
   else{T.hold=Math.max(0,T.hold-dt*2);setRing(close,(cents>0?'+':'')+cents,cents>0?'#e2382b':'#2f8fe0');$('jSub').textContent=cents>0?`You're ${cents}¢ high: bring it down a little.`:`You're ${-cents}¢ low: lift it up a little.`}
   if(T.hold>=0.8){T.phase='done';droneOff();chime();$('jText').innerHTML=`✅ <b>Matched ${st.n} · ${st.name}!</b> “${st.aff}”`;setTimeout(()=>{if(T.on)teachNext()},1400)}
 }
+
+/* ---------- body map ---------- */
+const BODY=[
+ {pt:'Base of the spine and perineum (between the legs, at the pelvic floor)',organs:'Pelvic floor, sacral and coccygeal nerves, legs, feet, bones',zone:'Legs, feet, lower back, bones',stones:'Red jasper, garnet, hematite, black onyx',herbs:'Ginger, dandelion root, burdock root, ashwagandha',bal:['Safe and grounded','Present in the body','Steady, patient, secure'],imb:['Anxious or fearful','Scattered, restless, hard to settle','Insecure about home, money or belonging'],breath:'Slow belly breath, feel your feet and seat'},
+ {pt:'Lower belly, about two finger-widths below the navel',organs:'Reproductive organs, bladder, kidneys region, hips',zone:'Hips, lower belly, lower back',stones:'Carnelian, orange calcite, moonstone',herbs:'Calendula, hibiscus, cinnamon, orange peel',bal:['Creative and playful','Feelings flow freely','Healthy pleasure and connection'],imb:['Feeling stuck or uninspired','Guilt or emotional swings','Weak boundaries in relationships'],breath:'Circle the hips gently while breathing'},
+ {pt:'Upper belly, between the navel and the bottom of the breastbone',organs:'Solar (celiac) nerve plexus, stomach, pancreas, liver, adrenals on the kidneys',zone:'Stomach, digestion, mid-back',stones:"Citrine, tiger's eye, yellow calcite",herbs:'Chamomile, lemongrass, peppermint, turmeric',bal:['Confident and motivated','Clear will, follows through','Healthy self-worth'],imb:['Low confidence or feeling powerless','Controlling or quick to anger','Nervous stomach under stress'],breath:'Strong exhale, like blowing out a candle'},
+ {pt:'Center of the chest, at the level of the heart',organs:'Heart, lungs, cardiac nerve plexus, thymus',zone:'Chest, upper back, shoulders, arms, hands',stones:'Rose quartz, green aventurine, malachite',herbs:'Hawthorn, rose, holy basil (tulsi)',bal:['Loving and compassionate','Forgives and receives love','Feels connected to others'],imb:['Holding grief or resentment','Closed off or lonely','Jealousy, giving without receiving'],breath:'Breathe into the chest, open the arms'},
+ {pt:'The hollow of the throat, above the collarbones',organs:'Thyroid, voice box, pharyngeal nerves, jaw, ears',zone:'Throat, neck, jaw, ears, shoulders',stones:'Turquoise, blue lace agate, aquamarine',herbs:'Peppermint, sage, slippery elm, licorice root',bal:['Speaks clearly and honestly','Listens well','Expresses creativity'],imb:['Fear of speaking up','Talking over others or holding words in','Tight jaw, neck or shoulders'],breath:'Hum on the exhale, feel the throat buzz'},
+ {pt:'Forehead, between the eyebrows',organs:'Pituitary gland and hypothalamus (deep behind the eyes), eyes, sinuses',zone:'Eyes, forehead, sinuses, head',stones:'Lapis lazuli, amethyst, sodalite',herbs:'Lavender, passionflower, gotu kola, mugwort',bal:['Intuitive and clear-minded','Sees the bigger picture','Good imagination and dreams'],imb:['Confused or without direction','Overthinking, mental fog','Tension around eyes and forehead'],breath:'Eyes soft and closed, focus between the brows'},
+ {pt:'Top (crown) of the head',organs:'Cerebral cortex; pineal gland deep in the center of the brain; nervous system',zone:'Top of the head, brain, whole nervous system',stones:'Clear quartz, amethyst, selenite',herbs:'Lotus, gotu kola, lavender, frankincense (resin)',bal:['Peaceful and connected','Open to spirit and wisdom','Sense of purpose'],imb:['Disconnected or aimless','Cynical or closed to spirit','Lost sense of meaning'],breath:'Silent breath, feel space above the head'}
+];
+const HERB_CAUTION={'licorice root':'avoid with high blood pressure','mugwort':'avoid in pregnancy','ashwagandha':'avoid in pregnancy; check with thyroid or sedative medicines','passionflower':'can cause drowsiness'};
+let focus=store('rl_focus')||[];let bodySel=0;
+const BY=[250,215,168,118,74,38,12];
+function buildBody(svg,pre,tap){
+  const z=(i,o)=>`fill="${ST[i].col}" fill-opacity="${o}"`;
+  svg.innerHTML=`<defs><filter id="${pre}bg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<g stroke="#c9a94a" stroke-opacity=".55" stroke-width="1">
+<g data-z="0" class="zn"><path d="M72,240 L68,330 L66,396 Q66,410 84,410 L94,410 L96,332 L100,262 L104,332 L106,410 L116,410 Q134,410 134,396 L132,330 L128,240 Z" ${z(0,.28)}/></g>
+<g data-z="1" class="zn"><path d="M70,200 L130,200 L132,242 L68,242 Z" ${z(1,.3)}/></g>
+<g data-z="2" class="zn"><path d="M66,145 L134,145 L131,201 L69,201 Z" ${z(2,.3)}/></g>
+<g data-z="3" class="zn"><path d="M60,88 Q100,80 140,88 L136,146 L64,146 Z" ${z(3,.3)}/><path d="M60,90 Q40,140 44,200 L40,236 L50,238 L56,202 Q58,150 68,118 Z" ${z(3,.22)}/><path d="M140,90 Q160,140 156,200 L160,236 L150,238 L144,202 Q142,150 132,118 Z" ${z(3,.22)}/></g>
+<g data-z="4" class="zn"><path d="M90,64 L110,64 L112,86 Q100,90 88,86 Z" ${z(4,.35)}/></g>
+<g data-z="5" class="zn"><circle cx="100" cy="38" r="25" ${z(5,.28)}/></g>
+<g data-z="6" class="zn"><path d="M76,30 Q100,2 124,30 Q100,20 76,30 Z" ${z(6,.45)}/></g>
+</g>
+<line x1="100" y1="10" x2="100" y2="250" stroke="#f4c430" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="3 3"/>
+${ST.map((s,i)=>`<g data-z="${i}" class="pp"><circle cx="100" cy="${BY[i]}" r="7" fill="${s.col}" stroke="#fff" stroke-width="1.2"/><text x="100" y="${BY[i]+3}" text-anchor="middle" font-size="8" font-weight="900" fill="#111">${i+1}</text>
+<line x1="${i%2?92:108}" y1="${BY[i]}" x2="${i%2?-2:202}" y2="${BY[i]}" stroke="${s.col}" stroke-opacity=".5" stroke-width=".8"/>
+<text x="${i%2?-4:204}" y="${BY[i]-2}" text-anchor="${i%2?'end':'start'}" font-size="10.5" font-weight="900" fill="${s.col}">${s.name}</text>
+<text x="${i%2?-4:204}" y="${BY[i]+9}" text-anchor="${i%2?'end':'start'}" font-size="7.5" fill="#c3bfa8">${s.n} · ${s.seed.split(' ')[0]} · ${BODY[i].stones.split(',')[0]}</text></g>`).join('')}`;
+  svg.querySelectorAll('[data-z]').forEach(g=>{g.style.cursor='pointer';g.addEventListener('click',e=>{e.stopPropagation();tap(+g.dataset.z)})});
+}
+function markBody(svg,pre,on){svg.querySelectorAll('.zn').forEach(g=>{const a=on.includes(+g.dataset.z);g.querySelectorAll('path,circle').forEach(p=>{p.setAttribute('fill-opacity',a?.75:(on.length?.12:.3))});g.setAttribute('filter',a?`url(#${pre}bg)`:'')});
+  svg.querySelectorAll('.pp circle').forEach((c,i)=>{const a=on.includes(i);c.setAttribute('r',a?10:7);c.setAttribute('filter',a?`url(#${pre}bg)`:'')})}
+function herbList(h){return h.split(', ').map(x=>{const k=x.toLowerCase();return HERB_CAUTION[k]?`${x}<sup style="color:#f4c430">*</sup>`:x}).join(', ')}
+function herbNotes(h){return h.split(', ').map(x=>HERB_CAUTION[x.toLowerCase()]?`* ${x}: ${HERB_CAUTION[x.toLowerCase()]}`:'').filter(Boolean).join(' · ')}
+function showBody(i){bodySel=i;const s=ST[i],b=BODY[i],inF=focus.includes(i);
+  $('bodyCard').innerHTML=`<div class="card"><div class="top" style="background:linear-gradient(90deg,${s.col},${s.col}cc)">${i+1} · ${s.name} · ${s.sk}<small>Note ${s.n} · ${s.so} · seed sound ${s.seed} · ${s.el}</small></div><div class="body">
+<span class="tag t-l">📍 PINPOINT</span><div class="chill-line" style="margin-top:2px">${b.pt}</div>
+<div class="kv"><div>Body area</div><div>${b.zone}</div><div>Organs & glands</div><div>${b.organs}</div><div>Color</div><div><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${s.col};vertical-align:-1px"></span> ${s.nm}</div><div>Stones</div><div>${b.stones}</div><div>Herbs</div><div>${herbList(b.herbs)}</div><div>Affirmation</div><div style="color:${s.col};font-weight:800">“${s.aff}”</div></div>
+${herbNotes(b.herbs)?`<div class="note" style="margin-top:4px">${herbNotes(b.herbs)}</div>`:''}
+<div class="grid2" style="gap:10px;margin-top:10px"><div style="background:#0f2416;border:1px solid #22a25a55;border-radius:12px;padding:10px"><b style="color:#8fe0b2">✅ Balanced</b><ul style="margin:6px 0 0 18px;padding:0;line-height:1.55">${b.bal.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+<div style="background:#2a1512;border:1px solid #e2382b55;border-radius:12px;padding:10px"><b style="color:#f4a79e">⚠ Out of balance</b><ul style="margin:6px 0 0 18px;padding:0;line-height:1.55">${b.imb.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>
+<span class="tag t-m">🎶 WORK THIS AREA</span><div class="kv"><div>Sound</div><div>${s.n} note · bowl or flute · chant ${s.seed.split(' ')[0]}</div><div>Breath</div><div>${b.breath}</div></div>
+<div class="controls" style="margin-top:10px"><button class="b" id="bcTone">🔊 Play ${s.n}</button><button class="s" id="bcFocus">${inF?'✓ In today’s focus':'＋ Add to today’s focus'}</button></div>
+</div></div>`;
+  $('bcTone').onclick=()=>sound(noteHz(60+s.pc),4,.2);$('bcFocus').onclick=()=>{focus=inF?focus.filter(x=>x!==i):[...focus,i].sort();store('rl_focus',focus);renderFocus();showBody(i)};
+  markBody($('bodyfig'),'b',[...new Set([i,...focus])]);}
+function renderFocus(){$('focusList').innerHTML=focus.length?'Today\'s focus: '+focus.map(i=>`<b style="color:${ST[i].col}">${ST[i].name}</b>`).join(' · '):'Today\'s focus: none yet. Open an area and tap “＋ Add to today\'s focus”.'}
+buildBody($('bodyfig'),'b',showBody);
+$('chart').innerHTML='<tr><th>#</th><th>Chakra</th><th>Pinpoint</th><th>Color</th><th>Note · seed</th><th>Organs & glands</th><th>Stones</th><th>Herbs</th></tr>'+ST.map((s,i)=>`<tr><td style="color:${s.col};font-weight:900">${i+1}</td><td><b style="color:${s.col}">${s.name}</b><br><span class="note">${s.sk}</span></td><td>${BODY[i].pt}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${s.col}"></span> ${s.nm.replace('≈ ','')}</td><td>${s.n} · ${s.seed.split(' ')[0]}</td><td>${BODY[i].organs}</td><td>${BODY[i].stones}</td><td>${herbList(BODY[i].herbs)}</td></tr>`).join('');
+let cmBuilt=false;
+$('cmOpen').onclick=()=>{const list=focus.length?focus:[bodySel];if(!cmBuilt){buildBody($('cmfig'),'c',i=>{});cmBuilt=true}markBody($('cmfig'),'c',list);
+  $('cmList').innerHTML=list.map(i=>{const s=ST[i],b=BODY[i];return `<div class="card" style="margin:10px 0"><div class="top" style="background:${s.col}">${s.name} · ${b.zone}<small>${b.pt}</small></div><div class="body"><div class="chill-line">${s.chill}</div><div class="note">Working toward: ${b.bal.join(' · ')}</div><div class="kv" style="margin-top:6px"><div>Sound</div><div>${s.n} · ${s.seed.split(' ')[0]}</div><div>Stones</div><div>${b.stones}</div><div>Affirmation</div><div style="color:${s.col};font-weight:900">“${s.aff}”</div></div></div></div>`}).join('');
+  $('clientMap').style.display='flex'};
+$('cmClose').onclick=()=>$('clientMap').style.display='none';
+$('focusClear').onclick=()=>{focus=[];store('rl_focus',focus);renderFocus();showBody(bodySel)};
+renderFocus();showBody(0);
 
 /* ---------- session mode ---------- */
 let SF=null,sI=0,sGuide=null;
