@@ -108,7 +108,18 @@ canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-
 .et-splash-credit{color:#f5c52e;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
 .et-skip{position:absolute;top:14px;right:14px;background:transparent;border:1px solid #2c3a27;color:#c3bfa8;border-radius:999px;padding:7px 13px;font-size:12px}
 .et-avatar{width:48px;height:48px;border-radius:50%;border:2px solid #f5c52e;object-fit:cover;box-shadow:0 0 12px rgba(25,178,99,.35);flex:none}
-.titlerow{display:flex;align-items:center;gap:12px}
+.titlerow{display:flex;align-items:center;gap:16px;padding:8px 0 14px 8px}
+.et-badge{position:relative;flex:none;width:58px;height:87px;border-radius:16px;padding:2px;background:conic-gradient(from var(--a,0deg),#e2382b,#f4c430,#22a25a,#e2382b);animation:etSpin 6s linear infinite,etGlow 2.8s ease-in-out infinite}
+.et-badge img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 40%;border-radius:14px;background:#000}
+.et-pulse{position:absolute;inset:-2px;border-radius:18px;border:2px solid rgba(244,196,48,.7);animation:etRing 2.8s ease-out infinite;pointer-events:none}
+.et-pulse.p2{border-color:rgba(34,162,90,.7);animation-delay:1.4s}
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes etSpin{to{--a:360deg}}
+@keyframes etGlow{0%,100%{box-shadow:0 0 10px rgba(226,56,43,.45),0 0 18px rgba(244,196,48,.2)}50%{box-shadow:0 0 16px rgba(244,196,48,.6),0 0 30px rgba(34,162,90,.4)}}
+@keyframes etRing{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.28);opacity:0}}
+@media(min-width:700px){.et-badge{width:70px;height:105px}}
+@media(prefers-reduced-motion:reduce){.et-badge,.et-pulse{animation:none}}
+
 .et-intro{position:absolute;inset:0;z-index:5;background:radial-gradient(ellipse at 50% 35%,#0f2416,#030503 72%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center}
 .et-intro.on{display:flex}
 .et-intro .et-aura-stage{height:min(46dvh,460px);width:min(46vw,240px)}
@@ -165,7 +176,7 @@ body.d-viber .saiyan{display:none!important}
 <div class="flag"></div>
 <header>
 <div class="eyebrow">FIELD INSTRUMENT 01 · v1.5 · ZION 3000</div>
-<div class="titlerow"><img class="et-avatar" src="avatar.png" alt="Jah Rasta"><h1>Electro Tuner</h1></div>
+<div class="titlerow"><div class="et-badge" aria-hidden="true"><span class="et-pulse"></span><span class="et-pulse p2"></span><img src="badge.jpg" alt="" onerror="this.onerror=null;this.src='avatar.png'"></div><h1>Electro Tuner</h1></div>
 <div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin:-4px 0 10px;text-transform:uppercase">Created by Jah Rasta</div>
 <div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
 <button class="sessbtn" id="sessOpen">🧘 Session mode</button><button class="medbtn" id="medBtn">🎵 Meditation sound: off</button><button class="medbtn" id="uiBtn">🔔 Tap sounds: on</button></div>
