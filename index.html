@@ -32,6 +32,7 @@ button:disabled{opacity:.4}
 .status{font-size:13px;color:var(--muted);margin-top:10px}
 .grid2{display:grid;grid-template-columns:1fr;gap:0 16px}
 @media(min-width:720px){.grid2{grid-template-columns:1.05fr .95fr}}
+.smh{margin:14px 0 6px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:#FFC928}
 .coach{margin-top:12px;border:1px solid #1f3a28;border-radius:14px;padding:12px;background:linear-gradient(160deg,rgba(0,255,133,.05),rgba(255,201,40,.04) 60%,rgba(255,52,52,.04))}
 .coach-h{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:.04em;margin-bottom:8px}.coach-h .s{padding:5px 9px;font-size:12px}
 .coach-now{font-size:15px;line-height:1.45;min-height:44px}
@@ -246,6 +247,20 @@ body.d-viber .saiyan{display:none!important}
 <div class="coach-last" id="coachLast"></div>
 <div class="coach-stats" id="coachStats"></div>
 <p class="note" style="margin:6px 0 0">How I judge: ±5¢ is what most tuners call in tune; around 10¢ is where many listeners start to notice. Every comment comes from the pitch and loudness the mic measured, nothing is guessed.</p>
+</div>
+<div class="coach" id="study" style="margin-top:12px">
+<div class="coach-h"><span>🔬 Study My Play</span></div>
+<div id="smPick">
+<p class="note" style="margin:0 0 8px">Play freely for a set time. When it ends I study the whole take: accuracy, your habits on each note, key and range, phrasing, vibrato, how you held up from start to finish, and your top 3 things to work on.</p>
+<label style="font-size:12px;display:flex;gap:6px;align-items:center;margin-bottom:8px">Focus <select id="smIntent" style="width:auto;padding:6px"><option value="free">Free play</option><option value="precision">Precision</option><option value="expression">Expression (slides & bends are on purpose)</option></select></label>
+<div class="controls"><button class="b" data-sm="30">30 s · Quick check</button><button class="b" data-sm="60">1 min · Daily</button><button class="b" data-sm="180">3 min · Deep</button><button class="b" data-sm="300">5 min · Full</button></div>
+<div class="note" id="smMsg"></div>
+</div>
+<div id="smRun" style="display:none">
+<div style="display:flex;align-items:center;gap:10px"><b style="font-size:28px;font-variant-numeric:tabular-nums" id="smTime">0:00</b><span id="smLive" class="note" style="flex:1">Listening…</span><button class="s" id="smStop">■ Finish now</button></div>
+<div style="height:8px;border-radius:6px;background:#16221a;overflow:hidden;margin-top:8px"><div id="smBar" style="height:100%;width:0;background:linear-gradient(90deg,#FF3434,#FFC928,#00FF85)"></div></div>
+</div>
+<div id="smReport"></div>
 </div>
 <div class="minis">
 <div class="mini"><strong id="sustain">0.0s</strong><span>Sustain (best <b id="best">0.0</b>s)</span></div>
@@ -624,6 +639,7 @@ function analyse(now){
   else{cur.f=null;cur.conf=p?p.conf:0;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null}
   trail.push({t:now,m:cur.midi});while(trail.length&&now-trail[0].t>6000)trail.shift();
   updateSustain(now);cur.vib=vibratoRate(now);
+  if(SM.on)smFrame(now);
 }
 
 /* ---------- readouts ---------- */
@@ -718,6 +734,200 @@ function coachReport(){const N=CO.notes;if(!N.length)return 'No notes studied ye
   return 'Electro Tuner · Live Coach report · '+new Date().toLocaleString()+'\n'+'Instrument: '+(INST[inst]?INST[inst].label:inst)+' · A='+A4+'\n'+N.map((x,i)=>`${i+1}. ${x.name} ${x.dur.toFixed(1)}s · avg ${coSign(x.avg)} · ±${x.spread.toFixed(0)}¢ · ${x.inPct}% within ±10¢${x.vib?` · vibrato ${x.vib.hz.toFixed(1)}Hz`:''}${Math.abs(x.drift)>=8?` · drift ${coSign(x.drift)}`:''}`).join('\n')+'\nSummary: '+[...document.querySelectorAll('#coachStats div')].map(d=>d.innerText.replace('\n',' ')).join(' | ')}
 $('coachReset').onclick=()=>{CO.notes=[];CO.stations.clear();CO.note=null;$('coachLast').innerHTML='';$('coachStats').innerHTML='';$('coachNow').textContent='New session. Play a note.'};
 $('coachCopy').onclick=async()=>{const t=coachReport();try{await navigator.clipboard.writeText(t);$('coachCopy').textContent='✅ Copied'}catch(e){prompt('Copy your report:',t)}setTimeout(()=>$('coachCopy').textContent='📋 Copy report',1500)};
+
+/* ================= STUDY MY PLAY: whole-performance analysis (offline) ================= */
+const SM={on:false,t0:0,dur:60,frames:[],timer:null,intent:'free'};
+const SMV='study-v1';
+function smFrame(now){
+  if(!SM.on)return;const t=now-SM.t0;
+  SM.frames.push({t,m:cur.f?cur.midi:null,db:cur.db,conf:cur.conf||0,vib:cur.vib?cur.vib.hz:null,va:cur.vib?cur.vib.amp:null});
+  if(t>=SM.dur*1000)smFinish();
+}
+function smStart(sec){
+  SM.dur=sec;SM.frames=[];SM.intent=$('smIntent').value;
+  const go=()=>{SM.on=true;SM.t0=performance.now();$('smRun').style.display='block';$('smPick').style.display='none';$('smReport').innerHTML='';smTick()};
+  if(!running){start().then(()=>{if(running)go();else $('smMsg').textContent='The microphone has to be on to study your play.'})}else go();
+}
+function smTick(){if(!SM.on)return;const el=(performance.now()-SM.t0)/1000,left=Math.max(0,SM.dur-el);
+  $('smTime').textContent=`${Math.floor(left/60)}:${String(Math.floor(left%60)).padStart(2,'0')}`;$('smBar').style.width=(100*el/SM.dur)+'%';
+  const n=SM.frames.filter(f=>f.m!==null).length;$('smLive').textContent=`Listening… ${n} pitched moments captured`;setTimeout(smTick,250)}
+function smFinish(){if(!SM.on)return;SM.on=false;$('smRun').style.display='none';$('smPick').style.display='block';
+  const R=smAnalyse(SM.frames,(performance.now()-SM.t0)/1000);smRender(R);smSave(R)}
+/* ---- helpers ---- */
+const smMean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const smMed=a=>{if(!a.length)return 0;const b=[...a].sort((x,y)=>x-y),k=b.length>>1;return b.length%2?b[k]:(b[k-1]+b[k])/2};
+const smStd=a=>{if(a.length<2)return 0;const m=smMean(a);return Math.sqrt(smMean(a.map(x=>(x-m)*(x-m))))};
+const smPct=(a,p)=>{if(!a.length)return 0;const b=[...a].sort((x,y)=>x-y);return b[Math.min(b.length-1,Math.floor(p*(b.length-1)))]};
+const sgn=c=>(c>0?'+':'')+Math.round(c)+'¢';
+const nm=m=>NAMES[((m%12)+12)%12]+(Math.floor(m/12)-1);
+const SCALES={'major':[0,2,4,5,7,9,11],'natural minor':[0,2,3,5,7,8,10],'major pentatonic':[0,2,4,7,9],'minor pentatonic':[0,3,5,7,10],'Dorian':[0,2,3,5,7,9,10],'Mixolydian':[0,2,4,5,7,9,10]};
+function smAnalyse(F,elapsed){
+  const R={v:SMV,date:Date.now(),inst,instLabel:INST[inst]?INST[inst].label:inst,A4,dur:Math.round(elapsed),intent:SM.intent};
+  const valid=F.filter(f=>f.m!==null&&f.conf>=.75);
+  const dt=F.length>1?(F[F.length-1].t-F[0].t)/(F.length-1):16;
+  R.pitchedSec=valid.length*dt/1000;
+  /* note events: same rounded note, merge dropouts <100 ms */
+  const ev=[];let curE=null,gapT=null;
+  for(const f of F){
+    const ok=f.m!==null&&f.conf>=.75;
+    if(ok){const n=Math.round(f.m);
+      if(curE&&n===curE.n&&(gapT===null||f.t-gapT<100)){curE.fr.push(f);curE.t1=f.t;gapT=null}
+      else{if(curE)ev.push(curE);curE={n,t0:f.t,t1:f.t,fr:[f]};gapT=null}}
+    else if(curE){if(gapT===null)gapT=f.t;if(f.t-gapT>=100){ev.push(curE);curE=null;gapT=null}}
+  }
+  if(curE)ev.push(curE);
+  const events=ev.filter(e=>e.t1-e.t0>=150).map(e=>{
+    const d=e.t1-e.t0,c=e.fr.map(f=>(f.m-e.n)*100);
+    const st=e.fr.filter(f=>f.t-e.t0>=100&&e.t1-f.t>=80).map(f=>(f.m-e.n)*100);
+    const steady=st.length&&(d-180)>=200;
+    let settle=null;for(let i=0;i<e.fr.length;i++){const t=e.fr[i].t;let j=i,okk=true;while(j<e.fr.length&&e.fr[j].t-t<100){if(Math.abs((e.fr[j].m-e.n)*100)>10){okk=false;break}j++}if(okk&&j<e.fr.length){settle=t-e.t0;break}}
+    const q=Math.max(1,Math.floor(st.length/4));const drift=st.length>=8?smMed(st.slice(-q))-smMed(st.slice(0,q)):0;
+    const vibs=e.fr.filter(f=>f.vib);return {fr:e.fr,n:e.n,name:nm(e.n),t0:e.t0,t1:e.t1,d,bias:steady?smMed(st):smMed(c),std:steady?smStd(st):null,steady,st,settle,drift,
+      vib:vibs.length>=3?{hz:smMed(vibs.map(f=>f.vib)),w:smMed(vibs.map(f=>f.va))*2.83,frac:vibs.length/e.fr.length}:null,db:smMed(e.fr.map(f=>f.db).filter(isFinite))}});
+  R.events=events.length;
+  R.limited=R.pitchedSec<5||events.length<5;
+  const stF=events.filter(e=>e.steady).flatMap(e=>e.st);
+  R.bias=smMean(stF);R.absErr=smMean(stF.map(Math.abs));
+  R.p5=stF.length?100*stF.filter(c=>Math.abs(c)<=5).length/stF.length:0;
+  R.p10=stF.length?100*stF.filter(c=>Math.abs(c)<=10).length/stF.length:0;
+  R.p20=stF.length?100*stF.filter(c=>Math.abs(c)<=20).length/stF.length:0;
+  const sEv=events.filter(e=>e.steady);
+  R.stability=smMed(sEv.map(e=>e.std));
+  R.steadyNotes=sEv.length;
+  /* melodic vocabulary + key */
+  const hist=new Array(12).fill(0);for(const e of sEv)hist[((e.n%12)+12)%12]+=e.d;
+  if(!sEv.length)for(const e of events)hist[((e.n%12)+12)%12]+=e.d;
+  R.hist=hist;const tot=hist.reduce((a,b)=>a+b,0)||1;const pcs=hist.filter(h=>h/tot>.02).length;
+  const ends=[];
+  /* phrases: <500 ms silence joins */
+  const ph=[];let p=null;for(const e of events){if(p&&e.t0-p.t1<500){p.t1=e.t1;p.ev.push(e);p.snd+=e.d}else{if(p)ph.push(p);p={t0:e.t0,t1:e.t1,ev:[e],snd:e.d}}}if(p)ph.push(p);
+  for(const q of ph)ends.push(((q.ev[q.ev.length-1].n%12)+12)%12);
+  const cands=[];for(let r=0;r<12;r++)for(const [sn,iv] of Object.entries(SCALES)){
+    const set=iv.map(x=>(x+r)%12),tpl=new Array(12).fill(0);set.forEach(x=>tpl[x]=1);
+    const dot=hist.reduce((a,h,i)=>a+h*tpl[i],0),nh=Math.sqrt(hist.reduce((a,h)=>a+h*h,0))||1,nt=Math.sqrt(set.length);
+    const sim=dot/(nh*nt),cov=dot/tot,end=ends.length?ends.filter(x=>x===r).length/ends.length:0;
+    cands.push({name:NAMES[r]+' '+sn,score:.6*sim+.3*cov+.1*end,cov})}
+  cands.sort((a,b)=>b.score-a.score);
+  R.keyCands=cands.slice(0,3).map(c=>({name:c.name,score:+c.score.toFixed(2),cov:Math.round(c.cov*100)}));
+  R.key=(pcs>=4&&R.pitchedSec>=10&&cands[0].cov>=.85&&cands[0].score-cands[1].score>=.08)?cands[0].name:null;
+  R.pcs=pcs;
+  const ns=events.map(e=>e.n);R.low=ns.length?nm(Math.min(...ns)):'—';R.high=ns.length?nm(Math.max(...ns)):'—';R.range=ns.length?Math.max(...ns)-Math.min(...ns):0;
+  const used={};for(const e of events)used[e.name]=(used[e.name]||0)+e.d;R.top=Object.entries(used).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+  /* habitual flat / sharp (each occurrence counts once) */
+  const by={};for(const e of sEv)(by[e.name]=by[e.name]||[]).push(e);
+  R.notes=Object.entries(by).map(([name,arr])=>{const b=arr.map(e=>e.bias),med=smMed(b);let tag='';
+    if(arr.length>=3){if(med<-10&&b.filter(x=>x<-5).length/b.length>=.7)tag='flat';else if(med>10&&b.filter(x=>x>5).length/b.length>=.7)tag='sharp';else if(smStd(b)>15)tag='inconsistent'}
+    return {name,n:arr[0].n,count:arr.length,med,sd:smStd(b),tag,strong:arr.length>=5}}).sort((a,b)=>a.n-b.n);
+  /* phrasing */
+  R.phrases=ph.length;R.phraseAvg=ph.length?smMean(ph.map(q=>(q.t1-q.t0)/1000)):0;R.phraseMax=ph.length?Math.max(...ph.map(q=>(q.t1-q.t0)/1000)):0;
+  R.sustainMed=smMed(events.map(e=>e.d/1000));
+  const rests=[];for(let i=1;i<ph.length;i++)rests.push((ph[i].t0-ph[i-1].t1)/1000);R.restAvg=smMean(rests);
+  /* expression */
+  const act=valid.map(f=>f.db).filter(isFinite);R.dyn=act.length?smPct(act,.95)-smPct(act,.10):0;
+  const se=events.filter(e=>e.settle!==null);R.settle=smMed(se.map(e=>e.settle));R.slowEntry=se.length?se.filter(e=>e.settle>150).length/se.length:0;
+  const dr=sEv.filter(e=>e.st.length>=8);R.drift=smMed(dr.map(e=>e.drift));R.driftFrac=dr.length?dr.filter(e=>Math.abs(e.drift)>10).length/dr.length:0;
+  const vEv=events.filter(e=>e.vib);R.vibRate=vEv.length?smMed(vEv.map(e=>e.vib.hz)):null;R.vibWidth=vEv.length?smMed(vEv.map(e=>e.vib.w)):null;
+  R.vibUse=sEv.length?sEv.reduce((a,e)=>a+(e.vib?e.vib.frac*e.d:0),0)/sEv.reduce((a,e)=>a+e.d,0):0;
+  /* consistency over time (thirds) */
+  const T=Math.max(1,elapsed*1000);R.thirds=[0,1,2].map(k=>{const lo=k*T/3,hi=(k+1)*T/3,es=sEv.filter(e=>e.t0>=lo&&e.t0<hi),c=es.flatMap(e=>e.st),ps=ph.filter(q=>q.t0>=lo&&q.t0<hi);
+    return {n:es.length,absErr:c.length?smMean(c.map(Math.abs)):null,p10:c.length?100*c.filter(x=>Math.abs(x)<=10).length/c.length:null,stab:es.length?smMed(es.map(e=>e.std)):null,db:es.length?smMed(es.map(e=>e.db)):null,phr:ps.length?smMed(ps.map(q=>(q.t1-q.t0)/1000)):null}});
+  const a=R.thirds[0],z=R.thirds[2];let dec=0;
+  if(a.n>=3&&z.n>=3){if(z.absErr-a.absErr>=5)dec++;if(a.p10-z.p10>=10)dec++;if(z.stab>a.stab*1.25&&z.stab-a.stab>=3)dec++;if(a.phr&&z.phr&&z.phr<=a.phr*.8)dec++}
+  R.decline=dec>=2;
+  /* rhythm & flow */
+  const on=[];for(const e of events){if(!on.length||e.t0-on[on.length-1]>=80)on.push(e.t0)}
+  const ioi=[];for(let i=1;i<on.length;i++)ioi.push(on[i]-on[i-1]);
+  R.npm=R.pitchedSec>0?events.length/(R.pitchedSec/60):0;R.ioi=smMed(ioi);R.ioiCV=ioi.length>2?smStd(ioi)/smMean(ioi):null;
+  let rep=0,step=0,leap=0;for(let i=1;i<events.length;i++){const d=Math.abs(events[i].n-events[i-1].n);if(d===0)rep++;else if(d<=2)step++;else leap++}
+  const mv=Math.max(1,rep+step+leap);R.rep=100*rep/mv;R.step=100*step/mv;R.leap=100*leap/mv;
+  R.bpm=null;if(on.length>=12){let best=null;for(let bpm=40;bpm<=200;bpm++){for(const sub of [1,2]){const P=60000/bpm/sub;if(P<400)continue;let hit=0;for(const o of on){const ph2=((o-on[0])%P+P)%P;if(Math.min(ph2,P-ph2)<=70)hit++}const fr=hit/on.length,ch=140/P;if(fr>=.7&&fr-ch>=.35&&(!best||fr-ch>best.fr-best.ch))best={bpm,fr,ch}}}if(best)R.bpm=best.bpm}
+  /* priorities: 100 × severity × √frequency × evidence */
+  const iss=[];const evd=n=>Math.min(1,n/10);
+  for(const nt of R.notes)if(nt.tag==='flat'||nt.tag==='sharp')iss.push({k:'note',score:100*Math.min(1,Math.abs(nt.med)/20)*Math.sqrt(nt.count/Math.max(1,R.steadyNotes))*evd(nt.count),
+    title:`Centre your ${nt.name}`,obs:`${nt.name} sat ${nt.tag} across ${nt.count} separate times (median ${sgn(nt.med)})${nt.strong?'':' · early pattern, needs more data'}.`,
+    ex:`Five 4-second ${nt.name} notes against the reference tone on the station card.`,goal:`At least 80% within ±10¢ on ${nt.name}.`});
+  if(Math.abs(R.bias)>5&&!iss.some(i=>i.k==='note'))iss.push({k:'bias',score:100*Math.min(1,Math.abs(R.bias)/20)*Math.sqrt(stF.length?stF.filter(c=>R.bias>0?c>5:c<-5).length/stF.length:0)*evd(R.steadyNotes),
+    title:`Bring your overall pitch ${R.bias>0?'down':'up'} a touch`,obs:`Across the take you averaged ${sgn(R.bias)}.`,ex:INST[inst]&&INST[inst][R.bias>0?'sharp':'flat']||'Hold long notes against a reference tone.',goal:'Overall average within ±5¢.'});
+  if(R.stability>8)iss.push({k:'stab',score:100*Math.min(1,R.stability/16)*Math.sqrt(sEv.filter(e=>e.std>8).length/Math.max(1,sEv.length))*evd(sEv.length),
+    title:'Steady the middle of your notes',obs:`Typical note wavered ±${R.stability.toFixed(0)}¢ while held${R.vibUse>.3?' (part of this is vibrato)':''}.`,ex:inst==='flute'?'Long tones: 4 seconds each with relaxed, even air.':inst==='voice'?'Straight-tone holds on "oo", 4 seconds each, then add vibrato back.':'Hold single notes and listen for any wobble.',goal:'Typical steadiness under ±8¢.'});
+  if(R.settle>150&&SM.intent!=='expression')iss.push({k:'entry',score:100*Math.min(1,R.settle/300)*Math.sqrt(R.slowEntry)*evd(se.length),
+    title:'Land your note entrances',obs:`Notes took a median ${Math.round(R.settle)} ms to settle within ±10¢.`,ex:'Ten deliberate, straight entrances without sliding in.',goal:'Settle within 150 ms.'});
+  if(Math.abs(R.drift)>10)iss.push({k:'drift',score:100*Math.min(1,Math.abs(R.drift)/20)*Math.sqrt(R.driftFrac)*evd(dr.length),
+    title:'Hold pitch to the end of each note',obs:`Held notes typically drifted ${sgn(R.drift)} from start to finish.`,ex:inst==='flute'||inst==='voice'?'Keep the air steady as the note ends; practise 4-second holds with an even fade.':'Notice where the pitch moves as the note decays.',goal:'End-of-note drift under 10¢.'});
+  if(R.decline)iss.push({k:'decline',score:100*Math.min(1,Math.max(0,(z.absErr-a.absErr))/10)*Math.sqrt(1/3)*evd(z.n),
+    title:'Keep your accuracy through to the end',obs:`Within ±10¢ went from ${Math.round(a.p10)}% in the opening third to ${Math.round(z.p10)}% in the closing third.`,ex:'Short breaks between phrases; re-centre on a reference note midway.',goal:'Closing third within 5 points of the opening.'});
+  R.priorities=iss.sort((x,y)=>y.score-x.score).slice(0,3).map(i=>({...i,score:Math.round(i.score)}));
+  /* strengths (always at least one when data allows) */
+  const str=[];const goodNote=R.notes.filter(n=>n.count>=3&&Math.abs(n.med)<=5).sort((a,b)=>b.count-a.count)[0];
+  if(goodNote)str.push(`${goodNote.name} was centred every time it came back (${goodNote.count} times, median ${sgn(goodNote.med)}).`);
+  if(R.p10>=75)str.push(`${Math.round(R.p10)}% of your held pitch was within ±10¢.`);
+  if(R.stability&&R.stability<=5)str.push(`Very steady held notes (typical ${R.stability<1?'under ±1':'±'+R.stability.toFixed(0)}¢).`);
+  if(R.vibRate&&R.vibRate>=4.5&&R.vibRate<=7)str.push(`Even vibrato around ${R.vibRate.toFixed(1)} Hz.`);
+  if(R.phraseMax>=8)str.push(`Long phrasing: your longest phrase ran ${R.phraseMax.toFixed(1)} s.`);
+  if(R.range>=12)str.push(`Wide range: ${R.low} to ${R.high} (${R.range} semitones).`);
+  if(!str.length&&!R.limited)str.push(`You kept playing for ${Math.round(R.pitchedSec)} s of clear, measurable sound; that steady practice is what builds control.`);
+  R.strengths=str.slice(0,2);
+  R._ev=events;R._ph=ph;R._F=F;
+  return R;
+}
+/* ---- report rendering ---- */
+function smCanvas(id,h){return `<canvas id="${id}" style="width:100%;height:${h}px;display:block;border-radius:10px;background:#050907"></canvas>`}
+function smRender(R){
+  const el=$('smReport');
+  if(R.limited){el.innerHTML=`<div class="coach-card" style="--c:#FFC928"><b class="h">Not enough to study yet</b><ul><li>I heard ${R.pitchedSec.toFixed(1)} s of clear pitch and ${R.events} notes.</li><li>A full study needs at least 5 s of clear pitch and 5 notes. Try a longer take, play a bit louder, or move closer to the phone.</li></ul></div>`;return}
+  const pr=R.priorities.length?R.priorities.map((p,i)=>`<li><b>${i+1}. ${p.title}</b><br>${p.obs}<br>🎯 Exercise: ${p.ex}<br>✅ Goal: ${p.goal}</li>`).join(''):'<li>No clear problem pattern stood out in this take. Keep going, or try a longer study for more evidence.</li>';
+  const keyTxt=R.key?`Likely key: <b>${R.key}</b>`:(R.pcs>=4?`Key not certain. Closest fits: ${R.keyCands.map(c=>c.name).join(', ')}`:'Key undetermined (fewer than 4 different notes)');
+  const habit=R.notes.filter(n=>n.tag).map(n=>`<b>${n.name}</b> ${n.tag==='inconsistent'?'was inconsistent':'tends '+n.tag} (${n.count}×, median ${sgn(n.med)})${n.strong?'':' · early pattern'}`);
+  el.innerHTML=`
+  <div class="coach-card" style="--c:#00FF85"><b class="h">🔬 Study of your ${Math.floor(R.dur/60)?Math.floor(R.dur/60)+' min ':''}${R.dur%60?R.dur%60+' s ':''}take · ${R.instLabel}</b>
+  <div class="coach-stats" style="margin-top:8px">${[[Math.round(R.p10)+'%','held pitch within ±10¢'],[sgn(R.bias),'average tendency'],[R.absErr.toFixed(1)+'¢','average pitch error'],[R.stability<1?'<±1¢':'±'+R.stability.toFixed(0)+'¢','typical steadiness'],[R.events,'notes played'],[R.low+'–'+R.high,'range · '+R.range+' semitones']].map(([v,l])=>`<div><strong>${v}</strong><span>${l}</span></div>`).join('')}</div></div>
+  ${R.strengths.length?`<div class="coach-card" style="--c:#00FF85;margin-top:10px"><b class="h">💚 What went well</b><ul>${R.strengths.map(s=>'<li>'+s+'</li>').join('')}</ul></div>`:''}
+  <div class="coach-card" style="--c:#FFC928;margin-top:10px"><b class="h">🎯 Your top things to work on</b><ul style="list-style:none;padding-left:0">${pr}</ul></div>
+  <h3 class="smh">Pitch journey</h3>${smCanvas('smC1',150)}<p class="note">Every dot is a moment of held pitch. Green band = within ±10¢. Up = sharp, down = flat.</p>
+  <h3 class="smh">Melodic fingerprint</h3>${smCanvas('smC2',130)}<p class="note">${keyTxt}. Most used: ${R.top.join(', ')}. Bars are coloured by station (a chosen spiritual convention, not a body measurement).</p>
+  <h3 class="smh">Note accuracy map</h3>${smCanvas('smC3',Math.max(80,R.notes.length*22+20))}<p class="note">${habit.length?habit.join(' · '):'No note showed a repeated flat or sharp habit (each note needs at least 3 appearances to judge).'}</p>
+  <h3 class="smh">Expression landscape</h3>${smCanvas('smC4',120)}<p class="note">Loudness over time. Shaded = estimated phrases (${R.phrases}, average ${R.phraseAvg.toFixed(1)} s, longest ${R.phraseMax.toFixed(1)} s). These are sound-based phrase estimates, not a breath or lung measurement. Dynamic range ${Math.round(R.dyn)} dB${R.vibRate?` · vibrato ${R.vibRate.toFixed(1)} Hz, about ${Math.round(R.vibWidth)}¢ peak to peak, used ${Math.round(R.vibUse*100)}% of held time`:''}.</p>
+  <h3 class="smh">Consistency: opening · middle · closing</h3>${smCanvas('smC5',110)}<p class="note">${R.decline?'Your consistency dropped toward the end (at least two measures got worse). This shows declining consistency, not confirmed tiredness.':'No meaningful drop from start to finish.'}</p>
+  <h3 class="smh">Flow</h3><p class="note">${Math.round(R.npm)} notes per minute of playing · ${Math.round(R.step)}% steps, ${Math.round(R.leap)}% leaps, ${Math.round(R.rep)}% repeats${R.bpm?` · a steady pulse near ${R.bpm} BPM`:' · no steady pulse detected (fine for free playing; timing is not graded without a metronome)'}.</p>
+  <h3 class="smh">📈 My growth</h3>${smCanvas('smC6',110)}<p class="note" id="smGrowthTxt"></p>
+  <div class="controls" style="margin-top:8px"><button class="s" id="smCopy">📋 Copy study</button><button class="s" id="smJson">⬇ Export data</button></div>
+  <p class="note" style="margin-top:8px">How to read this: thresholds (±5¢, ±10¢, 3 appearances) are sensible starting defaults, not universal standards. Expressive slides, bends and vibrato are reported, not counted as mistakes. One pitch at a time is measured, so chords and overlapping bowl tones are not analysed.</p>`;
+  requestAnimationFrame(()=>{smDraw(R);smGrowth(R)});
+  $('smCopy').onclick=async()=>{const t=smText(R);try{await navigator.clipboard.writeText(t);$('smCopy').textContent='✅ Copied'}catch(e){prompt('Copy:',t)}};
+  $('smJson').onclick=()=>{const o={...R};delete o._ev;delete o._ph;delete o._F;const b=new Blob([JSON.stringify(o,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='electro-tuner-study-'+new Date(R.date).toISOString().slice(0,16).replace(':','')+'.json';a.click()};
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function smDraw(R){
+  const C=(id)=>{const c=$(id);const g=fit(c);return [g,c.width,c.height,Math.min(2,DPR())]};
+  const T=Math.max(1,R.dur*1000);
+  {const [g,W,H,d]=C('smC1');const y=c=>H/2-Math.max(-50,Math.min(50,c))/50*(H/2-6*d);g.fillStyle='rgba(0,255,133,.10)';g.fillRect(0,y(10),W,y(-10)-y(10));g.strokeStyle='#1f3a28';g.beginPath();g.moveTo(0,H/2);g.lineTo(W,H/2);g.stroke();
+    for(const e of R._ev){g.fillStyle='rgba(244,245,233,.25)';g.fillRect(e.t0/T*W,0,1*d,4*d);for(const f of e.fr){const c=(f.m-e.n)*100;g.fillStyle=Math.abs(c)<=5?'#00FF85':Math.abs(c)<=15?'#FFC928':'#FF3434';g.fillRect(f.t/T*W,y(c),1.6*d,1.6*d)}}
+    g.fillStyle='#F4F5E9aa';g.font=`${10*d}px system-ui`;g.fillText('+50¢',3*d,11*d);g.fillText('−50¢',3*d,H-4*d)}
+  {const [g,W,H,d]=C('smC2');const mx=Math.max(...R.hist)||1,bw=W/12;for(let i=0;i<12;i++){const h=R.hist[i]/mx*(H-22*d),s=stationOfPc(i);g.fillStyle=s>=0?ST[s].col:'#5a6b5f';g.globalAlpha=.9;g.fillRect(i*bw+3*d,H-16*d-h,bw-6*d,h);g.globalAlpha=1;g.fillStyle='#F4F5E9';g.font=`${10*d}px system-ui`;g.textAlign='center';g.fillText(NAMES[i],i*bw+bw/2,H-4*d)}}
+  {const [g,W,H,d]=C('smC3');const cx=W*.55,sc=(W*.4)/40,rh=22*d;g.strokeStyle='#00FF8566';g.beginPath();g.moveTo(cx,0);g.lineTo(cx,H);g.stroke();g.fillStyle='rgba(0,255,133,.08)';g.fillRect(cx-10*sc,0,20*sc,H);
+    R.notes.forEach((n,i)=>{const yy=10*d+i*rh,v=Math.max(-40,Math.min(40,n.med));g.fillStyle=Math.abs(v)<=5?'#00FF85':Math.abs(v)<=15?'#FFC928':'#FF3434';g.fillRect(Math.min(cx,cx+v*sc),yy,Math.abs(v*sc)||2*d,rh*.6);
+      g.fillStyle='#F4F5E9';g.font=`${11*d}px system-ui`;g.textAlign='left';g.fillText(`${n.name}  ${sgn(n.med)}  ${n.count}×`,4*d,yy+rh*.5)})}
+  {const [g,W,H,d]=C('smC4');for(const q of R._ph){g.fillStyle='rgba(255,201,40,.10)';g.fillRect(q.t0/T*W,0,(q.t1-q.t0)/T*W,H)}
+    const fr=R._F.filter(f=>isFinite(f.db));if(fr.length){const lo=Math.min(...fr.map(f=>f.db)),hi=Math.max(...fr.map(f=>f.db));g.strokeStyle='#00FF85';g.lineWidth=1.5*d;g.beginPath();fr.forEach((f,i)=>{const x=f.t/T*W,y=H-((f.db-lo)/(hi-lo||1))*(H-8*d)-4*d;i?g.lineTo(x,y):g.moveTo(x,y)});g.stroke();
+      g.fillStyle='#FF3434';for(const f of R._F)if(f.vib)g.fillRect(f.t/T*W,H-3*d,1*d,3*d)}}
+  {const [g,W,H,d]=C('smC5');const lab=['Opening','Middle','Closing'],bw=W/3;R.thirds.forEach((t,i)=>{const v=t.p10===null?0:t.p10,h=v/100*(H-26*d);g.fillStyle=v>=75?'#00FF85':v>=50?'#FFC928':'#FF3434';g.globalAlpha=.85;g.fillRect(i*bw+bw*.2,H-16*d-h,bw*.6,h);g.globalAlpha=1;g.fillStyle='#F4F5E9';g.font=`${11*d}px system-ui`;g.textAlign='center';g.fillText(t.p10===null?'—':Math.round(v)+'%',i*bw+bw/2,H-20*d-h);g.fillText(lab[i],i*bw+bw/2,H-4*d)})}
+}
+function smLoad(){try{return JSON.parse(localStorage.getItem('rl_study')||'[]')}catch(e){return []}}
+function smSave(R){if(R.limited)return;const keep=['v','date','inst','A4','dur','intent','p5','p10','p20','bias','absErr','stability','events','range','key','phraseAvg','vibRate'];const o={};keep.forEach(k=>o[k]=R[k]);const a=smLoad();a.push(o);try{localStorage.setItem('rl_study',JSON.stringify(a.slice(-120)))}catch(e){}}
+function smGrowth(R){
+  const all=smLoad().filter(s=>s.inst===R.inst&&s.A4===R.A4).slice(-14);const c=$('smC6');if(!c)return;const g=fit(c),W=c.width,H=c.height,d=Math.min(2,DPR());
+  if(all.length<2){$('smGrowthTxt').textContent='This is your first saved study on this instrument. Each new study adds a point, so you can watch your accuracy grow over days.';g.fillStyle='#F4F5E9aa';g.font=`${12*d}px system-ui`;g.fillText('Your growth line starts after the next study.',10*d,H/2);return}
+  g.strokeStyle='#1f3a28';for(const v of [50,75,100]){const y=H-v/100*(H-12*d)-6*d;g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+  g.strokeStyle='#00FF85';g.lineWidth=2*d;g.beginPath();all.forEach((s,i)=>{const x=10*d+i/(all.length-1)*(W-20*d),y=H-s.p10/100*(H-12*d)-6*d;i?g.lineTo(x,y):g.moveTo(x,y)});g.stroke();
+  all.forEach((s,i)=>{const x=10*d+i/(all.length-1)*(W-20*d),y=H-s.p10/100*(H-12*d)-6*d;g.fillStyle='#FFC928';g.beginPath();g.arc(x,y,3*d,0,Math.PI*2);g.fill()});
+  const last5=all.slice(-5),prev5=all.slice(-10,-5);let t=`${all.length} studies on ${R.instLabel} at A=${R.A4}. Line = % of held pitch within ±10¢.`;
+  if(prev5.length>=3){const a=smMed(prev5.map(s=>s.p10)),b=smMed(last5.map(s=>s.p10));t+=` Your last ${last5.length} studies (median ${Math.round(b)}%) vs the ${prev5.length} before (median ${Math.round(a)}%): ${b-a>=3?'improving ↑':a-b>=3?'down a bit ↓':'holding steady'}.`}
+  $('smGrowthTxt').textContent=t;
+}
+function smText(R){return `Electro Tuner · Study My Play · ${new Date(R.date).toLocaleString()}\n${R.instLabel} · A=${R.A4} · ${R.dur}s · ${R.events} notes · range ${R.low}-${R.high}\nWithin ±10¢: ${Math.round(R.p10)}% · ±5¢: ${Math.round(R.p5)}% · avg ${sgn(R.bias)} · avg error ${R.absErr.toFixed(1)}¢ · steadiness ±${R.stability.toFixed(0)}¢\n${R.key?'Likely key: '+R.key:'Key undetermined'}\nWent well: ${R.strengths.join(' ')}\nWork on:\n${R.priorities.map((p,i)=>`${i+1}. ${p.title}: ${p.obs} Exercise: ${p.ex} Goal: ${p.goal}`).join('\n')}`}
+document.querySelectorAll('[data-sm]').forEach(b=>b.onclick=()=>smStart(+b.dataset.sm));
+$('smStop').onclick=()=>smFinish();
+
 /* ---------- JAH RASTA TUNER · ZION 3000 (one pitch source for every visual) ---------- */
 const JT={hist:[],c:0,has:0,lastT:0,lastSeen:-1e9,name:null,pc:null,f:null,midi:null,
   lock:false,lockSince:0,offSince:0,lockAt:-1e9,bars:new Float32Array(80),parts:[],prevRms:0,strobe:0,scan:-1e9,lastName:null,last:0};
