@@ -33,6 +33,15 @@ button:disabled{opacity:.4}
 .grid2{display:grid;grid-template-columns:1fr;gap:0 16px}
 @media(min-width:720px){.grid2{grid-template-columns:1.05fr .95fr}}
 .smh{margin:14px 0 6px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:#FFC928}
+.cj-live{color:#00FF85;font-weight:800;letter-spacing:.08em}
+.cj-row{display:flex;align-items:center;gap:12px;min-height:58px;padding:8px 10px;margin:6px 0;border-radius:12px;background:#0D1712;border:1px solid #294535}
+.cj-new{animation:cjIn .18s ease-out}@keyframes cjIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.cj-note{min-width:52px;text-align:center;font-weight:900;font-size:18px;border:1px solid;border-radius:10px;padding:6px 4px;font-variant-numeric:tabular-nums}
+.cj-mid{flex:1;display:flex;flex-direction:column;line-height:1.3}.cj-mid small{color:var(--muted);font-size:12.5px}
+.cj-t{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.mini-mon{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%);z-index:60;display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;border-radius:14px;background:rgba(5,9,7,.92);border:1px solid #294535;box-shadow:0 8px 28px rgba(0,0,0,.5);transition:transform .25s ease;backdrop-filter:blur(6px)}
+.mini-mon.on{transform:translate(-50%,0)}.mini-mon b{font-size:26px;font-weight:900;min-width:58px;text-align:center}.mini-mon span{font-size:13px;font-weight:800;letter-spacing:.12em}
+.mini-bar{width:120px;height:6px;border-radius:4px;background:#16221a;position:relative}.mini-bar i{position:absolute;top:-4px;width:4px;height:14px;border-radius:2px;left:50%;background:#F4F5E9;transition:left .1s}
 .coach{margin-top:12px;border:1px solid #1f3a28;border-radius:14px;padding:12px;background:linear-gradient(160deg,rgba(0,255,133,.05),rgba(255,201,40,.04) 60%,rgba(255,52,52,.04))}
 .coach-h{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:.04em;margin-bottom:8px}.coach-h .s{padding:5px 9px;font-size:12px}
 .coach-now{font-size:15px;line-height:1.45;min-height:44px}
@@ -45,7 +54,7 @@ button:disabled{opacity:.4}
 .dialwrap{position:relative;width:100%;max-width:520px;margin:4px auto 0;aspect-ratio:1/.92}
 .dialwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .dial-read{position:absolute;left:0;right:0;top:53%;transform:translateY(-58%);text-align:center;pointer-events:none}
-.dial-read .note{font-size:clamp(52px,15vw,96px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 0 18px currentColor,0 0 40px rgba(0,0,0,.6);transition:color .2s}
+.dial-read .note{font-size:clamp(52px,15vw,96px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 0 10px color-mix(in srgb,currentColor 28%,transparent),0 0 30px rgba(0,0,0,.7);transition:color .2s}
 .dial-tag{margin-top:6px;font-size:12px;font-weight:900;letter-spacing:.32em;color:var(--muted);transition:color .2s,text-shadow .2s}
 .dial-tag.ok{color:#00FF85;text-shadow:0 0 12px #00FF85}
 .dial-tag.near{color:#FFC928}.dial-tag.off{color:#FF3434}
@@ -234,6 +243,7 @@ body.d-viber .saiyan{display:none!important}
 <div class="grid2">
 <div>
 <div class="panel">
+<div class="mini-mon" id="miniMon"><b id="mmNote">♪</b><div class="mini-bar"><i id="mmBar"></i></div><span id="mmTag">READY</span></div>
 <div class="dialwrap" id="dialwrap">
 <canvas id="dial" aria-label="Tuner dial"></canvas>
 <div class="dial-read"><div class="note" id="bigNote">♪</div><div class="dial-tag" id="dialTag">LISTENING</div></div>
@@ -247,6 +257,12 @@ body.d-viber .saiyan{display:none!important}
 <div class="coach-last" id="coachLast"></div>
 <div class="coach-stats" id="coachStats"></div>
 <p class="note" style="margin:6px 0 0">How I judge: ±5¢ is what most tuners call in tune; around 10¢ is where many listeners start to notice. Every comment comes from the pitch and loudness the mic measured, nothing is guessed.</p>
+</div>
+<div class="coach" id="cjPanel" style="margin-top:12px">
+<div class="coach-h"><span>COACH JOURNAL</span><span style="flex:1"></span><button class="s" id="cjSave">⬇ Save PNG</button><button class="s" id="cjShare">↗ Share</button></div>
+<div class="note" id="cjHead" style="margin:-2px 0 8px"></div>
+<div id="cjList"></div>
+<div class="controls" style="margin-top:8px"><button class="s" id="cjMore">View all</button><span style="flex:1"></span><button class="s" id="cjClear">New journal</button></div>
 </div>
 <div class="coach" id="study" style="margin-top:12px">
 <div class="coach-h"><span>🔬 Study My Play</span></div>
@@ -553,7 +569,7 @@ function showCard(i){const s=ST[i];$('cardBox').innerHTML=`<div class="card">
 $('tone').onclick=()=>sound(noteHz(60+s.pc));$('tone5').onclick=()=>sound(noteHz(72+s.pc));}
 
 /* ---------- tuning ---------- */
-let A4=440;$('tuning').addEventListener('change',e=>{A4=+e.target.value;if(selected>=0)showCard(selected)});
+let A4=440;$('tuning').addEventListener('change',e=>{A4=+e.target.value;if(typeof JT!=='undefined')JT.habits=null;if(selected>=0)showCard(selected)});
 const noteHz=m=>A4*Math.pow(2,(m-69)/12);
 const midiOf=f=>69+12*Math.log2(f/A4);
 let toneCtx=null;
@@ -688,8 +704,12 @@ function coachTick(now){
     if(!CO.note||CO.note.name!==name){if(CO.note)coachFinish(now);CO.note={name,pc:cur.pc,midi:Math.round(cur.midi),t0:now,s:[],db:[],vib:null,gap:0}}
     const n=CO.note;n.gap=0;n.s.push({t:now-n.t0,c:(cur.midi-Math.round(cur.midi))*100});if(cur.db!==null)n.db.push(cur.db);
     if(cur.vib&&(!n.vib||cur.vib.amp>n.vib.amp))n.vib={hz:cur.vib.hz,amp:cur.vib.amp};
-    if(now-(CO.lastNow||0)>250){CO.lastNow=now;const st=n.s.filter(p=>p.t>150).map(p=>p.c);const dur=(now-n.t0)/1000;
-      $('coachNow').innerHTML=st.length>5?`🎧 Holding <b>${n.name}</b> · ${dur.toFixed(1)} s · average <b>${coSign(coMean(st))}</b> · steadiness <b>±${coStd(st).toFixed(0)}¢</b>`:`🎧 Hearing <b>${n.name}</b>…`}
+    const dur=(now-n.t0)/1000;if(dur<.5){if(CO.stage!=='an'){CO.stage='an';$('coachNow').innerHTML=`<span class="cj-live" style="color:#FFC928">● ANALYZING</span> <b>${n.name}</b>…`}}
+      else if(now-(CO.lastNow||0)>1500){CO.lastNow=now;CO.stage='co';const st=n.s.filter(p=>p.t>150).map(p=>p.c),m=coMean(st),sd=coStd(st);let msg;
+        if(cur.vib)msg=`Vibrato detected · ${cur.vib.hz.toFixed(1)} Hz.`;else if(Math.abs(m)<=5)msg=sd<=6?'Centred and steady. Hold it there.':'Centred. Steady the air to stop the wobble.';
+        else msg=`${sd<=6?'Steady tone. ':''}${m>0?'Bring it down slightly':'Raise it slightly'} (${coSign(m)}).`;
+        const hb=JT.habits&&JT.habits[n.name];if(hb&&Math.abs(m)<Math.abs(hb.med)-5&&dur>1)msg+=` Better than your usual ${n.name} (${coSign(hb.med)}).`;
+        $('coachNow').innerHTML=`<span class="cj-live">● COACHING</span> <b>${n.name}</b> · ${msg}`}
   }else if(CO.note){CO.note.gap=CO.note.gap||now;if(now-CO.note.gap>350)coachFinish(now)}
 }
 function coachFinish(now){
@@ -701,13 +721,13 @@ function coachFinish(now){
   const att=n.s.filter(p=>p.t<=120).map(p=>p.c),attack=att.length?coMean(att)-avg:0;
   const k=Math.max(2,Math.floor(st.length*.3)),drift=dur>1?coMean(st.slice(-k))-coMean(st.slice(0,k)):0;
   const mid=n.db.filter((x,i)=>isFinite(x)&&n.s[i]&&n.s[i].t>150&&n.s[i].t<dur*1000-150);const dyn=mid.length>5?Math.max(...mid)-Math.min(...mid):0;
-  const rec={name:n.name,pc:n.pc,dur,avg,spread,inPct,attack,drift,vib:n.vib,dyn,t:Date.now()};CO.notes.push(rec);
+  const rec={name:n.name,pc:n.pc,dur,avg,spread,inPct,attack,drift,vib:n.vib,dyn,t:Date.now(),slide:fr?fr.name:null};CO.notes.push(rec);try{cjFromNote(rec)}catch(e){}
   const si=stationOfPc(n.pc);if(si>=0)CO.stations.add(si);
   // headline
   const a=Math.abs(avg);let head,col;
-  if(a<=5){head=`✅ ${n.name} centred: average ${coSign(avg)}`;col='#00FF85'}
-  else if(a<=10){head=`🟡 ${n.name} close: average ${coSign(avg)} ${avg>0?'sharp':'flat'}`;col='#FFC928'}
-  else{head=`🔴 ${n.name} ${avg>0?'sharp':'flat'}: average ${coSign(avg)}`;col='#FF3434'}
+  if(a<=5){head=`● ${n.name} centred: average ${coSign(avg)}`;col='#00FF85'}
+  else if(a<=10){head=`● ${n.name} close: average ${coSign(avg)} ${avg>0?'sharp':'flat'}`;col='#FFC928'}
+  else{head=`● ${n.name} ${avg>0?'sharp':'flat'}: average ${coSign(avg)}`;col='#FF3434'}
   const pts=[];
   pts.push(`Held <b>${dur.toFixed(1)} s</b>; <b>${inPct}%</b> of that time was within ±10¢.`);
   if(n.vib)pts.push(`Vibrato measured: <b>${n.vib.hz.toFixed(1)} Hz</b>, about <b>±${Math.round(n.vib.amp*1.41)}¢</b> wide. (Classical singers usually sit around 5–7 Hz.)`);
@@ -717,10 +737,10 @@ function coachFinish(now){
   else if(attack>15)pts.push(`Started <b>${Math.round(attack)}¢ high</b> and settled down in the first 0.1 s.`);
   if(Math.abs(drift)>=8)pts.push(`Drifted <b>${coSign(drift)}</b> from the start to the end of the note${drift<0?' (often from air or support fading)':' (often from pushing more air or tension)'}.`);
   if(dyn>12)pts.push(`Loudness changed by <b>${Math.round(dyn)} dB</b> during the note; pitch can follow loudness on wind instruments and voice.`);
-  let tip='';if(a>10&&INST[inst]&&INST[inst][avg>0?'sharp':'flat'])tip=`<div style="margin-top:6px">💡 ${INST[inst][avg>0?'sharp':'flat']}</div>`;
+  let tip='';if(a>10&&INST[inst]&&INST[inst][avg>0?'sharp':'flat'])tip=`<div style="margin-top:6px">→ ${INST[inst][avg>0?'sharp':'flat']}</div>`;
   const stn=si>=0?` · lights <span style="color:${ST[si].col}">${ST[si].name}</span>`:'';
   $('coachLast').innerHTML=`<div class="coach-card" style="--c:${col}"><b class="h">${head}</b>${stn}<ul>${pts.slice(0,4).map(p=>'<li>'+p+'</li>').join('')}</ul>${tip}</div>`;
-  $('coachNow').innerHTML='🎶 Play the next note, or hold one longer for a deeper read.';
+  $('coachNow').innerHTML='<span class="cj-live">● LISTENING</span> Play the next note, or hold one longer for a deeper read.';
   coachStats();
 }
 function coachStats(){
@@ -875,21 +895,21 @@ function smCanvas(id,h){return `<canvas id="${id}" style="width:100%;height:${h}
 function smRender(R){
   const el=$('smReport');
   if(R.limited){el.innerHTML=`<div class="coach-card" style="--c:#FFC928"><b class="h">Not enough to study yet</b><ul><li>I heard ${R.pitchedSec.toFixed(1)} s of clear pitch and ${R.events} notes.</li><li>A full study needs at least 5 s of clear pitch and 5 notes. Try a longer take, play a bit louder, or move closer to the phone.</li></ul></div>`;return}
-  const pr=R.priorities.length?R.priorities.map((p,i)=>`<li><b>${i+1}. ${p.title}</b><br>${p.obs}<br>🎯 Exercise: ${p.ex}<br>✅ Goal: ${p.goal}</li>`).join(''):'<li>No clear problem pattern stood out in this take. Keep going, or try a longer study for more evidence.</li>';
+  const pr=R.priorities.length?R.priorities.map((p,i)=>`<li><b>${i+1}. ${p.title}</b><br>${p.obs}<br><span style="color:#FFC928">Exercise</span> ${p.ex}<br><span style="color:#00FF85">Goal</span> ${p.goal}</li>`).join(''):'<li>No clear problem pattern stood out in this take. Keep going, or try a longer study for more evidence.</li>';
   const keyTxt=R.key?`Likely key: <b>${R.key}</b>`:(R.pcs>=4?`Key not certain. Closest fits: ${R.keyCands.map(c=>c.name).join(', ')}`:'Key undetermined (fewer than 4 different notes)');
   const habit=R.notes.filter(n=>n.tag).map(n=>`<b>${n.name}</b> ${n.tag==='inconsistent'?'was inconsistent':'tends '+n.tag} (${n.count}×, median ${sgn(n.med)})${n.strong?'':' · early pattern'}`);
   el.innerHTML=`
-  <div class="coach-card" style="--c:#00FF85"><b class="h">🔬 Study of your ${Math.floor(R.dur/60)?Math.floor(R.dur/60)+' min ':''}${R.dur%60?R.dur%60+' s ':''}take · ${R.instLabel}</b>
+  <div class="coach-card" style="--c:#00FF85"><b class="h">SESSION INTELLIGENCE / ${String(smLoad().length+1).padStart(3,'0')} · ANALYZED</b><br><span class="note">${Math.floor(R.dur/60)?Math.floor(R.dur/60)+' min ':''}${R.dur%60?R.dur%60+' s ':''}take · ${R.instLabel} · ${R.events} note events</span>
   <div class="coach-stats" style="margin-top:8px">${[[Math.round(R.p10)+'%','held pitch within ±10¢'],[sgn(R.bias),'average tendency'],[R.absErr.toFixed(1)+'¢','average pitch error'],[R.stability<1?'<±1¢':'±'+R.stability.toFixed(0)+'¢','typical steadiness'],[R.events,'notes played'],[R.low+'–'+R.high,'range · '+R.range+' semitones']].map(([v,l])=>`<div><strong>${v}</strong><span>${l}</span></div>`).join('')}</div></div>
-  ${R.strengths.length?`<div class="coach-card" style="--c:#00FF85;margin-top:10px"><b class="h">💚 What went well</b><ul>${R.strengths.map(s=>'<li>'+s+'</li>').join('')}</ul></div>`:''}
-  <div class="coach-card" style="--c:#FFC928;margin-top:10px"><b class="h">🎯 Your top things to work on</b><ul style="list-style:none;padding-left:0">${pr}</ul></div>
+  ${R.strengths.length?`<div class="coach-card" style="--c:#00FF85;margin-top:10px"><b class="h">DETECTED STRENGTH</b><ul>${R.strengths.map(s=>'<li>'+s+'</li>').join('')}</ul></div>`:''}
+  <div class="coach-card" style="--c:#FFC928;margin-top:10px"><b class="h">NEXT PRACTICE FOCUS</b><ul style="list-style:none;padding-left:0">${pr}</ul></div>
   <h3 class="smh">Pitch journey</h3>${smCanvas('smC1',150)}<p class="note">Every dot is a moment of held pitch. Green band = within ±10¢. Up = sharp, down = flat.</p>
   <h3 class="smh">Melodic fingerprint</h3>${smCanvas('smC2',130)}<p class="note">${keyTxt}. Most used: ${R.top.join(', ')}. Bars are coloured by station (a chosen spiritual convention, not a body measurement).</p>
   <h3 class="smh">Note accuracy map</h3>${smCanvas('smC3',Math.max(80,R.notes.length*22+20))}<p class="note">${habit.length?habit.join(' · '):'No note showed a repeated flat or sharp habit (each note needs at least 3 appearances to judge).'}</p>
   <h3 class="smh">Expression landscape</h3>${smCanvas('smC4',120)}<p class="note">Loudness over time. Shaded = estimated phrases (${R.phrases}, average ${R.phraseAvg.toFixed(1)} s, longest ${R.phraseMax.toFixed(1)} s). These are sound-based phrase estimates, not a breath or lung measurement. Dynamic range ${Math.round(R.dyn)} dB${R.vibRate?` · vibrato ${R.vibRate.toFixed(1)} Hz, about ${Math.round(R.vibWidth)}¢ peak to peak, used ${Math.round(R.vibUse*100)}% of held time`:''}.</p>
   <h3 class="smh">Consistency: opening · middle · closing</h3>${smCanvas('smC5',110)}<p class="note">${R.decline?'Your consistency dropped toward the end (at least two measures got worse). This shows declining consistency, not confirmed tiredness.':'No meaningful drop from start to finish.'}</p>
   <h3 class="smh">Flow</h3><p class="note">${Math.round(R.npm)} notes per minute of playing · ${Math.round(R.step)}% steps, ${Math.round(R.leap)}% leaps, ${Math.round(R.rep)}% repeats${R.bpm?` · a steady pulse near ${R.bpm} BPM`:' · no steady pulse detected (fine for free playing; timing is not graded without a metronome)'}.</p>
-  <h3 class="smh">📈 My growth</h3>${smCanvas('smC6',110)}<p class="note" id="smGrowthTxt"></p>
+  <h3 class="smh">My growth</h3>${smCanvas('smC6',110)}<p class="note" id="smGrowthTxt"></p>
   <div class="controls" style="margin-top:8px"><button class="s" id="smCopy">📋 Copy study</button><button class="s" id="smJson">⬇ Export data</button></div>
   <p class="note" style="margin-top:8px">How to read this: thresholds (±5¢, ±10¢, 3 appearances) are sensible starting defaults, not universal standards. Expressive slides, bends and vibrato are reported, not counted as mistakes. One pitch at a time is measured, so chords and overlapping bowl tones are not analysed.</p>`;
   requestAnimationFrame(()=>{smDraw(R);smGrowth(R)});
@@ -901,7 +921,7 @@ function smDraw(R){
   const C=(id)=>{const c=$(id);const g=fit(c);return [g,c.width,c.height,Math.min(2,DPR())]};
   const T=Math.max(1,R.dur*1000);
   {const [g,W,H,d]=C('smC1');const y=c=>H/2-Math.max(-50,Math.min(50,c))/50*(H/2-6*d);g.fillStyle='rgba(0,255,133,.10)';g.fillRect(0,y(10),W,y(-10)-y(10));g.strokeStyle='#1f3a28';g.beginPath();g.moveTo(0,H/2);g.lineTo(W,H/2);g.stroke();
-    for(const e of R._ev){g.fillStyle='rgba(244,245,233,.25)';g.fillRect(e.t0/T*W,0,1*d,4*d);for(const f of e.fr){const c=(f.m-e.n)*100;g.fillStyle=Math.abs(c)<=5?'#00FF85':Math.abs(c)<=15?'#FFC928':'#FF3434';g.fillRect(f.t/T*W,y(c),1.6*d,1.6*d)}}
+    for(const e of R._ev){g.fillStyle='rgba(244,245,233,.25)';g.fillRect(e.t0/T*W,0,1*d,4*d);const c0=smMed(e.fr.map(f=>(f.m-e.n)*100));g.strokeStyle=Math.abs(c0)<=5?'#00FF85':Math.abs(c0)<=15?'#FFC928':'#FF3434';g.lineWidth=2*d;g.beginPath();e.fr.forEach((f,k)=>{const x=f.t/T*W,yy=y((f.m-e.n)*100);k?g.lineTo(x,yy):g.moveTo(x,yy)});g.stroke()}
     g.fillStyle='#F4F5E9aa';g.font=`${10*d}px system-ui`;g.fillText('+50¢',3*d,11*d);g.fillText('−50¢',3*d,H-4*d)}
   {const [g,W,H,d]=C('smC2');const mx=Math.max(...R.hist)||1,bw=W/12;for(let i=0;i<12;i++){const h=R.hist[i]/mx*(H-22*d),s=stationOfPc(i);g.fillStyle=s>=0?ST[s].col:'#5a6b5f';g.globalAlpha=.9;g.fillRect(i*bw+3*d,H-16*d-h,bw-6*d,h);g.globalAlpha=1;g.fillStyle='#F4F5E9';g.font=`${10*d}px system-ui`;g.textAlign='center';g.fillText(NAMES[i],i*bw+bw/2,H-4*d)}}
   {const [g,W,H,d]=C('smC3');const cx=W*.55,sc=(W*.4)/40,rh=22*d;g.strokeStyle='#00FF8566';g.beginPath();g.moveTo(cx,0);g.lineTo(cx,H);g.stroke();g.fillStyle='rgba(0,255,133,.08)';g.fillRect(cx-10*sc,0,20*sc,H);
@@ -912,8 +932,12 @@ function smDraw(R){
       g.fillStyle='#FF3434';for(const f of R._F)if(f.vib)g.fillRect(f.t/T*W,H-3*d,1*d,3*d)}}
   {const [g,W,H,d]=C('smC5');const lab=['Opening','Middle','Closing'],bw=W/3;R.thirds.forEach((t,i)=>{const v=t.p10===null?0:t.p10,h=v/100*(H-26*d);g.fillStyle=v>=75?'#00FF85':v>=50?'#FFC928':'#FF3434';g.globalAlpha=.85;g.fillRect(i*bw+bw*.2,H-16*d-h,bw*.6,h);g.globalAlpha=1;g.fillStyle='#F4F5E9';g.font=`${11*d}px system-ui`;g.textAlign='center';g.fillText(t.p10===null?'—':Math.round(v)+'%',i*bw+bw/2,H-20*d-h);g.fillText(lab[i],i*bw+bw/2,H-4*d)})}
 }
+function smHabits(){try{const all=JSON.parse(localStorage.getItem('rl_habits')||'{}');return all[inst+'|'+A4]||{}}catch(e){return {}}}
+function smSaveHabits(R){try{const all=JSON.parse(localStorage.getItem('rl_habits')||'{}'),k=R.inst+'|'+R.A4,h=all[k]||{};
+  for(const n of R.notes){if(n.count<3)continue;if(n.tag==='flat'||n.tag==='sharp')h[n.name]={med:n.med,count:(h[n.name]?h[n.name].count:0)+n.count,tag:n.tag};else if(Math.abs(n.med)<=5)delete h[n.name]}
+  all[k]=h;localStorage.setItem('rl_habits',JSON.stringify(all));JT.habits=null}catch(e){}}
 function smLoad(){try{return JSON.parse(localStorage.getItem('rl_study')||'[]')}catch(e){return []}}
-function smSave(R){if(R.limited)return;const keep=['v','date','inst','A4','dur','intent','p5','p10','p20','bias','absErr','stability','events','range','key','phraseAvg','vibRate'];const o={};keep.forEach(k=>o[k]=R[k]);const a=smLoad();a.push(o);try{localStorage.setItem('rl_study',JSON.stringify(a.slice(-120)))}catch(e){}}
+function smSave(R){if(R.limited)return;smSaveHabits(R);const keep=['v','date','inst','A4','dur','intent','p5','p10','p20','bias','absErr','stability','events','range','key','phraseAvg','vibRate'];const o={};keep.forEach(k=>o[k]=R[k]);const a=smLoad();a.push(o);try{localStorage.setItem('rl_study',JSON.stringify(a.slice(-120)))}catch(e){}}
 function smGrowth(R){
   const all=smLoad().filter(s=>s.inst===R.inst&&s.A4===R.A4).slice(-14);const c=$('smC6');if(!c)return;const g=fit(c),W=c.width,H=c.height,d=Math.min(2,DPR());
   if(all.length<2){$('smGrowthTxt').textContent='This is your first saved study on this instrument. Each new study adds a point, so you can watch your accuracy grow over days.';g.fillStyle='#F4F5E9aa';g.font=`${12*d}px system-ui`;g.fillText('Your growth line starts after the next study.',10*d,H/2);return}
@@ -927,6 +951,95 @@ function smGrowth(R){
 function smText(R){return `Electro Tuner · Study My Play · ${new Date(R.date).toLocaleString()}\n${R.instLabel} · A=${R.A4} · ${R.dur}s · ${R.events} notes · range ${R.low}-${R.high}\nWithin ±10¢: ${Math.round(R.p10)}% · ±5¢: ${Math.round(R.p5)}% · avg ${sgn(R.bias)} · avg error ${R.absErr.toFixed(1)}¢ · steadiness ±${R.stability.toFixed(0)}¢\n${R.key?'Likely key: '+R.key:'Key undetermined'}\nWent well: ${R.strengths.join(' ')}\nWork on:\n${R.priorities.map((p,i)=>`${i+1}. ${p.title}: ${p.obs} Exercise: ${p.ex} Goal: ${p.goal}`).join('\n')}`}
 document.querySelectorAll('[data-sm]').forEach(b=>b.onclick=()=>smStart(+b.dataset.sm));
 $('smStop').onclick=()=>smFinish();
+
+
+/* ================= COACH JOURNAL: every finding kept, merged, saved, exportable ================= */
+const CJ={sid:Date.now(),t0:null,rows:[],showAll:false};
+(function(){try{const o=JSON.parse(localStorage.getItem('rl_coachlog')||'null');if(o&&o.sid&&Date.now()-o.sid<6*3600e3){CJ.sid=o.sid;CJ.rows=o.rows||[];CJ.t0=o.t0||null}}catch(e){}})();
+function cjSave(){try{localStorage.setItem('rl_coachlog',JSON.stringify({sid:CJ.sid,t0:CJ.t0,rows:CJ.rows.slice(0,300)}))}catch(e){}}
+function cjMed(a){const b=[...a].sort((x,y)=>x-y),k=b.length>>1;return b.length?(b.length%2?b[k]:(b[k-1]+b[k])/2):0}
+function cjAdd(note,pc,type,title,val,unit,col){
+  const now=Date.now();if(!CJ.t0)CJ.t0=now;const t=(now-CJ.t0)/1000;
+  let r=CJ.rows.find(x=>x.note===note&&x.type===type);
+  if(r&&val!==null&&r.vals.length&&Math.abs(val-cjMed(r.vals))>=5&&unit==='¢'){r=null}
+  if(r){if(val!==null)r.vals.push(val);r.count++;r.last=t;r.title=title;CJ.rows.splice(CJ.rows.indexOf(r),1);CJ.rows.unshift(r)}
+  else{CJ.rows.unshift({note,pc,type,title,vals:val===null?[]:[val],unit,col,count:1,first:t,last:t,fresh:now})}
+  cjSave();cjRender();
+}
+function cjFromNote(rec){
+  const a=Math.abs(rec.avg),k=rec.name;
+  const prev=CJ.rows.find(x=>x.note===k&&(x.type==='flat'||x.type==='sharp'));
+  if(a<=5){cjAdd(k,rec.pc,'centred','Centred pitch',rec.avg,'¢','#00FF85');if(prev)cjAdd(k,rec.pc,'improved',`Improved: centred after being ${prev.type}`,rec.avg,'¢','#00FF85')}
+  else if(a<=10)cjAdd(k,rec.pc,'close','Close to centre',rec.avg,'¢','#FFC928');
+  else cjAdd(k,rec.pc,rec.avg>0?'sharp':'flat',rec.avg>0?'Sits sharp':'Sits flat',rec.avg,'¢','#FF3434');
+  if(rec.vib)cjAdd(k,rec.pc,'vibrato',`Vibrato ${rec.vib.hz.toFixed(1)} Hz`,rec.vib.amp*1.41,'¢ wide','#FFC928');
+  else if(rec.spread>10)cjAdd(k,rec.pc,'unsteady','Unsteady hold',rec.spread,'¢ spread','#FF3434');
+  else if(rec.spread<=4&&rec.dur>=1)cjAdd(k,rec.pc,'steady','Very steady hold',rec.spread,'¢ spread','#00FF85');
+  if(Math.abs(rec.drift)>=8)cjAdd(k,rec.pc,rec.drift>0?'driftup':'driftdown',rec.drift>0?'Drifts up while held':'Drifts down while held',rec.drift,'¢','#FFC928');
+  if(rec.slide)cjAdd(k,rec.pc,'slide',`Slides in from ${rec.slide}`,null,'','#FFC928');
+}
+function cjRender(){
+  const box=$('cjList');if(!box)return;const rows=CJ.showAll?CJ.rows:CJ.rows.slice(0,4);
+  const pats=CJ.rows.filter(r=>r.count>=3).length;
+  $('cjHead').innerHTML=`<span class="cj-live">● LIVE</span> ${CJ.rows.reduce((a,r)=>a+r.count,0)} observations · ${pats} pattern${pats===1?'':'s'}`;
+  const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  box.innerHTML=rows.length?rows.map(r=>{const si=stationOfPc(r.pc),nc=si>=0?ST[si].col:'#F4F5E9',v=r.vals.length?cjMed(r.vals):null;
+    const meas=v===null?'':(r.unit==='¢'?`${v>0?'+':''}${Math.round(v)}¢ median`:`${Math.round(v)}${r.unit}`);
+    return `<div class="cj-row${Date.now()-r.fresh<400?' cj-new':''}"><span class="cj-note" style="color:${nc};border-color:${nc}55">${r.note}</span><span class="cj-mid"><b style="color:${r.col}">${r.title}</b><small>${meas}${meas?' · ':''}${r.count} time${r.count>1?'s':''}</small></span><span class="cj-t">${fmt(r.last)}</span></div>`}).join(''):'<div class="note">Findings will collect here as you play. Nothing gets lost.</div>';
+  $('cjMore').style.display=CJ.rows.length>4?'inline-block':'none';$('cjMore').textContent=CJ.showAll?'Show less':`View all ${CJ.rows.length}`;
+}
+/* ---------- PNG report (1080 wide, grows taller for long journals) ---------- */
+function cjImage(){
+  const W=1080,rowsH=Math.max(1,CJ.rows.length)*92,H=Math.max(1920,240+380+340+120+rowsH+300);
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  g.fillStyle='#050907';g.fillRect(0,0,W,H);
+  // faint holographic geometry
+  g.globalAlpha=.05;for(let k=0;k<6;k++){g.strokeStyle=['#FF3434','#FFC928','#00FF85'][k%3];g.lineWidth=3;g.beginPath();for(let p=0;p<=240;p++){const t=p/240*Math.PI*2,r=300+k*40+18*Math.sin(t*6+k);const x=W/2+Math.cos(t)*r,y=H*.45+Math.sin(t)*r;p?g.lineTo(x,y):g.moveTo(x,y)}g.stroke()}g.globalAlpha=1;
+  // rasta bar + header
+  ['#FF3434','#FFC928','#00FF85'].forEach((cc,i)=>{g.fillStyle=cc;g.fillRect(i*W/3,0,W/3,12)});
+  g.textBaseline='alphabetic';g.fillStyle='#F4F5E9';g.font='900 64px system-ui';g.fillText('ELECTRO TUNER',64,120);
+  g.fillStyle='#FFC928';g.font='800 30px system-ui';g.fillText('CREATED BY JAH RASTA  ☥',64,166);
+  g.fillStyle='#9fb3a6';g.font='500 30px system-ui';g.fillText(`Coach Report · ${new Date().toLocaleString()} · ${INST[inst]?INST[inst].label:inst} · A=${A4}`,64,214);
+  // summary stats + alignment ring
+  const N=CO.notes,y0=260;g.fillStyle='#101C15';rr(g,40,y0,W-80,350,24);g.fill();
+  const within=N.length?Math.round(100*N.filter(x=>Math.abs(x.avg)<=10).length/N.length):0;
+  const cx=200,cy=y0+175,R=120;g.lineWidth=26;g.strokeStyle='#1f3a28';g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.stroke();
+  g.strokeStyle=within>=75?'#00FF85':within>=50?'#FFC928':'#FF3434';g.beginPath();g.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+Math.PI*2*within/100);g.stroke();
+  g.fillStyle='#F4F5E9';g.font='900 58px system-ui';g.textAlign='center';g.fillText(within+'%',cx,cy+12);g.font='600 22px system-ui';g.fillStyle='#9fb3a6';g.fillText('notes within ±10¢',cx,cy+46);g.textAlign='left';
+  const bias=N.length?N.reduce((a,x)=>a+x.avg,0)/N.length:0,st=N.length?N.reduce((b,x)=>x.spread<b.spread?x:b):null,off=N.length?N.reduce((b,x)=>Math.abs(x.avg)>Math.abs(b.avg)?x:b):null;
+  const stats=[[N.length,'notes studied'],[(bias>0?'+':'')+Math.round(bias)+'¢',Math.abs(bias)<=5?'overall · centred':bias>0?'overall · leans sharp':'overall · leans flat'],[st?st.name:'—','steadiest note'],[off?`${off.name} ${off.avg>0?'+':''}${Math.round(off.avg)}¢`:'—','furthest off']];
+  stats.forEach(([v,l],i)=>{const x=400+(i%2)*320,y=y0+120+Math.floor(i/2)*140;g.fillStyle='#F4F5E9';g.font='900 46px system-ui';g.fillText(String(v),x,y);g.fillStyle='#9fb3a6';g.font='500 26px system-ui';g.fillText(l,x,y+38)});
+  // pitch journey (each studied note)
+  const y1=y0+380;g.fillStyle='#FFC928';g.font='800 34px system-ui';g.fillText('PITCH JOURNEY',64,y1+10);
+  g.fillStyle='#101C15';rr(g,40,y1+30,W-80,280,20);g.fill();const py=v=>y1+170-Math.max(-50,Math.min(50,v))/50*120;
+  g.fillStyle='rgba(0,255,133,.12)';g.fillRect(60,py(10),W-120,py(-10)-py(10));g.strokeStyle='#294535';g.lineWidth=2;g.beginPath();g.moveTo(60,py(0));g.lineTo(W-60,py(0));g.stroke();
+  g.fillStyle='#9fb3a6';g.font='500 22px system-ui';g.fillText('+50¢',64,y1+64);g.fillText('−50¢',64,y1+300);
+  N.forEach((x,i)=>{const px=140+(N.length>1?i/(N.length-1):0.5)*(W-240),yy=py(x.avg),cc=Math.abs(x.avg)<=5?'#00FF85':Math.abs(x.avg)<=15?'#FFC928':'#FF3434';g.fillStyle=cc;g.beginPath();g.arc(px,yy,10,0,Math.PI*2);g.fill();if(N.length<=24){g.fillStyle='#F4F5E9';g.font='600 18px system-ui';g.textAlign='center';g.fillText(x.name,px,yy-16);g.textAlign='left'}});
+  // journal
+  let y2=y1+360;g.fillStyle='#FFC928';g.font='800 34px system-ui';g.fillText(`COACH JOURNAL · ${CJ.rows.reduce((a,r)=>a+r.count,0)} observations`,64,y2+10);y2+=36;
+  CJ.rows.forEach(r=>{g.fillStyle='#101C15';rr(g,40,y2,W-80,80,16);g.fill();const si=stationOfPc(r.pc),nc=si>=0?ST[si].col:'#F4F5E9';
+    g.fillStyle=nc;g.font='900 36px system-ui';g.fillText(r.note,64,y2+52);g.fillStyle=r.col;g.font='800 32px system-ui';g.fillText(r.title,200,y2+40);
+    const v=r.vals.length?cjMed(r.vals):null;g.fillStyle='#9fb3a6';g.font='500 24px system-ui';g.fillText(`${v===null?'':(r.unit==='¢'?(v>0?'+':'')+Math.round(v)+'¢ median':Math.round(v)+r.unit)+' · '}${r.count} time${r.count>1?'s':''}`,200,y2+70);y2+=92});
+  if(!CJ.rows.length){g.fillStyle='#9fb3a6';g.font='500 30px system-ui';g.fillText('No findings yet: play a few held notes first.',64,y2+40);y2+=80}
+  // practice focus + footer
+  y2+=30;const pat=CJ.rows.filter(r=>(r.type==='flat'||r.type==='sharp')).sort((a,b)=>b.count-a.count)[0];
+  g.fillStyle='#101C15';rr(g,40,y2,W-80,190,20);g.fill();g.fillStyle='#FFC928';g.font='800 32px system-ui';g.fillText('NEXT PRACTICE FOCUS',64,y2+54);
+  g.fillStyle='#F4F5E9';g.font='600 34px system-ui';g.fillText(pat?`${pat.note} ${pat.type} (${pat.count}×, median ${Math.round(cjMed(pat.vals))}¢)`:'Keep it up: no repeated flat or sharp habit found.',64,y2+108);
+  g.fillStyle='#9fb3a6';g.font='500 26px system-ui';g.fillText(pat?'Hold 4-second notes against the reference tone until 80% sit within ±10¢.':'Try Study My Play for a deeper look.',64,y2+152);
+  g.fillStyle='#294535';g.fillRect(0,H-70,W,1);g.fillStyle='#9fb3a6';g.font='600 24px system-ui';g.fillText('Electro Tuner · Created by Jah Rasta · measured from your sound, nothing guessed',64,H-28);
+  return c;
+}
+function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+function cjName(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `ElectroTuner_${(INST[inst]?INST[inst].label:inst).replace(/\s+/g,'')}_${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.png`}
+async function cjExport(share){
+  const c=cjImage();const blob=await new Promise(r=>c.toBlob(r,'image/png'));const name=cjName();
+  if(share&&navigator.canShare){const f=new File([blob],name,{type:'image/png'});if(navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:'Electro Tuner Coach Report'});return}catch(e){if(e&&e.name==='AbortError')return}}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+$('cjMore').onclick=()=>{CJ.showAll=!CJ.showAll;cjRender()};
+$('cjSave').onclick=()=>cjExport(false);$('cjShare').onclick=()=>cjExport(true);
+$('cjClear').onclick=()=>{CJ.rows=[];CJ.sid=Date.now();CJ.t0=null;cjSave();cjRender()};
+cjRender();
 
 /* ---------- JAH RASTA TUNER · ZION 3000 (one pitch source for every visual) ---------- */
 const JT={hist:[],c:0,has:0,lastT:0,lastSeen:-1e9,name:null,pc:null,f:null,midi:null,
@@ -955,7 +1068,7 @@ function jtText(){
   if(!JT.has){tag.className='dial-tag';tag.textContent=running?'LISTENING':'READY';ce.textContent='tuning: —';hz.textContent='— Hz';return}
   const c=Math.round(JT.c),tgt=noteHz(JT.midi);
   hz.textContent=(tgt*Math.pow(2,JT.c/1200)).toFixed(1)+' Hz';
-  if(JT.lock){tag.className='dial-tag ok';tag.textContent='ALIGNED ✦'}
+  if(JT.lock){tag.className='dial-tag ok';tag.textContent=JT.better===JT.name&&JT.habits&&JT.habits[JT.name]?'BETTER THAN YOUR USUAL '+JT.name:'ALIGNED ✦'}
   else{tag.className='dial-tag '+(Math.abs(c)<=15?'near':'off');tag.textContent=c>0?'SHARP ▲':c<0?'FLAT ▼':'ALIGNING'}
   ce.textContent=`${c>0?'+':''}${c}¢ · target ${tgt.toFixed(2)} Hz · A=${A4}`;
 }
@@ -985,23 +1098,43 @@ function drawDial(now){
       g.beginPath();for(let q=0;q<=64;q++){const t=q/64*Math.PI*2,rr=R*(.18+.1*Math.sin(t*3+ph)+.05*Math.sin(t*5-ph*1.3));const x=cx+Math.cos(t+ph*.2)*rr,y=cy+Math.sin(t+ph*.2)*rr;q?g.lineTo(x,y):g.moveTo(x,y)}
       g.closePath();g.fillStyle=cc+(JT.lock?'2e':'1a');g.fill()}
     g.restore()}
-  // live sound flower 56-74%: the real microphone waveform, wrapped 6 cycles around the circle
-  // (petals = your pitch, petal shape = your tone colour, it spins when flat/sharp and stands still when aligned)
-  const P=200,base=R*.62,maxD=R*.12;let shape=null;
+  // ---- acoustic features (measured every frame from the live mic) ----
+  const F=JT.feat=JT.feat||{env:0,bright:0,rich:1,onsetAt:-1e9,lastDb:-120,silentAt:0};
+  let loud=0;if(running&&cur&&isFinite(cur.db))loud=Math.max(0,Math.min(1,(cur.db+60)/48));
+  F.env+=(loud-F.env)*(1-Math.exp(-dt/(loud>F.env?.02:.15)));
+  if(running&&fd&&ctx&&an){const bw=ctx.sampleRate/an.fftSize;let sw=0,sp=0;const b0=Math.floor(80/bw),b1=Math.min(fd.length-1,Math.floor(8000/bw));
+    for(let b=b0;b<=b1;b+=2){const p=Math.pow(10,fd[b]/10);sw+=p*b*bw;sp+=p}
+    const cent=sp>0?sw/sp:300,br=Math.max(0,Math.min(1,Math.log(cent/300)/Math.log(4000/300)));F.bright+=(br-F.bright)*Math.min(1,dt*6);
+    if(JT.has&&JT.f){const fb=JT.f/bw,pk=k=>{let m=-200;const c0=Math.round(fb*k);for(let q=c0-2;q<=c0+2;q++)if(fd[q]>m)m=fd[q];return m};const f0=pk(1);let n=1;for(const k of [2,3,4])if(pk(k)>f0-30)n++;F.rich+=(n-F.rich)*Math.min(1,dt*5)}}
+  if(running&&cur&&isFinite(cur.db)){if(cur.db-F.lastDb>6&&cur.db>-50&&now-F.onsetAt>180)F.onsetAt=now;F.lastDb+=(cur.db-F.lastDb)*Math.min(1,dt*12)}
+  if(JT.name!==F.lastName){if(JT.name)F.onsetAt=now;F.lastName=JT.name}
+  // ---- live sound flower 56-74%: real mic waveform, 6 cycles around the circle. Never freezes: it IS your sound ----
+  const P=224,base=R*.62;let shape=null;
   if(running&&td&&ctx&&JT.has&&JT.f){const spc=ctx.sampleRate/JT.f,win=Math.min(td.length-2,Math.floor(spc*6));let tr=1;
     for(let q=1;q<td.length-win-1;q++){if(td[q-1]<0&&td[q]>=0){tr=q;break}}
     let pk=1e-6;for(let q=0;q<win;q++)pk=Math.max(pk,Math.abs(td[tr+q]));
     shape=new Float32Array(P);for(let p=0;p<P;p++){const x=tr+p/P*win,i0=Math.floor(x),f=x-i0;shape[p]=((td[i0]||0)*(1-f)+(td[i0+1]||0)*f)/pk}}
-  JT.hist2=JT.hist2||[];if(shape){JT.hist2.unshift(shape);if(JT.hist2.length>4)JT.hist2.pop()}else if(JT.hist2.length&&!JT.has)JT.hist2.pop();
-  if(JT.has&&!JT.lock&&!reduce)JT.fl=(JT.fl||0)+Math.sign(JT.c)*Math.min(1.2,Math.abs(JT.c)/25)*dt;
-  const amp=Math.min(1,.35+lvl*1.6);
-  JT.hist2.forEach((sh,h)=>{const echo=h/4,cc=h===0?col:[JTC.gold,JTC.green,JTC.red][h%3];
-    g.beginPath();for(let p=0;p<=P;p++){const t=p/P*Math.PI*2-Math.PI/2+(JT.fl||0)+h*.05,rr=base+R*.012*h+sh[p%P]*maxD*amp*(1+echo*.4);
-      const x=cx+Math.cos(t)*rr,y=cy+Math.sin(t)*rr;p?g.lineTo(x,y):g.moveTo(x,y)}
-    g.closePath();g.strokeStyle=cc;g.globalAlpha=h===0?.95:.35*(1-echo);g.lineWidth=(h===0?2.6:1.6)*d;if(h===0){g.shadowColor=cc;g.shadowBlur=12*d}g.stroke();g.shadowBlur=0});
+  JT.hist2=JT.hist2||[];if(shape){JT.hist2.unshift(shape);if(JT.hist2.length>6)JT.hist2.pop()}
+  if(!JT.has){F.fade=Math.max(0,(F.fade??1)-dt/.45)}else F.fade=1;
+  if(!JT.hist2.length||F.fade<=0)JT.hist2.length=0;
+  JT.fl=(JT.fl||0)+dt*(.05+F.env*.5);   // slow drift driven by loudness, not by tuning
+  const disp=R*(.02+.16*F.env),contours=Math.max(1,Math.min(4,Math.round(F.rich))),lw=(2.8-1.2*F.bright)*d;
+  const att=Math.max(0,1-(now-F.onsetAt)/280);
+  JT.hist2.slice(0,3).forEach((sh,h)=>{const cc=h===0?col:[JTC.gold,JTC.green][h-1];
+    for(let k=0;k<(h===0?contours:1);k++){const off=k*R*.035,al=(h===0?(k===0?.95:.45/k):.22/h)*F.fade;
+      g.beginPath();for(let p=0;p<=P;p++){const t=p/P*Math.PI*2-Math.PI/2+JT.fl+h*.04-k*.06,rr=base+off+sh[p%P]*disp*(1+att*.5)/(1+k*.6);
+        const x=cx+Math.cos(t)*rr,y=cy+Math.sin(t)*rr;p?g.lineTo(x,y):g.moveTo(x,y)}
+      g.closePath();g.strokeStyle=cc;g.globalAlpha=al;g.lineWidth=h===0&&k===0?lw:1.1*d;if(h===0&&k===0){g.shadowColor=cc;g.shadowBlur=(8+14*F.bright)*d}g.stroke();g.shadowBlur=0}});
   g.globalAlpha=1;
-  if(!JT.hist2.length&&!reduce){for(let k=0;k<3;k++){g.beginPath();for(let p=0;p<=120;p++){const t=p/120*Math.PI*2,rr=base+R*.025*Math.sin(t*6+now/900+k*2)+R*.012*Math.sin(t*11-now/1300);const x=cx+Math.cos(t)*rr,y=cy+Math.sin(t)*rr;p?g.lineTo(x,y):g.moveTo(x,y)}
-    g.strokeStyle=[JTC.red,JTC.gold,JTC.green][k];g.globalAlpha=.18+.1*breath;g.lineWidth=1.5*d;g.stroke()}g.globalAlpha=1}
+  // attack ring: expanding energy for 280 ms on every new note / attack
+  if(att>0&&running){g.strokeStyle=col;g.globalAlpha=att*.7;g.lineWidth=2*d;g.beginPath();g.arc(cx,cy,base+R*(1-att)*.3,0,Math.PI*2);g.stroke();g.globalAlpha=1}
+  if(!JT.hist2.length&&!reduce){for(let k=0;k<2;k++){g.beginPath();for(let p=0;p<=120;p++){const t=p/120*Math.PI*2,rr=base+R*.02*Math.sin(t*6+now/1100+k*2);const x=cx+Math.cos(t)*rr,y=cy+Math.sin(t)*rr;p?g.lineTo(x,y):g.moveTo(x,y)}
+    g.strokeStyle=[JTC.gold,JTC.green][k];g.globalAlpha=.12+.08*breath;g.lineWidth=1.2*d;g.stroke()}g.globalAlpha=1}
+  // ---- musical memory: habitual flat/sharp ghost marker from your saved studies ----
+  const HB=JT.habits||(JT.habits=smHabits());const hb=JT.has?HB[JT.name]:null;
+  if(hb){const ha=ang(Math.max(-50,Math.min(50,hb.med)));g.strokeStyle=JTC.gold;g.globalAlpha=.85;g.lineWidth=3*d;g.beginPath();g.moveTo(cx+Math.cos(ha)*R*.76,cy+Math.sin(ha)*R*.76);g.lineTo(cx+Math.cos(ha)*R*.93,cy+Math.sin(ha)*R*.93);g.stroke();
+    g.globalAlpha=.12;g.lineWidth=R*.1;g.beginPath();g.arc(cx,cy,R*.85,Math.min(ang(0),ha),Math.max(ang(0),ha));g.stroke();g.globalAlpha=1;
+    if(JT.lock&&now-JT.lockAt>500){JT.better=JT.name}}
   // pitch segments 80-90%: 101 segments, glowing energy packet + trail
   const vb=JT.has&&cur&&cur.vib?cur.vib:null,vAmp=vb?Math.min(1,vb.amp/40)*R*.025:0,vPh=vb?now/1000*vb.hz*Math.PI*2:0;
   const r1=R*.8,r2=R*.9,seg=SPAN/101;
@@ -1021,7 +1154,7 @@ function drawDial(now){
   g.fillStyle=JTC.red+'cc';g.fillText('♭',cx+Math.cos(ang(-50))*R*.98,cy+Math.sin(ang(-50))*R*.98+R*.1);g.fillText('♯',cx+Math.cos(ang(50))*R*.98,cy+Math.sin(ang(50))*R*.98+R*.1);
   // holographic strobe 94-98%: 48 dashes, CCW flat / CW sharp, frozen when aligned
   if(JT.has&&!JT.lock&&!reduce){JT.strobe+=Math.sign(JT.c)*Math.min(120,Math.abs(JT.c)*6)*Math.PI/180*dt}
-  for(let i=0;i<48;i++){const a=JT.strobe+i/48*Math.PI*2;const lit=JT.has?(JT.lock?.9:.55):.18;
+  for(let i=0;i<48;i++){const a=JT.strobe+i/48*Math.PI*2;const lit=JT.has?(JT.lock?.75:.32+.25*F.env):.16;
     g.strokeStyle=JT.lock?JTC.green:(i%3===0?JTC.red:i%3===1?JTC.gold:JTC.green);g.globalAlpha=lit*(i%2?1:.6);g.lineWidth=R*.035;
     g.beginPath();g.arc(cx,cy,R*.96,a,a+Math.PI*2/48*.45);g.stroke()}
   g.globalAlpha=1;
@@ -1034,13 +1167,18 @@ function drawDial(now){
   if(!reduce&&running&&lvl>.15&&Math.random()<lvl*.3&&JT.parts.length<24)JT.parts.push({a:Math.random()*Math.PI*2,r:R*1.02,v:R*.1,life:1});
   JT.prevRms=rms;
   JT.parts=JT.parts.filter(p=>(p.life-=dt*1.4)>0);
-  for(const p of JT.parts){p.r+=p.v*dt;g.fillStyle=JT.has?col:JTC.gold;g.globalAlpha=p.life*.9;g.beginPath();g.arc(cx+Math.cos(p.a)*p.r,cy+Math.sin(p.a)*p.r,1.8*d,0,Math.PI*2);g.fill()}
+  for(const p of JT.parts){p.r+=p.v*dt;g.fillStyle=JT.has?col:JTC.gold;g.globalAlpha=p.life*(.45+.5*F.bright);g.beginPath();g.arc(cx+Math.cos(p.a)*p.r,cy+Math.sin(p.a)*p.r,1.8*d,0,Math.PI*2);g.fill()}
   g.globalAlpha=1;
   // idle breathing
   if(!JT.has&&!reduce){g.strokeStyle=`rgba(255,201,40,${.08+.08*breath})`;g.lineWidth=2*d;g.beginPath();g.arc(cx,cy,R*.72,0,Math.PI*2);g.stroke()}
+  if(SM.on){const p=Math.min(1,(performance.now()-SM.t0)/(SM.dur*1000));g.lineWidth=3*d;g.strokeStyle='#294535';g.beginPath();g.arc(cx,cy,R*1.08,0,Math.PI*2);g.stroke();
+    const gr=g.createLinearGradient(cx-R,cy,cx+R,cy);gr.addColorStop(0,JTC.red);gr.addColorStop(.5,JTC.gold);gr.addColorStop(1,JTC.green);g.strokeStyle=gr;g.lineWidth=4*d;g.beginPath();g.arc(cx,cy,R*1.08,-Math.PI/2,-Math.PI/2+Math.PI*2*p);g.stroke()}
+  const mm=$('miniMon');if(mm&&mm.classList.contains('on')){const s2=JT.pc!==null?stationOfPc(JT.pc):-1;$('mmNote').textContent=JT.has?JT.name:'♪';$('mmNote').style.color=JT.has&&s2>=0?ST[s2].col:JTC.ivory;
+    $('mmBar').style.left=(50+(JT.has?Math.max(-50,Math.min(50,JT.c)):0))+'%';$('mmBar').style.background=JT.has?jtCol(JT.c):JTC.ivory;const tg=$('dialTag');$('mmTag').textContent=SM.on?'STUDY '+$('smTime').textContent:tg.textContent;$('mmTag').style.color=getComputedStyle(tg).color}
   requestAnimationFrame(drawDial);
 }
 requestAnimationFrame(drawDial);
+try{new IntersectionObserver(es=>{for(const e of es){const live=$('v-live')&&$('v-live').classList.contains('on');$('miniMon').classList.toggle('on',live&&!e.isIntersecting&&e.boundingClientRect.top<0)}},{threshold:0}).observe($('dialwrap'))}catch(e){}
 /* ---------- drawings ---------- */
 function drawTrail(now){
   const g=fit($('trail')),W=$('trail').width,H=$('trail').height;g.fillStyle='#0d120b';g.fillRect(0,0,W,H);
