@@ -1100,6 +1100,7 @@ function loop(now){
 }
 
 async function start(){
+  if(!running)wakeVoice();
   if(typeof medStop==="function"&&med){medStop();$("status").textContent="Meditation sound paused so the mic can listen clearly.";}
   if(running)return;
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$('status').textContent='Microphone unavailable here. Open this page in Chrome.';return}
@@ -1159,7 +1160,24 @@ function welcome(){if(!uiOn)return;try{const c=actx(),t=c.currentTime;const out=
   const sw=c.createOscillator(),sg=c.createGain();sw.type='sine';sw.frequency.setValueAtTime(130.8,t);sg.gain.setValueAtTime(0,t);sg.gain.linearRampToValueAtTime(.05,t+.6);sg.gain.exponentialRampToValueAtTime(.0002,t+3.2);sw.connect(sg).connect(out);sw.start(t);sw.stop(t+3.3)}catch(e){}}
 let welcomed=false;function doWelcome(){if(welcomed)return;welcomed=true;welcome()}
 /* Jah's voice welcome: bells + reverb, plays on Tap to enter */
-let INTRO_VOX=null;try{INTRO_VOX=new Audio('intro-voice.m4a');INTRO_VOX.preload='auto';INTRO_VOX.volume=1}catch(e){INTRO_VOX=null}
+/* wake voice: first time a system is turned on, or after 2+ minutes of rest, Jah's voice wakes the system */
+const WAKE={last:0,idle:120000};
+const WAKEV={buf:null,loading:null};
+function wakeLoad(){if(WAKEV.loading)return WAKEV.loading;WAKEV.loading=fetch('intro-wake.m4a').then(r=>r.arrayBuffer()).then(a=>new Promise((res,rej)=>actx().decodeAudioData(a,res,rej))).then(b=>(WAKEV.buf=b)).catch(()=>{WAKEV.loading=null;return null});return WAKEV.loading}
+function wakeVoice(){const now=Date.now(),sleepy=!WAKE.last||now-WAKE.last>WAKE.idle;WAKE.last=now;if(!sleepy||!uiOn)return;
+  wakeLoad().then(b=>{if(!b)return;const c=actx(),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(c.currentTime+.03);if(typeof ESSI!=='undefined')ESSI.quietUntil=performance.now()+3700}).catch(()=>{})}
+setInterval(()=>{if(typeof running!=='undefined'&&running)WAKE.last=Date.now()},5000);
+/* Jah's voice plays through the same Web Audio engine as the meditation sound, so it can sound the moment the app opens */
+const VOX={buf:null,loading:null};
+function voxLoad(){if(VOX.loading)return VOX.loading;VOX.loading=fetch('intro-voice.m4a').then(r=>r.arrayBuffer()).then(a=>new Promise((res,rej)=>actx().decodeAudioData(a,res,rej))).then(b=>(VOX.buf=b)).catch(()=>{VOX.loading=null;return null});return VOX.loading}
+function voxStart(b){const c=actx(),s=c.createBufferSource(),g=c.createGain();s.buffer=b;g.gain.value=1;s.connect(g).connect(c.destination);s.start(c.currentTime+.05);if(typeof ESSI!=='undefined')ESSI.quietUntil=performance.now()+5800}
+function voxPlay(){return voxLoad().then(b=>{if(!b)throw new Error('no voice');voxStart(b);return true})}
+const INTRO_VOX=true;
+/* voice on open: plays the moment the sound engine is running (like the meditation sound); if the phone holds sound until a touch, it plays on that first touch. Once per app launch. */
+let introDone=false;
+function tryIntro(){if(introDone||!uiOn||!VOX.buf||!toneCtx||toneCtx.state!=='running'||document.visibilityState!=='visible')return;introDone=true;voxStart(VOX.buf)}
+if(uiOn){try{const c=actx();c.addEventListener('statechange',tryIntro);document.addEventListener('visibilitychange',tryIntro);voxLoad().then(tryIntro);c.resume().then(tryIntro).catch(()=>{});
+  ['pointerdown','click','keydown'].forEach(ev=>document.addEventListener(ev,()=>{try{actx().resume().then(tryIntro).catch(()=>{})}catch(e){}},{capture:true,passive:true}))}catch(e){}}
 document.addEventListener('pointerdown',e=>{if(e.target.closest('#splash'))return;const b=e.target.closest('button,select,.pp,.pt,[data-z]');if(!welcomed){doWelcome();return}if(b)softTap()},true);
 function uiUI(){$('uiBtn').classList.toggle('on',!!uiOn);$('uiBtn').textContent='🔔 Tap sounds: '+(uiOn?'on':'off')}
 $('uiBtn').addEventListener('click',()=>{uiOn=uiOn?0:1;store('rl_ui',uiOn);uiUI()});uiUI();
@@ -1214,13 +1232,9 @@ if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)doc
 (function(){const sp=$('splash');let done=false;const close=()=>{if(done)return;done=true;sp.classList.add('is-exiting');setTimeout(()=>sp.remove(),400)};
   let seen=false;try{seen=sessionStorage.getItem('et_splash')==='1';sessionStorage.setItem('et_splash','1')}catch(e){}
   if(seen){sp.remove();return}
-  /* try the voice welcome as soon as the app opens; if the phone blocks sound until a tap, it plays on Tap to enter */
-  let introDone=false;
-  const playIntro=()=>{if(introDone||!uiOn||!INTRO_VOX)return Promise.reject();INTRO_VOX.currentTime=0;return INTRO_VOX.play().then(()=>{introDone=true})};
-  try{playIntro().then(()=>{try{if(toneCtx&&toneCtx.state==='suspended')toneCtx.resume()}catch(e){}}).catch(()=>{})}catch(e){}
-  const enter=(withSound)=>{welcomed=true;
+  const enter=(withSound)=>{welcomed=true;try{actx()}catch(e){}
     if(withSound&&!med){medStart();store('rl_med',1)}
-    if(uiOn&&!introDone){try{playIntro().catch(()=>welcome())}catch(e){welcome()}}
+    tryIntro();if(uiOn&&!introDone&&!VOX.buf)welcome();
     close()};
   $('enterBtn').addEventListener('click',e=>{e.stopPropagation();enter(true)});
   sp.addEventListener('click',()=>enter(true));})();
@@ -1512,7 +1526,7 @@ function sysApply(){
   if(typeof med!=='undefined'){if(SYS.drone.on&&!med&&!running){try{medStart()}catch(e){}}else if(!SYS.drone.on&&med){try{medStop()}catch(e){}}}
   dockRender();sysSave();
 }
-function sysPower(id,force){const s=SYS[id],d=SYSDEF.find(x=>x.id===id);const on=force!==undefined?force:!s.on;s.on=on;if(on)s.min=false;
+function sysPower(id,force){const s=SYS[id],d=SYSDEF.find(x=>x.id===id);const on=force!==undefined?force:!s.on;s.on=on;if(on)s.min=false;if(on&&force===undefined)wakeVoice();
   if(on&&d.dep&&!SYS[d.dep].on){SYS[d.dep].on=true;SYS[d.dep].min=false}
   if(id==='tuner'&&!on){SYSDEF.filter(x=>x.dep==='tuner').forEach(x=>{if(x.id!=='study'||!SM.on)SYS[x.id].on=false});if(running)stop()}
   if(id==='study'&&!on&&SM.on)smFinish();
@@ -1526,7 +1540,7 @@ const WORKSPACES={
  lab:{label:'📈 Frequency lab',sys:['tuner','ladder','scope','plate']},
  off:{label:'⏻ All off',sys:[]}
 };
-function sysWorkspace(k){const W=WORKSPACES[k];SYSDEF.forEach(d=>{if(d.id==='drone')return;SYS[d.id]={on:W.sys.includes(d.id),min:false}});if(k==='off'){if(running)stop();if(SM.on)smFinish()}sysApply();dockClose();window.scrollTo({top:0,behavior:'smooth'})}
+function sysWorkspace(k){const W=WORKSPACES[k];if(k!=='off')wakeVoice();SYSDEF.forEach(d=>{if(d.id==='drone')return;SYS[d.id]={on:W.sys.includes(d.id),min:false}});if(k==='off'){if(running)stop();if(SM.on)smFinish()}sysApply();dockClose();window.scrollTo({top:0,behavior:'smooth'})}
 function dockRender(){let dk=$('sysDock');if(!dk){dk=document.createElement('div');dk.id='sysDock';dk.className='sys-dock';document.body.appendChild(dk)}
   const chips=SYSDEF.filter(d=>SYS[d.id].on).map(d=>`<button class="dock-chip${SYS[d.id].min?' min':''}" onclick="${SYS[d.id].min?`sysMin('${d.id}')`:`(SYSEL['${d.id}']||document.body).scrollIntoView({behavior:'smooth',block:'start'})`}" title="${d.label}">${d.icon}<i></i></button>`).join('');
   dk.innerHTML=`<button class="dock-main" onclick="dockOpen()">⚙ Systems <b>${SYSDEF.filter(d=>SYS[d.id].on).length}</b></button><div class="dock-chips">${chips||'<span class="note">Nothing on · tap Systems</span>'}</div><button class="dock-mic${running?' on':''}" onclick="running?stop():start()" title="Microphone">🎙</button>`;

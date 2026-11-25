@@ -254,6 +254,39 @@ body.d-viber .saiyan{display:none!important}
 .mudra{width:100%;height:auto;display:block}
 .layerbar{display:flex;justify-content:center;margin-bottom:6px}
 
+
+/* ===== Compact Zion layout (v50): tuner on the first screen, no long scroll ===== */
+header{padding:6px 12px 0}
+header .eyebrow{display:none}
+.titlerow{padding:2px 0 6px 2px;gap:10px}
+.et-badge{width:34px!important;height:50px!important;border-radius:10px}
+.et-badge img{border-radius:8px}
+.t-stack{display:flex;flex-direction:column;min-width:0}
+header h1{font-size:clamp(21px,4.6vw,28px)!important;margin:0!important;line-height:1.05}
+.hdr-credit{font-size:10.5px;font-weight:800;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-top:2px}
+.hdr-credit .cap-logo{height:16px;width:auto}
+.hdr-set{margin-left:auto;background:rgba(13,23,18,.8);border:1px solid #294535;color:var(--fg);border-radius:999px;padding:7px 12px;font-weight:800;font-size:13px}
+header .toprow{display:none;padding-bottom:6px}
+header.open .toprow{display:flex}
+nav .in{padding:5px 10px;gap:5px}
+nav button{padding:6px 12px;font-size:13px}
+#v-live>.panel.gold{padding:8px 10px;margin:8px 0}
+#v-live>.panel.gold .controls{gap:6px}
+#v-live>.panel.gold .controls .b,#v-live>.panel.gold .controls .s{padding:7px 12px;font-size:13px}
+#v-live>.panel.gold .status{margin-top:4px;font-size:12px;line-height:1.3}
+.grid2>div>.panel:first-child{margin-top:0}
+.panel{margin:8px 0}
+.dialwrap{max-width:clamp(230px,calc((100dvh - 455px)/.92),520px)}
+.tm-chips{flex-wrap:nowrap;justify-content:safe center;gap:4px;padding:6px 2px 14px}
+.tm-chip{min-width:44px;padding:4px 6px;flex:0 0 auto}
+.tm-chip small{font-size:9.5px}
+@media(max-width:520px){.inst-w{display:none}.tm-chip small{display:none}.tm-chip{min-width:40px;min-height:44px;justify-content:center}}
+@media(max-width:700px){.hdr-set span{display:none}}
+
+main{padding-top:4px}
+#v-live>.panel.gold{margin-top:4px}
+.dialwrap{max-width:clamp(230px,calc((100dvh - 480px)/.92),520px)}
+@media(max-width:520px){.mic-w{display:none}#tuneBtn{font-size:12px!important;padding:7px 9px!important}#v-live>.panel.gold .controls>span[style*="flex:1"]{display:none}}
 </style>
 </head>
 <body>
@@ -269,8 +302,7 @@ body.d-viber .saiyan{display:none!important}
 <div class="flag"></div>
 <header>
 <div class="eyebrow">FIELD INSTRUMENT 01 · v1.5 · ZION 3000</div>
-<div class="titlerow"><div class="et-badge" aria-hidden="true"><span class="et-pulse"></span><span class="et-pulse p2"></span><img src="badge.jpg" alt="" onerror="this.onerror=null;this.src='avatar.png'"></div><h1>Electro Tuner</h1></div>
-<div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin:-4px 0 10px;text-transform:uppercase;display:flex;align-items:center;gap:10px">Created by Jah Rasta<img class="cap-logo" src="ankh.svg" alt="Ankh"></div>
+<div class="titlerow"><div class="et-badge" aria-hidden="true"><span class="et-pulse"></span><span class="et-pulse p2"></span><img src="badge.jpg" alt="" onerror="this.onerror=null;this.src='avatar.png'"></div><div class="t-stack"><h1>Electro Tuner</h1><div class="hdr-credit">Created by Jah Rasta<img class="cap-logo" src="ankh.svg" alt="Ankh"></div></div><button class="hdr-set" id="hdrSet" aria-expanded="false" onclick="var h=this.closest('header');var o=h.classList.toggle('open');this.setAttribute('aria-expanded',o)">⚙<span> Settings</span></button></div>
 <div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
 <button class="sessbtn" id="sessOpen">🧘 Session mode</button><button class="medbtn" id="medBtn">🎵 Meditation sound: off</button><button class="medbtn" id="uiBtn">🔔 Tap sounds: on</button></div>
 </header>
@@ -287,15 +319,15 @@ body.d-viber .saiyan{display:none!important}
 <section class="view on" id="v-live">
 <div class="panel gold">
 <div class="controls">
-<button class="b" id="start">🎙 Start microphone</button>
+<button class="b" id="start">🎙 Start<span class="mic-w"> microphone</span></button>
 <button class="s" id="stop" disabled>Stop</button>
 <span style="flex:1"></span>
-<label style="margin:0;font-size:12px;display:flex;gap:6px;align-items:center">Instrument
+<label class="inst-l" style="margin:0;font-size:12px;display:flex;gap:6px;align-items:center"><span class="inst-w">Instrument</span>
 <select id="inst" style="width:auto;padding:6px"><option value="flute">🪈 Native flute</option><option value="voice">🎤 Voice</option><option value="guitar">🎸 Guitar</option><option value="bowl">🥣 Tibetan bowl</option><option value="keys">🎹 Keyboard (mic)</option><option value="midi">🎛 MIDI instrument</option></select></label>
 <button class="s" id="tuneBtn" onclick="tmOpen()">🎚 A 440 · Chromatic</button><button class="guide-i" onclick="guideOpen('tuning')" aria-label="How tuning works">?</button><select id="tuning" style="display:none"><option value="440">A = 440</option><option value="432">A = 432</option></select>
 </div>
 <div id="midiBox" class="status" style="display:none"><button class="s" id="midiBtn">🎛 Connect MIDI</button> <span id="midiState">Plug your MIDI keyboard or controller into the phone with a USB-C (OTG) cable, then tap Connect.</span></div>
-<div id="status" class="status">Microphone is off. Press Start and allow the microphone. Audio is not saved or uploaded; analysis stays on this device.</div>
+<div id="status" class="status">Mic off · press Start. Nothing is recorded or uploaded.</div>
 </div>
 
 <div class="grid2">
@@ -508,6 +540,6 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <footer>Electro Tuner · created by Jah Rasta · One love 🟥🟨🟩</footer>
 </main>
 
-<script src="app.js?v=49"></script>
+<script src="app.js?v=51"></script>
 </body>
 </html>
