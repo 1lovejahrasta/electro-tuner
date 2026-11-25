@@ -302,6 +302,26 @@ main{padding-top:4px}
 @media(prefers-reduced-motion:reduce){.lv-pulse{animation:none}}
 .dock-chip.min{opacity:.75;border-color:#FFC92899}
 .panel.lv-left{display:none}
+
+/* ===== two sides on the open Fold (>=680px), one column on the cover screen (v54) ===== */
+.grid2,.grid2.lv-two{grid-template-columns:1fr!important}
+#v-live .grid2{display:block}
+.lv-park{display:contents}
+.lv-seg{display:grid;grid-template-columns:1fr;gap:0 12px;align-items:start}
+.lv-col{min-width:0}
+@media(min-width:680px){
+ .lv-seg{grid-template-columns:1fr 1fr}
+ #v-sound .grid2,#v-journal .grid2,#v-body .grid2{grid-template-columns:1fr 1fr!important;gap:0 12px;align-items:start}
+ #v-library.view.on{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start}
+ .grid2>.lv-full,#v-library>.lv-full{grid-column:1/-1}
+}
+@media(max-width:679px){.lv-xbtn{display:none!important}}
+.px-card,.lv-card{position:relative}
+.px-abs{position:absolute;top:8px;right:8px;z-index:4}
+.lv-xbtn{font-size:15px}
+
+.lv-col{container-type:inline-size}
+@container (max-width:430px){.tm-chips{gap:3px}.tm-chip small{display:none}.tm-chip{min-width:38px;min-height:44px;justify-content:center;padding:4px}}
 </style>
 </head>
 <body>
@@ -555,6 +575,6 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <footer>Electro Tuner · created by Jah Rasta · One love 🟥🟨🟩</footer>
 </main>
 
-<script src="app.js?v=53"></script>
+<script src="app.js?v=54"></script>
 </body>
 </html>

@@ -1520,7 +1520,7 @@ function sysMicStrip(id){const d=SYSDEF.find(x=>x.id===id),el=SYSEL[id];if(!el||
   const bar=el.querySelector(':scope>.sys-bar');if(bar)bar.after(m);else el.prepend(m)}
 function sysHeader(id){const d=SYSDEF.find(x=>x.id===id),el=SYSEL[id];if(!el||el.querySelector(':scope>.sys-bar'))return;
   const bar=document.createElement('div');bar.className='sys-bar';
-  bar.innerHTML=`<span class="sys-name">${d.icon} ${d.label}</span><span class="sys-state" data-st="${id}"></span><span style="flex:1"></span>${d.help?`<button class="guide-i" onclick="guideOpen('${d.help}')" aria-label="How to read it">?</button>`:''}<button class="sys-btn" onclick="sysMin('${id}')" title="Minimize">–</button><button class="sys-btn pw" onclick="sysPower('${id}')" title="Turn off">⏻</button>`;
+  bar.innerHTML=`<span class="sys-name">${d.icon} ${d.label}</span><span class="sys-state" data-st="${id}"></span><span style="flex:1"></span>${d.help?`<button class="guide-i" onclick="guideOpen('${d.help}')" aria-label="How to read it">?</button>`:''}<button class="sys-btn lv-xbtn" data-x="${id}" onclick="lvExpand('${id}')" title="Expand to both sides">⤢</button><button class="sys-btn" onclick="sysMin('${id}')" title="Minimize">–</button><button class="sys-btn pw" onclick="sysPower('${id}')" title="Turn off">⏻</button>`;
   el.prepend(bar);
 }
 function sysApply(){
@@ -1564,9 +1564,9 @@ sysFind();SYSDEF.forEach(d=>{if(d.id!=='drone'){sysHeader(d.id);sysMicStrip(d.id
 /* ===== Live layout: two balanced columns on the open Fold, one column on the cover screen =====
    Shortest-column masonry in a fixed priority order; the tuner is pinned top-left.
    Reflows only on power / minimize / restore / rotate / fold, never on live sound updates. */
-var LV={order:['tuner','station','coach','body','healing','teacher','study','journal','trail','ladder','bands'],el:{},wide:null,t:0};
+var LV={order:['tuner','body','teacher','study','coach','station','healing','trail','ladder','bands','journal'],el:{},wide:null,t:0,BP:680};
 (function lvInit(){
-  const g=document.querySelector('#v-live .grid2');if(!g)return;const cols=[...g.children];LV.cols=cols;
+  const g=document.querySelector('#v-live .grid2');if(!g)return;const cols=[...g.children];LV.cols=cols;LV.grid=g;cols.forEach(c=>c.classList.add('lv-park'));
   const wrap=(id,nodes)=>{const w=document.createElement('div');w.className='panel lv-card';w.dataset.sys=id;nodes.filter(Boolean).forEach(n=>w.appendChild(n));return w};
   // tuner card carries its stats and caption with it
   const big=SYSEL.tuner&&SYSEL.tuner.closest('.panel');
@@ -1583,21 +1583,40 @@ var LV={order:['tuner','station','coach','body','healing','teacher','study','jou
 })();
 function lvVisible(id){const e=LV.el[id];return e&&!e.classList.contains('sys-hidden')&&e.offsetParent!==null||(e&&id==='station')}
 function lvLayout(){
-  if(!LV.cols)return;const wide=innerWidth>=760;LV.wide=wide;
+  if(!LV.cols)return;const wide=innerWidth>=LV.BP;LV.wide=wide;
   const live=$('v-live').classList.contains('on');if(!live){LV.dirty=true;return}LV.dirty=false;
   // keep the reader's place: remember the first card on screen
   let anchor=null,anchorTop=0;for(const id of LV.order){const e=LV.el[id];if(!e||e.classList.contains('sys-hidden'))continue;const r=e.getBoundingClientRect();if(r.bottom>70){anchor=e;anchorTop=r.top;break}}
-  const [A,B]=LV.cols;const h=[0,0];
+  const g=LV.grid;const park=LV.cols[0];
+  // segmented masonry: half cards fill the shorter side; an expanded card spans both sides and starts a new segment
+  const segs=[];let seg=null,h=[0,0],n=0;
+  const newSeg=()=>{const sg=document.createElement('div');sg.className='lv-seg';const a=document.createElement('div'),b=document.createElement('div');a.className='lv-col';b.className='lv-col';sg.append(a,b);segs.push(sg);seg=sg;h=[0,0];n=0;return sg};
+  const out=[];
   for(const id of LV.order){const e=LV.el[id];if(!e)continue;
-    if(e.classList.contains('sys-hidden')){if(e.parentNode!==A&&e.parentNode!==B)A.appendChild(e);continue}
-    const c=(!wide||id==='tuner')?0:(h[0]<=h[1]?0:1);const col=c?B:A;col.appendChild(e);h[c]+=e.offsetHeight+12}
-  g2Mode(wide);
+    if(e.classList.contains('sys-hidden')){park.appendChild(e);continue}
+    if(wide&&lvIsFull(id)){out.push(e);seg=null;continue}
+    if(!seg){out.push(newSeg())}
+    let c;if(!wide)c=0;else if(n===0)c=0;else if(n===1&&h[1]===0)c=1;else c=h[0]<=h[1]?0:1;
+    seg.children[c].appendChild(e);h[c]+=e.offsetHeight+12;n++}
+  [...g.querySelectorAll(':scope>.lv-seg,:scope>.lv-card')].forEach(x=>{if(!out.includes(x))x.remove()});
+  out.forEach(x=>g.appendChild(x));g.appendChild(park);
+  g.classList.toggle('lv-two',wide);document.documentElement.classList.toggle('lv-wide',wide);
+  document.querySelectorAll('.lv-xbtn').forEach(b=>{const on=lvIsFull(b.dataset.x);b.textContent=on?'⤡':'⤢';b.title=on?'Back to half width':'Expand to both sides'});
   if(anchor){const d=anchor.getBoundingClientRect().top-anchorTop;if(Math.abs(d)>2)scrollBy(0,d)}
 }
+/* expand state, saved per system or panel */
+LV.full=(()=>{try{return JSON.parse(store('rl_full')||'{}')}catch(e){return {}}})();
+function lvIsFull(id){return !!LV.full[id]}
+function lvExpand(id){LV.full[id]=!LV.full[id];store('rl_full',JSON.stringify(LV.full));
+  const el=SYSEL[id]||LV.el[id]||document.querySelector(`[data-px="${id}"]`);
+  if(el&&!(LV.el[id]))el.classList.toggle('lv-full',LV.full[id]);
+  lvLayout();if(el)setTimeout(()=>sysFocus2(el),60)}
+function sysFocus2(el){const y=el.getBoundingClientRect().top+scrollY-62;scrollTo({top:Math.max(0,y),behavior:'smooth'})}
+window.lvExpand=lvExpand;
 function g2Mode(w){const g=document.querySelector('#v-live .grid2');if(g)g.classList.toggle('lv-two',w)}
 function lvSoon(){clearTimeout(LV.t);LV.t=setTimeout(lvLayout,200)}
 window.lvLayout=lvLayout;
-addEventListener('resize',()=>{const w=innerWidth>=760;if(w!==LV.wide)lvSoon();else lvSoon()});
+addEventListener('resize',lvSoon);
 document.querySelectorAll('nav button[data-v]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.v==='live')setTimeout(lvLayout,30)}));
 /* dock chip: off → power on + go; minimized → restore + go; open but away → go; open and on screen → minimize */
 function lvOnScreen(el){const r=el.getBoundingClientRect();const top=Math.max(r.top,60),bot=Math.min(r.bottom,innerHeight-70);return bot-top>=60}
@@ -1613,6 +1632,16 @@ function sysFocus(id){const el=SYSEL[id];if(!el)return;const y=el.getBoundingCli
   scrollTo({top:Math.max(0,y),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   el.classList.remove('lv-pulse');void el.offsetWidth;el.classList.add('lv-pulse')}
 window.sysGo=sysGo;window.sysFocus=sysFocus;
+
+/* other tabs: each panel can expand to both sides */
+(function pxInit(){let k=0;
+  document.querySelectorAll('#v-sound .grid2>.panel,#v-journal .grid2>.panel,#v-body .grid2>.panel,#v-library>.panel').forEach(p=>{const id='px'+(k++)+'_'+(p.closest('.view').id);p.dataset.px=id;p.classList.add('px-card');
+    const sysId=Object.keys(SYSEL).find(x=>SYSEL[x]===p);const bar=p.querySelector(':scope>.sys-bar');
+    if(bar&&sysId){const xb=bar.querySelector('.lv-xbtn');if(xb){xb.dataset.x=id;xb.setAttribute('onclick',`lvExpand('${id}')`)}}
+    else{const b=document.createElement('button');b.className='sys-btn lv-xbtn px-abs';b.dataset.x=id;b.textContent='⤢';b.title='Expand to both sides';b.setAttribute('onclick',`lvExpand('${id}')`);p.prepend(b)}
+    if(LV.full[id])p.classList.add('lv-full')});
+  const cb=LV.el.station;if(cb&&!cb.querySelector(':scope>.px-abs')){const b=document.createElement('button');b.className='sys-btn lv-xbtn px-abs';b.dataset.x='station';b.textContent='⤢';b.title='Expand to both sides';b.setAttribute('onclick',"lvExpand('station')");cb.prepend(b)}
+})();
 
 if(typeof med!=='undefined'&&med)SYS.drone.on=true;
 sysApply();setInterval(()=>{const st=document.querySelector('[data-st="tuner"]');if(st)st.textContent=running?'● LISTENING':'○ MIC OFF';const m=document.querySelector('.dock-mic');if(m)m.classList.toggle('on',running);if(typeof med!=='undefined'&&SYS.drone.on!==!!med){SYS.drone.on=!!med;dockRender();sysSave()}},500);
