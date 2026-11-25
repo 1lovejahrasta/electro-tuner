@@ -367,7 +367,7 @@ const ST=[
  {pc:4,n:'E',so:'MI',name:'Solar Plexus',sk:'Manipura',col:'#f4c430',seed:'RAM',el:'Fire',aff:'I do',loc:'Upper belly',gl:'Pancreas, adrenals',sp:'T5–T9',theme:'Confidence, personal power, self-worth, gut instinct',sense:'Sight',cry:'Citrine, yellow calcite',pose:'Bow',act:'Power walking, sunlight, taking action',nm:'≈ 560–590 nm (yellow)'},
  {pc:5,n:'F',so:'FA',name:'Heart',sk:'Anahata',col:'#22a25a',seed:'YAM',el:'Air',aff:'I love',loc:'Center of the chest',gl:'Thymus',sp:'T1–T5',theme:'Love, compassion, forgiveness, giving and receiving',sense:'Touch',cry:'Rose quartz, malachite',pose:'Cobra',act:'Time in nature, kindness, gratitude',nm:'≈ 520–560 nm (green)'},
  {pc:7,n:'G',so:'SO',name:'Throat',sk:'Vishuddha',col:'#2f8fe0',seed:'HAM',el:'Sound / ether',aff:'I speak',loc:'Throat and neck',gl:'Thyroid',sp:'C3–C7 (neck)',theme:'Expression, truth, communication, listening',sense:'Hearing',cry:'Turquoise, aquamarine',pose:'Fish',act:'Singing, chanting, writing',nm:'≈ 450–490 nm (blue)'},
- {pc:9,n:'A',so:'LA',name:'Third Eye',sk:'Ajna',col:'#5b4fd6',seed:'OM (some charts: SHAM)',el:'Light',aff:'I see',loc:'Forehead, between the eyes',gl:'Pineal / pituitary (charts differ)',sp:'C1–C2 (top of neck)',theme:'Intuition, insight, wisdom, the bigger picture',sense:'Inner vision',cry:'Lapis, kyanite, sapphire',pose:'Bridge',act:'Dream journal, meditation',nm:'≈ 420–450 nm (indigo)'},
+ {pc:9,n:'A',so:'LA',name:'Third Eye',sk:'Ajna',col:'#5b4fd6',seed:'SHAM (some charts: OM)',el:'Light',aff:'I see',loc:'Forehead, between the eyes',gl:'Pineal / pituitary (charts differ)',sp:'C1–C2 (top of neck)',theme:'Intuition, insight, wisdom, the bigger picture',sense:'Inner vision',cry:'Lapis, kyanite, sapphire',pose:'Bridge',act:'Dream journal, meditation',nm:'≈ 420–450 nm (indigo)'},
  {pc:11,n:'B',so:'TI',name:'Crown',sk:'Sahasrara',col:'#b05fd6',seed:'OM (or silence)',el:'Thought / consciousness',aff:'I understand',loc:'Top of the head',gl:'Pituitary / pineal (charts differ)',sp:'Above C1',theme:'Spiritual connection, awareness, oneness, letting go',sense:'Oneness',cry:'Clear quartz, amethyst',pose:'Downward dog',act:'Silent meditation, prayer',nm:'≈ 400–420 nm (violet / white)'}
 ];
 const Y=[202,170,143,113,79,42,14]; // point heights on figure (root..crown)
@@ -696,13 +696,13 @@ function journeyStep(){
 
 /* ---------- hand mudras ---------- */
 const MUDRA=[
- {name:'Prithvi mudra',dev:'पृथ्वी मुद्रा',el:'Earth',how:'Touch the tip of the ring finger to the tip of the thumb. Keep the other fingers relaxed and straight. Rest hands on the knees, palms up.',why:'Grounding, stability, feeling supported.',spec:{touch:[2]}},
- {name:'Varuna mudra',dev:'वरुण मुद्रा',el:'Water',how:'Touch the tip of the little finger to the tip of the thumb. Other fingers relaxed and straight.',why:'Flow, feeling, creativity.',spec:{touch:[3]}},
- {name:'Agni (Surya) mudra',dev:'अग्नि मुद्रा',el:'Fire',how:'Fold the ring finger down to the base of the thumb, then press the thumb gently over it. Other fingers straight.',why:'Inner fire, confidence, willpower.',spec:{fold:[2]}},
- {name:'Vayu mudra',dev:'वायु मुद्रा',el:'Air',how:'Fold the index finger down to the base of the thumb, then rest the thumb gently over it. Other fingers straight.',why:'Lightness of breath, an open, calm heart.',spec:{fold:[0]}},
- {name:'Akasha (Shunya) mudra',dev:'आकाश मुद्रा',el:'Space / ether',how:'Touch the tip of the middle finger to the tip of the thumb. Other fingers relaxed and straight.',why:'Space to listen and to speak clearly.',spec:{touch:[1]}},
- {name:'Hakini mudra',dev:'हाकिनी मुद्रा',el:'Light',how:'Bring both hands in front of you and touch all five fingertips of one hand to the matching fingertips of the other, like a dome. Gaze gently upward between the brows.',why:'Focus, memory, inner vision.',spec:{type:'hakini'}},
- {name:'Sahasrara mudra',dev:'सहस्रार मुद्रा',el:'Thought / consciousness',how:'Hold both hands in front of the chest or above the head. Touch the index fingertips together and the thumb tips together to make a triangle. Spread the other fingers upward like petals.',why:'Openness, peace, connection to the Most High.',spec:{type:'sahasrara'}}
+ {name:'Chin (Gyan) mudra',dev:'चिन् मुद्रा',el:'Earth',how:'Touch the thumb and index finger together. Keep the arms straight and rest the hands on the knees, palms up.',why:'Security, grounding, feeling safe.',chant:'L-A-A-A-M-M',spec:{touch:[0]}},
+ {name:'Dhyana mudra',dev:'ध्यान मुद्रा',el:'Water',how:'Place the hands in the lap, palms facing up, right palm resting on top of the left. Let the thumb tips touch.',why:'Creativity, calm flow of feeling.',chant:'V-A-A-A-M-M',spec:{type:'dhyana'}},
+ {name:'Manipura mudra',dev:'मणिपूर मुद्रा',el:'Fire',how:'Bring the hands into prayer between the heart and the stomach, fingers pointing forward, thumbs crossed and tucked.',why:'Willpower, confidence, inner fire.',chant:'R-A-A-A-M-M',spec:{type:'prayer'}},
+ {name:'Gyan mudra at the heart',dev:'ज्ञान मुद्रा',el:'Air',how:'Touch the index finger and thumb on both hands. Hold the right hand in front of the heart center and rest the left hand on the knee.',why:'Love, compassion, an open heart.',chant:'Y-A-A-A-M-M',spec:{touch:[0]}},
+ {name:'Granthita mudra',dev:'ग्रन्थित मुद्रा',el:'Space / ether',how:'Hold the hands by the stomach. Interlace the fingers on the inside and let the thumb tips touch.',why:'Expression, speaking your truth.',chant:'H-A-A-A-M-M',spec:{type:'interlace'}},
+ {name:'Ajna mudra',dev:'आज्ञा मुद्रा',el:'Light',how:'Hold the hands in front of the chest. Stand the middle fingers up with their tips touching; bend the other fingers so they touch at the top knuckles. Thumbs point toward you and touch at the tips.',why:'Intuition, insight, inner vision.',chant:'S-H-A-A-A-M-M',spec:{type:'hakini'}},
+ {name:'Sahasrara mudra',dev:'सहस्रार मुद्रा',el:'Thought / consciousness',how:'Hold the hands in front of the stomach. Interlace the fingers, with the little fingers pointing upward and touching. Thumbs cross.',why:'Divine guidance, connection, peace.',chant:'O-O-M-M-M-M',spec:{type:'sahasrara'}}
 ];
 const SKIN='#7a4a2a',SKIN2='#5a3420',EDGE='#c9a94a';
 function cap(x1,y1,x2,y2,w){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${EDGE}" stroke-width="${w+2.4}" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${SKIN}" stroke-width="${w}" stroke-linecap="round"/>`}
@@ -739,11 +739,12 @@ function twoHands(type,col){
   }
   return `<svg viewBox="0 0 160 130" class="mudra">${g}</svg>`;
 }
-function mudraSVG(i){const m=MUDRA[i];return m.spec.type?twoHands(m.spec.type,ST[i].col):oneHand(m.spec,ST[i].col)}
+function mudraDraw(i){const m=MUDRA[i];const t=m.spec.type;if(!t)return oneHand(m.spec,ST[i].col);if(t==='hakini'||t==='sahasrara')return twoHands(t,ST[i].col);return twoHands('hakini',ST[i].col)}
+function mudraSVG(i){return `<img src="mudra-${i+1}.jpg" alt="${MUDRA[i].name}" class="mudra" style="border-radius:14px;box-shadow:0 0 18px ${ST[i].col}55" onerror="this.outerHTML=mudraDraw(${i})">`}
 function mudraBlock(i){const m=MUDRA[i],s=ST[i];return `<span class="tag t-r">🙏 HAND MUDRA</span>
 <div style="display:flex;gap:12px;align-items:center;background:#0f140d;border:1px solid var(--line);border-radius:12px;padding:10px">
 <div style="width:110px;flex:none">${mudraSVG(i)}</div>
-<div><div style="font-weight:900;color:${s.col}">${m.name}</div><div style="font-size:14px">${m.dev} · ${m.el}</div><div class="note" style="margin-top:4px">${m.how}</div><div class="note"><b>For:</b> ${m.why}</div></div></div>`}
+<div><div style="font-weight:900;color:${s.col}">${m.name}</div><div style="font-size:14px">${m.dev} · ${m.el}</div><div class="note" style="margin-top:4px">${m.how}</div><div class="note"><b>For:</b> ${m.why}</div><div class="note"><b>Chant:</b> ${m.chant}</div></div></div>`}
 
 /* ---------- body map ---------- */
 const BODY=[
