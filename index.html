@@ -66,6 +66,8 @@ button:disabled{opacity:.4}
 .hm-eff{margin-top:10px;font-size:13.5px;line-height:1.45}.hm-eff ul{margin:4px 0 0;padding-left:18px}
 .hm-next{margin-top:10px;padding:8px 10px;border-radius:10px;border:1px dashed #294535;font-size:13.5px}
 .hm-noteline{margin-top:8px;font-size:13.5px;line-height:1.4;padding-top:8px;border-top:1px solid #294535}
+details.tech>summary{cursor:pointer;color:var(--muted);font-size:12px;letter-spacing:.08em;margin:10px 0 4px}
+.g3{margin:0 0 10px;font-size:15px;line-height:1.45}
 .coach{margin-top:12px;border:1px solid #1f3a28;border-radius:14px;padding:12px;background:linear-gradient(160deg,rgba(0,255,133,.05),rgba(255,201,40,.04) 60%,rgba(255,52,52,.04))}
 .coach-h{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:.04em;margin-bottom:8px}.coach-h .s{padding:5px 9px;font-size:12px}
 .coach-now{font-size:15px;line-height:1.45;min-height:44px}
@@ -273,7 +275,7 @@ body.d-viber .saiyan{display:none!important}
 <div class="dial-read"><div class="note" id="bigNote">♪</div><div class="dial-tag" id="dialTag">LISTENING</div></div>
 </div>
 <div class="dial-sub"><b id="hz">— Hz</b> · <span id="solf">solfège —</span> · <span id="conf">confidence —</span></div>
-<div class="note" style="text-align:center" id="cents">tuning: —</div>
+<div style="display:flex;justify-content:center;align-items:center;gap:8px"><div class="note" style="text-align:center" id="cents">tuning: —</div><button class="guide-i" onclick="guideOpen('cents')" aria-label="What are cents?">?</button></div>
 <i id="needle" hidden></i>
 <div class="coach" id="coach">
 <div class="coach-h"><span>🧠 Live Coach</span><span style="flex:1"></span><button class="s" id="coachCopy">📋 Copy report</button><button class="s" id="coachReset">↺ New session</button></div>
@@ -434,7 +436,7 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <h2>Reference cards</h2>
 <details open><summary>🧠 Brainwave bands</summary><p>Measured with EEG sensors on the head. Delta 0.5–4 Hz: deep sleep. Theta 4–8 Hz: deep relaxation, dreaming, creativity. Alpha 8–13 Hz: calm, relaxed awareness. Beta 13–30 Hz: alert thinking, problem solving. Gamma 30–100 Hz: high focus and perception. Flute notes vibrate hundreds of times per second, so they sit far above these bands; the link this app shows is your rhythm (wobbles per second).</p></details>
 <details><summary>🌙 Yoga nidra states</summary><p>Vishva: the waking state (beta). Pratyahara: turning awareness inward (alpha). Taijasa: the dreaming state (theta). Prajna: deep dreamless sleep (delta). Yoga nidra teaches being aware while the body rests as if asleep.</p></details>
-<details><summary>🌈 Color and light</summary><p>Visible light runs about 400–700 nanometres. Red ≈ 635–700, orange ≈ 590–635, yellow ≈ 560–590, green ≈ 520–560, cyan ≈ 490–520, blue ≈ 450–490, violet ≈ 400–450. A sound note and a light color are different kinds of waves; the stations pair them by tradition, not by physics.</p></details>
+<details><summary>🌈 Color and light</summary><p>Visible light runs about 400–700 nanometers. Red ≈ 635–700, orange ≈ 590–635, yellow ≈ 560–590, green ≈ 520–560, cyan ≈ 490–520, blue ≈ 450–490, violet ≈ 400–450. A sound note and a light color are different kinds of waves; the stations pair them by tradition, not by physics.</p></details>
 <details><summary>❤️ Emotion wheel (Plutchik)</summary><p>Eight core feelings: joy, trust, fear, surprise, sadness, disgust, anger, anticipation. Each has a softer and stronger version (for example serenity → joy → ecstasy). Blends make new ones: joy + trust = love.</p></details>
 <details><summary>🌀 Emotional Guidance Scale</summary><p>A 22-step ladder from joy, freedom and love (1) down to fear, grief and powerlessness (22). It's a self-reflection tool from spiritual teaching. Use it to track how you feel over time.</p></details>
 <details><summary>🧍 Roby Chart</summary><p>Links beliefs and emotions to body areas (based on Louise Hay, Caroline Myss and others). Useful as a reflection prompt, not a medical map.</p></details>
@@ -674,12 +676,27 @@ function fromMidi(now){
   else{const last=[...held.entries()].sort((a,b)=>b[1].t-a[1].t)[0];const n=last[0];cur.midi=n;cur.f=noteHz(n);cur.conf=1;cur.cents=0;cur.pc=n%12;cur.name=NAMES[cur.pc]+(Math.floor(n/12)-1);cur.rms=last[1].v/127*0.2;cur.db=20*Math.log10(last[1].v/127)}
   trail.push({t:now,m:cur.midi});while(trail.length&&now-trail[0].t>6000)trail.shift();updateSustain(now);cur.vib=null;
 }
+
+/* Singing bowls ring several un-evenly spaced tones (partials), which fools the flute/voice pitch reader.
+   Bowl mode looks at the spectrum instead: it finds every strong ringing tone and reports the lowest
+   strong one (the bowl's main tone), refined to a fraction of a bin. Other partials are kept for the coach. */
+function bowlPitch(fd,sr,N){
+  const bw=sr/N,b0=Math.max(2,Math.floor(55/bw)),b1=Math.min(fd.length-2,Math.floor(3000/bw));let mx=-200;
+  for(let b=b0;b<=b1;b++)if(fd[b]>mx)mx=fd[b];if(mx<-80)return null;
+  const peaks=[];for(let b=b0;b<=b1;b++){const v=fd[b];if(v>mx-18&&v>=fd[b-1]&&v>fd[b+1]&&v>=fd[b-2]&&v>fd[b+2]){
+    const a=fd[b-1],c=fd[b+1],den=a-2*v+c,dx=den?.5*(a-c)/den:0;peaks.push({f:(b+dx)*bw,db:v-.25*(a-c)*dx})}}
+  if(!peaks.length)return null;peaks.sort((x,y)=>x.f-y.f);
+  const main=peaks.find(q=>q.db>mx-12)||peaks[0];
+  cur.partials=peaks.filter(q=>q!==main).slice(0,4).map(q=>({f:q.f,ratio:q.f/main.f,db:q.db-mx}));
+  // floor of other peaks below the strongest: clearer bowl = higher confidence
+  return {f:main.f,conf:Math.min(.99,.8+Math.max(0,(main.db-(mx-30)))/150)};
+}
 function analyse(now){
   an.getFloatTimeDomainData(td);an.getFloatFrequencyData(fd);
   if(essiBusy()){cur.f=null;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null;cur.conf=0;cur.vib=null;trail.push({t:now,m:null});while(trail.length&&now-trail[0].t>6000)trail.shift();if(SM.on)smFrame(now);return}
   let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];const rms=Math.sqrt(sq/td.length);
   cur.rms=rms;cur.db=rms>0?20*Math.log10(rms):null;
-  let p=null;if(rms>0.004&&performance.now()>toneUntil)p=yin(td,ctx.sampleRate);
+  let p=null;if(rms>0.004&&performance.now()>toneUntil)p=inst==='bowl'?bowlPitch(fd,ctx.sampleRate,an.fftSize):yin(td,ctx.sampleRate);
   if(p&&p.f>INST[inst].lo&&p.f<2400&&p.conf>.6){cur.f=p.f;cur.conf=p.conf;cur.midi=midiOf(p.f);const r=Math.round(cur.midi);cur.cents=Math.round((cur.midi-r)*100);cur.pc=((r%12)+12)%12;cur.name=NAMES[cur.pc]+(Math.floor(r/12)-1)}
   else{cur.f=null;cur.conf=p?p.conf:0;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null}
   trail.push({t:now,m:cur.midi});while(trail.length&&now-trail[0].t>6000)trail.shift();
@@ -726,7 +743,7 @@ function readouts(now){
 const CO={note:null,notes:[],stations:new Set()};
 function coStd(a){if(a.length<2)return 0;const m=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-m)*(y-m),0)/a.length)}
 function coMean(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0}
-function coSign(c){c=Math.round(c);return (c>0?'+':'')+c+'¢'}
+function coSign(c){c=Math.round(c);return (c>0?'+':'')+c+'¢ ('+centsWord(c).toLowerCase()+')'}
 function coachTick(now){
   const live=running&&cur&&cur.f&&cur.midi!==null;
   if(live){const name=cur.name;
@@ -735,8 +752,11 @@ function coachTick(now){
     if(cur.vib&&(!n.vib||cur.vib.amp>n.vib.amp))n.vib={hz:cur.vib.hz,amp:cur.vib.amp};
     const dur=(now-n.t0)/1000;if(dur<.5){if(CO.stage!=='an'){CO.stage='an';$('coachNow').innerHTML=`<span class="cj-live" style="color:#FFC928">● ANALYZING</span> <b>${n.name}</b>…`}}
       else if(now-(CO.lastNow||0)>1500){CO.lastNow=now;CO.stage='co';const st=n.s.filter(p=>p.t>150).map(p=>p.c),m=coMean(st),sd=coStd(st);let msg;
-        if(cur.vib)msg=`Vibrato detected · ${cur.vib.hz.toFixed(1)} Hz.`;else if(Math.abs(m)<=5)msg=sd<=6?'Centred and steady. Hold it there.':'Centred. Steady the air to stop the wobble.';
-        else msg=`${sd<=6?'Steady tone. ':''}${m>0?'Bring it down slightly':'Raise it slightly'} (${coSign(m)}).`;
+        const si2=stationOfPc(n.pc),S2=si2>=0?ST[si2]:null;
+        const body=S2?`<span style="color:${S2.col}">${S2.name}</span> · ${S2.theme.split(',').slice(0,2).join(' &').toLowerCase()} · “${S2.aff}”. `:'Between two stations. ';
+        const meas=`Held ${dur.toFixed(1)} s${cur.vib?`, vibrato ${cur.vib.hz.toFixed(1)} Hz`:''}. `;
+        const tune=Math.abs(m)<=5?(sd<=6?'Centered and steady.':'Centered; steady the air to calm the wobble.'):`Pitch ${centsWord(m).toLowerCase()} (${Math.round(m)>0?'+':''}${Math.round(m)}¢): ${m>0?'ease it down':'lift it slightly'}.`;
+        msg=body+meas+(S2?`Breath cue: ${(BODY[si2]&&BODY[si2].breath||'slow, even breathing').toLowerCase()}. `:'')+tune;
         const hb=JT.habits&&JT.habits[n.name];if(hb&&Math.abs(m)<Math.abs(hb.med)-5&&dur>1)msg+=` Better than your usual ${n.name} (${coSign(hb.med)}).`;
         $('coachNow').innerHTML=`<span class="cj-live">● COACHING</span> <b>${n.name}</b> · ${msg}`}
   }else if(CO.note){CO.note.gap=CO.note.gap||now;if(now-CO.note.gap>350)coachFinish(now)}
@@ -754,9 +774,9 @@ function coachFinish(now){
   const si=stationOfPc(n.pc);if(si>=0)CO.stations.add(si);
   // headline
   const a=Math.abs(avg);let head,col;
-  if(a<=5){head=`● ${n.name} centred: average ${coSign(avg)}`;col='#00FF85'}
-  else if(a<=10){head=`● ${n.name} close: average ${coSign(avg)} ${avg>0?'sharp':'flat'}`;col='#FFC928'}
-  else{head=`● ${n.name} ${avg>0?'sharp':'flat'}: average ${coSign(avg)}`;col='#FF3434'}
+  if(a<=5){head=`Pitch: centered (${Math.round(avg)>0?'+':''}${Math.round(avg)}¢)`;col='#00FF85'}
+  else if(a<=10){head=`Pitch: ${centsWord(avg).toLowerCase()} (${Math.round(avg)>0?'+':''}${Math.round(avg)}¢)`;col='#FFC928'}
+  else{head=`Pitch: ${centsWord(avg).toLowerCase()} (${Math.round(avg)>0?'+':''}${Math.round(avg)}¢)`;col='#FF3434'}
   const pts=[];
   pts.push(`Held <b>${dur.toFixed(1)} s</b>; <b>${inPct}%</b> of that time was within ±10¢.`);
   if(n.vib)pts.push(`Vibrato measured: <b>${n.vib.hz.toFixed(1)} Hz</b>, about <b>±${Math.round(n.vib.amp*1.41)}¢</b> wide. (Classical singers usually sit around 5–7 Hz.)`);
@@ -767,8 +787,8 @@ function coachFinish(now){
   if(Math.abs(drift)>=8)pts.push(`Drifted <b>${coSign(drift)}</b> from the start to the end of the note${drift<0?' (often from air or support fading)':' (often from pushing more air or tension)'}.`);
   if(dyn>12)pts.push(`Loudness changed by <b>${Math.round(dyn)} dB</b> during the note; pitch can follow loudness on wind instruments and voice.`);
   let tip='';if(a>10&&INST[inst]&&INST[inst][avg>0?'sharp':'flat'])tip=`<div style="margin-top:6px">→ ${INST[inst][avg>0?'sharp':'flat']}</div>`;
-  const stn=si>=0?` · lights <span style="color:${ST[si].col}">${ST[si].name}</span>`:'';
-  $('coachLast').innerHTML=`<div class="coach-card" style="--c:${col}"><b class="h">${head}</b>${stn}<ul>${pts.slice(0,4).map(p=>'<li>'+p+'</li>').join('')}</ul>${tip}${hmNoteLine(si)}<button class="essi-play mini" onclick="essiSpeak(this.parentNode.innerHTML,this)">▶ ESSI</button></div>`;
+  const stn='';
+  $('coachLast').innerHTML=`<div class="coach-card" style="--c:${col}">${si>=0?`<div style="font-size:16px;font-weight:900;color:${ST[si].col}">${n.name} · ${ST[si].name} · ${ST[si].sk}</div><div class="note" style="margin:2px 0 6px">${ST[si].theme} · “${ST[si].aff}”</div>`:''}<b class="h">${head}</b>${stn}<ul>${pts.slice(0,4).map(p=>'<li>'+p+'</li>').join('')}</ul>${tip}${hmNoteLine(si)}<button class="essi-play mini" onclick="essiSpeak(this.parentNode.innerHTML,this)">▶ ESSI</button></div>`;
   if(si>=0)try{cjAdd(n.name,n.pc,'station',`Lit ${ST[si].name} · ${ST[si].sk}`,dur,' s held','#FFC928')}catch(e){}
   $('coachNow').innerHTML='<span class="cj-live">● LISTENING</span> Play the next note, or hold one longer for a deeper read.';
   coachStats();
@@ -777,7 +797,7 @@ function coachStats(){
   const N=CO.notes;if(!N.length){$('coachStats').innerHTML='';return}
   const bias=coMean(N.map(x=>x.avg)),cent=Math.round(100*N.filter(x=>Math.abs(x.avg)<=10).length/N.length);
   const steady=N.reduce((b,x)=>x.spread<b.spread?x:b),off=N.reduce((b,x)=>Math.abs(x.avg)>Math.abs(b.avg)?x:b),long=N.reduce((b,x)=>x.dur>b.dur?x:b);
-  const tend=Math.abs(bias)<=5?'centred':bias>0?'leans sharp':'leans flat';
+  const tend=Math.abs(bias)<=5?'centered':bias>0?'leans sharp':'leans flat';
   $('coachStats').innerHTML=[[N.length,'notes studied'],[cent+'%','notes within ±10¢'],[coSign(bias),'overall tendency · '+tend],[steady.spread<1?'<±1¢':'±'+steady.spread.toFixed(0)+'¢','steadiest · '+steady.name],[coSign(off.avg),'furthest off · '+off.name],[long.dur.toFixed(1)+' s','longest hold · '+long.name],[CO.stations.size+'/7','stations reached']].map(([v,l])=>`<div><strong>${v}</strong><span>${l}</span></div>`).join('');
 }
 function coachReport(){const N=CO.notes;if(!N.length)return 'No notes studied yet.';
@@ -894,7 +914,7 @@ function smAnalyse(F,elapsed){
   /* priorities: 100 × severity × √frequency × evidence */
   const iss=[];const evd=n=>Math.min(1,n/10);
   for(const nt of R.notes)if(nt.tag==='flat'||nt.tag==='sharp')iss.push({k:'note',score:100*Math.min(1,Math.abs(nt.med)/20)*Math.sqrt(nt.count/Math.max(1,R.steadyNotes))*evd(nt.count),
-    title:`Centre your ${nt.name}`,obs:`${nt.name} sat ${nt.tag} across ${nt.count} separate times (median ${sgn(nt.med)})${nt.strong?'':' · early pattern, needs more data'}.`,
+    title:`Center your ${nt.name}`,obs:`${nt.name} sat ${nt.tag} across ${nt.count} separate times (median ${sgn(nt.med)})${nt.strong?'':' · early pattern, needs more data'}.`,
     ex:`Five 4-second ${nt.name} notes against the reference tone on the station card.`,goal:`At least 80% within ±10¢ on ${nt.name}.`});
   if(Math.abs(R.bias)>5&&!iss.some(i=>i.k==='note'))iss.push({k:'bias',score:100*Math.min(1,Math.abs(R.bias)/20)*Math.sqrt(stF.length?stF.filter(c=>R.bias>0?c>5:c<-5).length/stF.length:0)*evd(R.steadyNotes),
     title:`Bring your overall pitch ${R.bias>0?'down':'up'} a touch`,obs:`Across the take you averaged ${sgn(R.bias)}.`,ex:INST[inst]&&INST[inst][R.bias>0?'sharp':'flat']||'Hold long notes against a reference tone.',goal:'Overall average within ±5¢.'});
@@ -903,14 +923,14 @@ function smAnalyse(F,elapsed){
   if(R.settle>150&&SM.intent!=='expression')iss.push({k:'entry',score:100*Math.min(1,R.settle/300)*Math.sqrt(R.slowEntry)*evd(se.length),
     title:'Land your note entrances',obs:`Notes took a median ${Math.round(R.settle)} ms to settle within ±10¢.`,ex:'Ten deliberate, straight entrances without sliding in.',goal:'Settle within 150 ms.'});
   if(Math.abs(R.drift)>10)iss.push({k:'drift',score:100*Math.min(1,Math.abs(R.drift)/20)*Math.sqrt(R.driftFrac)*evd(dr.length),
-    title:'Hold pitch to the end of each note',obs:`Held notes typically drifted ${sgn(R.drift)} from start to finish.`,ex:inst==='flute'||inst==='voice'?'Keep the air steady as the note ends; practise 4-second holds with an even fade.':'Notice where the pitch moves as the note decays.',goal:'End-of-note drift under 10¢.'});
+    title:'Hold pitch to the end of each note',obs:`Held notes typically drifted ${sgn(R.drift)} from start to finish.`,ex:inst==='flute'||inst==='voice'?'Keep the air steady as the note ends; practice 4-second holds with an even fade.':'Notice where the pitch moves as the note decays.',goal:'End-of-note drift under 10¢.'});
   if(R.decline)iss.push({k:'decline',score:100*Math.min(1,Math.max(0,(z.absErr-a.absErr))/10)*Math.sqrt(1/3)*evd(z.n),
-    title:'Keep your accuracy through to the end',obs:`Within ±10¢ went from ${Math.round(a.p10)}% in the opening third to ${Math.round(z.p10)}% in the closing third.`,ex:'Short breaks between phrases; re-centre on a reference note midway.',goal:'Closing third within 5 points of the opening.'});
+    title:'Keep your accuracy through to the end',obs:`Within ±10¢ went from ${Math.round(a.p10)}% in the opening third to ${Math.round(z.p10)}% in the closing third.`,ex:'Short breaks between phrases; re-center on a reference note midway.',goal:'Closing third within 5 points of the opening.'});
   R.stTime=new Array(7).fill(0);R.between=0;for(const e of events){const si=stationOfPc(((e.n%12)+12)%12);if(si>=0)R.stTime[si]+=e.d/1000;else R.between+=e.d/1000}R.longHolds=events.filter(e=>e.d>=4000).length;
   R.priorities=iss.sort((x,y)=>y.score-x.score).slice(0,3).map(i=>({...i,score:Math.round(i.score)}));
   /* strengths (always at least one when data allows) */
   const str=[];const goodNote=R.notes.filter(n=>n.count>=3&&Math.abs(n.med)<=5).sort((a,b)=>b.count-a.count)[0];
-  if(goodNote)str.push(`${goodNote.name} was centred every time it came back (${goodNote.count} times, median ${sgn(goodNote.med)}).`);
+  if(goodNote)str.push(`${goodNote.name} was centered every time it came back (${goodNote.count} times, median ${sgn(goodNote.med)}).`);
   if(R.p10>=75)str.push(`${Math.round(R.p10)}% of your held pitch was within ±10¢.`);
   if(R.stability&&R.stability<=5)str.push(`Very steady held notes (typical ${R.stability<1?'under ±1':'±'+R.stability.toFixed(0)}¢).`);
   if(R.vibRate&&R.vibRate>=4.5&&R.vibRate<=7)str.push(`Even vibrato around ${R.vibRate.toFixed(1)} Hz.`);
@@ -932,18 +952,19 @@ function smRender(R){
   el.innerHTML=`
   <div class="coach-card" style="--c:#00FF85"><b class="h">SESSION INTELLIGENCE / ${String(smLoad().length+1).padStart(3,'0')} · ANALYZED</b><br><span class="note">${Math.floor(R.dur/60)?Math.floor(R.dur/60)+' min ':''}${R.dur%60?R.dur%60+' s ':''}take · ${R.instLabel} · ${R.events} note events</span>
   <div class="coach-stats" style="margin-top:8px">${[[Math.round(R.p10)+'%','held pitch within ±10¢'],[sgn(R.bias),'average tendency'],[R.absErr.toFixed(1)+'¢','average pitch error'],[R.stability<1?'<±1¢':'±'+R.stability.toFixed(0)+'¢','typical steadiness'],[R.events,'notes played'],[R.low+'–'+R.high,'range · '+R.range+' semitones']].map(([v,l])=>`<div><strong>${v}</strong><span>${l}</span></div>`).join('')}</div></div>
+  <h3 class="smh" style="display:flex;align-items:center;gap:8px">My sound journey · body stations <button class="guide-i" onclick="guideOpen('healing')">?</button></h3><div class="coach" style="margin:0">${hmHTML(R.stTime,R.between,R.longHolds,false)}</div>
+  <h3 class="smh">Musical analysis</h3>
   ${R.strengths.length?`<div class="coach-card" style="--c:#00FF85;margin-top:10px"><b class="h">DETECTED STRENGTH</b><ul>${R.strengths.map(s=>'<li>'+s+'</li>').join('')}</ul></div>`:''}
   <div class="coach-card" style="--c:#FFC928;margin-top:10px"><b class="h">NEXT PRACTICE FOCUS</b><ul style="list-style:none;padding-left:0">${pr}</ul></div>
-  <h3 class="smh">Pitch journey</h3>${smCanvas('smC1',150)}<p class="note">Every dot is a moment of held pitch. Green band = within ±10¢. Up = sharp, down = flat.</p>
-  <h3 class="smh">Melodic fingerprint</h3>${smCanvas('smC2',130)}<p class="note">${keyTxt}. Most used: ${R.top.join(', ')}. Bars are coloured by station (a chosen spiritual convention, not a body measurement).</p>
-  <h3 class="smh">Note accuracy map</h3>${smCanvas('smC3',Math.max(80,R.notes.length*22+20))}<p class="note">${habit.length?habit.join(' · '):'No note showed a repeated flat or sharp habit (each note needs at least 3 appearances to judge).'}</p>
-  <h3 class="smh">Expression landscape</h3>${smCanvas('smC4',120)}<p class="note">Loudness over time. Shaded = estimated phrases (${R.phrases}, average ${R.phraseAvg.toFixed(1)} s, longest ${R.phraseMax.toFixed(1)} s). These are sound-based phrase estimates, not a breath or lung measurement. Dynamic range ${Math.round(R.dyn)} dB${R.vibRate?` · vibrato ${R.vibRate.toFixed(1)} Hz, about ${Math.round(R.vibWidth)}¢ peak to peak, used ${Math.round(R.vibUse*100)}% of held time`:''}.</p>
-  <h3 class="smh">Consistency: opening · middle · closing</h3>${smCanvas('smC5',110)}<p class="note">${R.decline?'Your consistency dropped toward the end (at least two measures got worse). This shows declining consistency, not confirmed tiredness.':'No meaningful drop from start to finish.'}</p>
-  <h3 class="smh">Healing highlights</h3><div class="coach" style="margin:0">${hmHTML(R.stTime,R.between,R.longHolds,false)}</div>
-  <h3 class="smh">Flow</h3><p class="note">${Math.round(R.npm)} notes per minute of playing · ${Math.round(R.step)}% steps, ${Math.round(R.leap)}% leaps, ${Math.round(R.rep)}% repeats${R.bpm?` · a steady pulse near ${R.bpm} BPM`:' · no steady pulse detected (fine for free playing; timing is not graded without a metronome)'}.</p>
-  <h3 class="smh">My growth</h3>${smCanvas('smC6',110)}<p class="note" id="smGrowthTxt"></p>
+  <h3 class="smh" style="display:flex;align-items:center;gap:8px">Pitch journey <button class="guide-i" onclick="guideOpen('pj')">?</button></h3>${smCanvas('smC1',150)}<p class="note">Every dot is a moment of held pitch. Green band = within ±10¢. Up = sharp, down = flat.</p>
+  <h3 class="smh" style="display:flex;align-items:center;gap:8px">Melodic fingerprint <button class="guide-i" onclick="guideOpen('mf')">?</button></h3>${smCanvas('smC2',130)}<p class="note">${keyTxt}. Most used: ${R.top.join(', ')}. Bars are colored by station (a chosen spiritual convention, not a body measurement).</p>
+  <h3 class="smh" style="display:flex;align-items:center;gap:8px">Note accuracy map <button class="guide-i" onclick="guideOpen('nam')">?</button></h3>${smCanvas('smC3',Math.max(80,R.notes.length*22+20))}<p class="note">${habit.length?habit.join(' · '):'No note showed a repeated flat or sharp habit (each note needs at least 3 appearances to judge).'}</p>
+  <h3 class="smh" style="display:flex;align-items:center;gap:8px">Expression landscape <button class="guide-i" onclick="guideOpen('el')">?</button></h3>${smCanvas('smC4',120)}<p class="note">Loudness over time. Shaded = estimated phrases (${R.phrases}, average ${R.phraseAvg.toFixed(1)} s, longest ${R.phraseMax.toFixed(1)} s). These are sound-based phrase estimates, not a breath or lung measurement. Dynamic range ${Math.round(R.dyn)} dB${R.vibRate?` · vibrato ${R.vibRate.toFixed(1)} Hz, about ${Math.round(R.vibWidth)}¢ peak to peak, used ${Math.round(R.vibUse*100)}% of held time`:''}.</p>
+  <h3 class="smh" style="display:flex;align-items:center;gap:8px">Consistency: opening · middle · closing <button class="guide-i" onclick="guideOpen('con')">?</button></h3>${smCanvas('smC5',110)}<p class="note">${R.decline?'Your consistency dropped toward the end (at least two measures got worse). This shows declining consistency, not confirmed tiredness.':'No meaningful drop from start to finish.'}</p>
+  <h3 class="smh" style="display:flex;align-items:center;gap:8px">Flow <button class="guide-i" onclick="guideOpen('flow')">?</button></h3><p class="note">${Math.round(R.npm)} notes per minute of playing · ${Math.round(R.step)}% steps, ${Math.round(R.leap)}% leaps, ${Math.round(R.rep)}% repeats${R.bpm?` · a steady pulse near ${R.bpm} BPM`:' · no steady pulse detected (fine for free playing; timing is not graded without a metronome)'}.</p>
+  <h3 class="smh" style="display:flex;align-items:center;gap:8px">My growth <button class="guide-i" onclick="guideOpen('growth')">?</button></h3>${smCanvas('smC6',110)}<p class="note" id="smGrowthTxt"></p>
   <div class="controls" style="margin-top:8px"><button class="s" id="smCopy">📋 Copy study</button><button class="s" id="smJson">⬇ Export data</button></div>
-  <p class="note" style="margin-top:8px">How to read this: thresholds (±5¢, ±10¢, 3 appearances) are sensible starting defaults, not universal standards. Expressive slides, bends and vibrato are reported, not counted as mistakes. One pitch at a time is measured, so chords and overlapping bowl tones are not analysed.</p>`;
+  <p class="note" style="margin-top:8px">How to read this: thresholds (±5¢, ±10¢, 3 appearances) are sensible starting defaults, not universal standards. Expressive slides, bends and vibrato are reported, not counted as mistakes. One pitch at a time is measured, so chords and overlapping bowl tones are not analyzed.</p>`;
   requestAnimationFrame(()=>{smDraw(R);smGrowth(R)});
   $('smCopy').onclick=async()=>{const t=smText(R);try{await navigator.clipboard.writeText(t);$('smCopy').textContent='✅ Copied'}catch(e){prompt('Copy:',t)}};
   $('smJson').onclick=()=>{const o={...R};delete o._ev;delete o._ph;delete o._F;const b=new Blob([JSON.stringify(o,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='electro-tuner-study-'+new Date(R.date).toISOString().slice(0,16).replace(':','')+'.json';a.click()};
@@ -1001,8 +1022,8 @@ function cjAdd(note,pc,type,title,val,unit,col){
 function cjFromNote(rec){
   const a=Math.abs(rec.avg),k=rec.name;
   const prev=CJ.rows.find(x=>x.note===k&&(x.type==='flat'||x.type==='sharp'));
-  if(a<=5){cjAdd(k,rec.pc,'centred','Centred pitch',rec.avg,'¢','#00FF85');if(prev)cjAdd(k,rec.pc,'improved',`Improved: centred after being ${prev.type}`,rec.avg,'¢','#00FF85')}
-  else if(a<=10)cjAdd(k,rec.pc,'close','Close to centre',rec.avg,'¢','#FFC928');
+  if(a<=5){cjAdd(k,rec.pc,'centered','Centered pitch',rec.avg,'¢','#00FF85');if(prev)cjAdd(k,rec.pc,'improved',`Improved: centered after being ${prev.type}`,rec.avg,'¢','#00FF85')}
+  else if(a<=10)cjAdd(k,rec.pc,'close','Close to center',rec.avg,'¢','#FFC928');
   else cjAdd(k,rec.pc,rec.avg>0?'sharp':'flat',rec.avg>0?'Sits sharp':'Sits flat',rec.avg,'¢','#FF3434');
   if(rec.vib)cjAdd(k,rec.pc,'vibrato',`Vibrato ${rec.vib.hz.toFixed(1)} Hz`,rec.vib.amp*1.41,'¢ wide','#FFC928');
   else if(rec.spread>10)cjAdd(k,rec.pc,'unsteady','Unsteady hold',rec.spread,'¢ spread','#FF3434');
@@ -1016,7 +1037,7 @@ function cjRender(){
   $('cjHead').innerHTML=`<span class="cj-live">● LIVE</span> ${CJ.rows.reduce((a,r)=>a+r.count,0)} observations · ${pats} pattern${pats===1?'':'s'}`;
   const fmt=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
   box.innerHTML=rows.length?rows.map(r=>{const si=stationOfPc(r.pc),nc=si>=0?ST[si].col:'#F4F5E9',v=r.vals.length?cjMed(r.vals):null;
-    const meas=v===null?'':(r.unit==='¢'?`${v>0?'+':''}${Math.round(v)}¢ median`:`${Math.round(v)}${r.unit}`);
+    const meas=v===null?'':(r.unit==='¢'?`${centsWord(v)} · ${v>0?'+':''}${Math.round(v)}¢`:`${Math.round(v)}${r.unit}`);
     return `<div class="cj-row${Date.now()-r.fresh<400?' cj-new':''}"><span class="cj-note" style="color:${nc};border-color:${nc}55">${r.note}</span><span class="cj-mid"><b style="color:${r.col}">${r.title}</b><small>${meas}${meas?' · ':''}${r.count} time${r.count>1?'s':''}</small></span><span class="cj-t">${fmt(r.last)}</span></div>`}).join(''):'<div class="note">Findings will collect here as you play. Nothing gets lost.</div>';
   $('cjMore').style.display=CJ.rows.length>4?'inline-block':'none';$('cjMore').textContent=CJ.showAll?'Show less':`View all ${CJ.rows.length}`;
 }
@@ -1039,7 +1060,7 @@ function cjImage(){
   g.strokeStyle=within>=75?'#00FF85':within>=50?'#FFC928':'#FF3434';g.beginPath();g.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+Math.PI*2*within/100);g.stroke();
   g.fillStyle='#F4F5E9';g.font='900 58px system-ui';g.textAlign='center';g.fillText(within+'%',cx,cy+12);g.font='600 22px system-ui';g.fillStyle='#9fb3a6';g.fillText('notes within ±10¢',cx,cy+46);g.textAlign='left';
   const bias=N.length?N.reduce((a,x)=>a+x.avg,0)/N.length:0,st=N.length?N.reduce((b,x)=>x.spread<b.spread?x:b):null,off=N.length?N.reduce((b,x)=>Math.abs(x.avg)>Math.abs(b.avg)?x:b):null;
-  const stats=[[N.length,'notes studied'],[(bias>0?'+':'')+Math.round(bias)+'¢',Math.abs(bias)<=5?'overall · centred':bias>0?'overall · leans sharp':'overall · leans flat'],[st?st.name:'—','steadiest note'],[off?`${off.name} ${off.avg>0?'+':''}${Math.round(off.avg)}¢`:'—','furthest off']];
+  const stats=[[N.length,'notes studied'],[(bias>0?'+':'')+Math.round(bias)+'¢',Math.abs(bias)<=5?'overall · centered':bias>0?'overall · leans sharp':'overall · leans flat'],[st?st.name:'—','steadiest note'],[off?`${off.name} ${off.avg>0?'+':''}${Math.round(off.avg)}¢`:'—','furthest off']];
   stats.forEach(([v,l],i)=>{const x=400+(i%2)*320,y=y0+120+Math.floor(i/2)*140;g.fillStyle='#F4F5E9';g.font='900 46px system-ui';g.fillText(String(v),x,y);g.fillStyle='#9fb3a6';g.font='500 26px system-ui';g.fillText(l,x,y+38)});
   // pitch journey (each studied note)
   const y1=y0+380;g.fillStyle='#FFC928';g.font='800 34px system-ui';g.fillText('PITCH JOURNEY',64,y1+10);
@@ -1132,6 +1153,7 @@ function hmReset(){HM.t.fill(0);HM.between=0;HM.longHolds=0;HM.lowT=0;HM.highT=0
 
 function hmNoteLine(si){if(si<0)return '';const {s,b}=hmBody(si);return `<div class="hm-noteline"><span style="color:${s.col}">●</span> <b>Body connection:</b> ${s.n} lights <span style="color:${s.col}">${s.name}</span> (${s.sk}), ${s.loc.toLowerCase()}. Tradition links it to ${s.theme.toLowerCase().split(',').slice(0,2).join(' and')} · “${s.aff}”.</div>`}
 
+function centsWord(c){const a=Math.abs(c);if(a<=5)return 'Centered';const lv=a<=15?'A little':a<=30?'Noticeably':'Quite';return lv+(c>0?' high':' low')}
 /* ---------- JAH RASTA TUNER · ZION 3000 (one pitch source for every visual) ---------- */
 const JT={hist:[],c:0,has:0,lastT:0,lastSeen:-1e9,name:null,pc:null,f:null,midi:null,
   lock:false,lockSince:0,offSince:0,lockAt:-1e9,bars:new Float32Array(80),parts:[],prevRms:0,strobe:0,scan:-1e9,lastName:null,last:0};
@@ -1152,6 +1174,7 @@ function jtState(now){
     else{if(a>5){if(!JT.offSince)JT.offSince=now;if(now-JT.offSince>=100){JT.lock=false;JT.lockSince=0}}else JT.offSince=0}
   }else{JT.lockSince=0}
 }
+function jtSet(el,prop,v){if(el['_'+prop]!==v){el['_'+prop]=v;el[prop]=v}}
 function jtText(){
   const note=$('bigNote'),tag=$('dialTag'),ce=$('cents'),hz=$('hz');
   const s=JT.pc!==null?stationOfPc(JT.pc):-1;
@@ -1160,8 +1183,8 @@ function jtText(){
   const c=Math.round(JT.c),tgt=noteHz(JT.midi);
   hz.textContent=(tgt*Math.pow(2,JT.c/1200)).toFixed(1)+' Hz';
   if(JT.lock){tag.className='dial-tag ok';tag.textContent=JT.better===JT.name&&JT.habits&&JT.habits[JT.name]?'BETTER THAN YOUR USUAL '+JT.name:'ALIGNED ✦'}
-  else{tag.className='dial-tag '+(Math.abs(c)<=15?'near':'off');tag.textContent=c>0?'SHARP ▲':c<0?'FLAT ▼':'ALIGNING'}
-  ce.textContent=`${c>0?'+':''}${c}¢ · target ${tgt.toFixed(2)} Hz · A=${A4}`;
+  else{tag.className='dial-tag '+(Math.abs(c)<=5?'ok':Math.abs(c)<=15?'near':'off');tag.textContent=Math.abs(c)<=5?'CENTERED':centsWord(c).toUpperCase()+(c>0?' ▲':' ▼')}
+  jtSet(ce,'innerHTML',`<b style="font-size:16px;color:${jtCol(c)}">${centsWord(c)}</b> · ${c>0?'+':''}${c}¢<br><small>target ${tgt.toFixed(2)} Hz · A=${A4}</small>`);
 }
 function drawDial(now){
   const cv=$('dial');if(!cv||!cv.offsetParent){requestAnimationFrame(drawDial);return}
@@ -1239,7 +1262,7 @@ function drawDial(now){
     const rr2=sc%10===0?r2+R*.025:r2;
     const wv=vAmp*Math.sin(a*8+vPh);g.beginPath();g.moveTo(cx+Math.cos(a)*(r1+wv),cy+Math.sin(a)*(r1+wv));g.lineTo(cx+Math.cos(a)*(rr2+wv),cy+Math.sin(a)*(rr2+wv));g.stroke();g.shadowBlur=0}
   g.globalAlpha=1;
-  // centre marker + flat/sharp marks
+  // center marker + flat/sharp marks
   g.fillStyle=JTC.green;const am=ang(0);g.beginPath();g.arc(cx+Math.cos(am)*R*.76,cy+Math.sin(am)*R*.76,3*d,0,Math.PI*2);g.fill();
   g.font=`800 ${Math.max(12*d,R*.07)}px system-ui`;g.textAlign='center';g.textBaseline='middle';
   g.fillStyle=JTC.red+'cc';g.fillText('♭',cx+Math.cos(ang(-50))*R*.98,cy+Math.sin(ang(-50))*R*.98+R*.1);g.fillText('♯',cx+Math.cos(ang(50))*R*.98,cy+Math.sin(ang(50))*R*.98+R*.1);
@@ -1639,13 +1662,12 @@ const ESSI={speaking:false,quietUntil:0,voice:null,rate:.88,pitch:.95,vol:.8};
 function essiBusy(){return ESSI.speaking||performance.now()<ESSI.quietUntil}
 function essiPickVoice(){
   const vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[];if(!vs.length)return null;
-  const saved=store('rl_essi_voice');if(saved){const v=vs.find(x=>x.name===saved);if(v)return v}
-  const en=vs.filter(v=>/^en/i.test(v.lang));
+    const en=vs.filter(v=>/^en/i.test(v.lang));
   const pref=[/female/i,/samantha/i,/zira/i,/aria/i,/jenny/i,/libby/i,/google us english/i,/en-us.*x-.*f/i,/serena/i,/karen/i,/moira/i,/tessa/i];
   for(const p of pref){const v=en.find(x=>p.test(x.name)||p.test(x.voiceURI||''));if(v)return v}
   return en.find(v=>v.localService)||en[0]||vs[0];
 }
-if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{ESSI.voice=essiPickVoice();essiVoiceList()}}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{ESSI.voice=essiPickVoice()}}
 function essiClean(t){const d=document.createElement('div');d.innerHTML=t;d.querySelectorAll('button').forEach(b=>b.remove());return d.textContent.replace(/[●→▲▼✦☥▶]/g,'').replace(/(\d+)¢/g,'$1 cents').replace(/±/g,'plus or minus ').replace(/−/g,'minus ').replace(/\bHz\b/g,'hertz').replace(/\s+/g,' ').trim()}
 function essiSpeak(text,btn){
   if(!window.speechSynthesis){alert('This phone browser has no built-in voice.');return}
@@ -1676,70 +1698,60 @@ function essiOrbs(now){
 }
 requestAnimationFrame(essiOrbs);
 /* ================= "How to read it" guides ================= */
+const G3=(w,r,u)=>({w,r,u});
 const GUIDE={
- tuner:{t:'Zion 3000 Tuner',b:[
-  'The big letter in the middle is the note you are playing; its colour is that note’s station. The word under it tells you: ALIGNED, FLAT or SHARP.',
-  'The glowing flower is your real sound. It grows when you play louder, gets sharper when your tone is brighter, and shows extra layers when your tone is rich.',
-  'The arc of LED segments is your tuning. The light slides left when you are flat and right when you are sharp; green in the middle means in tune.',
-  'The outer dashes spin one way when you are flat and the other way when you are sharp, and stop when you are aligned. A gold marker shows a note you usually play off, from your past studies.',
-  'Tip: hold one note for 3 to 4 seconds. Short notes give the tuner too little to read.']},
- coach:{t:'Live Coach',b:[
-  'I listen to every note you hold. While you play, I show one short tip; when the note ends, I give its full reading.',
-  'Average shows if the note sat flat or sharp. Steadiness shows how much it wobbled. I also notice slides, drift, vibrato and loudness changes.',
-  'Tip: hold each note at least one second for a detailed reading.']},
- journal:{t:'Coach Journal',b:[
-  'Every finding is kept here so nothing gets lost. When the same thing happens again on the same note, I group it and count it, so habits become clear.',
-  'Green rows are going well, gold rows are close, red rows need attention. Save PNG makes a picture report you can keep or share.',
-  'Tip: play the same note several times so I can tell a habit from a one-off.']},
- study:{t:'Study My Play',b:[
-  'Pick a time and play freely. When it ends I study the whole take, not one note at a time.',
-  'Pitch journey: your pitch over time; above the middle is sharp, below is flat. Melodic fingerprint: which notes you used most and the likely key. Note accuracy map: bars to the left are flat habits, to the right sharp habits. Expression landscape: loudness and phrases. Consistency: how your accuracy held from opening to closing. My growth: your progress across days.',
-  'Tip: choose 1 to 3 minutes and play the way you normally do for the most honest picture.']},
- healing:{t:'Healing Map',b:[
-  'This shows which stations your notes highlight and for how long. I call it musical station coverage: it measures your sound, not your body.',
-  'For the station you explore most, I share three separate layers: what the chakra tradition says, what research actually supports, and what I measured.',
-  'Tip: visit stations you have not reached, or stay on one station on purpose, and close with a long, soft Root tone.']},
- trail:{t:'Pitch trail',b:[
-  'Your pitch over the last few seconds. A flat line is a steady note, waves are vibrato, and steps are note changes.',
-  'Coloured lines are the seven station notes, so you can see when you land on one.',
-  'Tip: move slowly between notes to see your slides and bends.']},
- bands:{t:'Vibrato and brainwave bands',b:[
-  'Vibrato is how many times per second your note wobbles. I place that number next to the brainwave band ranges for comparison.',
-  'It is a number comparison only: the phone measures your sound, not your brain.',
-  'Tip: try a slow, even vibrato and watch which range it falls in.']},
- sound:{t:'Sound shapes & sand plate',b:[
-  'These moving patterns are inspired by cymatics: the shapes sound makes in sand on a vibrating plate.',
-  'Your pitch and tone change the simulated pattern. It is a digital picture of your sound, not a real sand experiment.',
-  'Tip: hold one note and change your tone to see the pattern respond.']},
- session:{t:'Session mode',b:[
-  'A guided journey through the seven stations for you or a client, with the sound, the body point, the mudra and the affirmation for each.',
-  'Use the arrows to move station by station, or let the journey run on its own timer.',
-  'Tip: ask your client how they feel before and after; their own words are the best measure of the session.']},
- body:{t:'Body Map',b:[
-  'Tap an area to see its station, body point, theme, balanced and imbalanced signs, breath cue, stones and herbs.',
-  'These links come from the chakra tradition, a spiritual map. They are not a medical test, and the herbs are not medical advice.',
-  'Tip: use Show client to walk someone through where you will focus their session.']}
+ cents:{t:'Cents (¢)',w:'Cents measure how close your sound is to the exact center of a note. There are 100 cents between two neighboring piano keys, so 1 or 2 cents is a tiny difference.',r:'Think of tuning a radio: 0¢ is right on the station. A plus number means your sound is a little higher than the note, a minus number a little lower. Centered = 0 to 5¢, a little high/low = 5 to 15¢, noticeably = 15 to 30¢, quite = 30 to 50¢.',u:'You do not have to be perfect: expressive music moves around. Use cents to notice a note you always play high or low.'},
+ tuner:{t:'Zion Tuner',w:'Shows the note you are making and how your sound is vibrating right now.',r:'The big letter is the note (its color is its body station). Under it: Centered, a little high or a little low. The glowing flower is your real sound; the light on the arc slides left when low and right when high, green in the middle.',u:'Hold one comfortable note for 3 to 4 seconds and watch the whole instrument respond.'},
+ trail:{t:'Pitch trail',w:'Draws the path your notes travel over the last few seconds.',r:'Rising lines mean higher sounds, falling lines lower sounds, flat lines steady notes, waves vibrato. Colored lines are the 7 station notes.',u:'Play slowly between notes to see how your sound moves from one to the next.'},
+ ladder:{t:'Harmonic ladder',w:'Shows the extra tones hiding inside your note that give it its unique character.',r:'Each bar is one of those tones; taller bars are stronger. Many tall bars = a rich, full sound; one tall bar = a pure, simple sound.',u:'Play the same note on flute, voice and bowl and compare their ladders.'},
+ bands:{t:'Rhythm and brainwave bands',w:'Compares how fast your note wobbles (vibrato) with the speed ranges named for brainwaves.',r:'The lit band is where your wobble speed falls. It is a number comparison only: the phone measures your sound, not your brain.',u:'Try a slow, even vibrato and watch which range it lands in.'},
+ stations:{t:'Seven stations · body match',w:'The meditating figure shows the 7 stations and where each sits in the body.',r:'The station your note matches lights up. Right side: the stations; left side: the glands and nerve centers in that area.',u:'Tap any point to read its body area, theme, affirmation and breath cue.'},
+ teacher:{t:'Teacher · listen, then match',w:'A call-and-response lesson: the app plays a note, then you match it.',r:'The tuner shows how close your answer is; centered means you matched it.',u:'Listen fully first, hum it quietly, then play or sing it back.'},
+ sound:{t:'Sand plate',w:'A digital picture inspired by cymatics, the patterns sand makes on a vibrating plate.',r:'Different notes and tones change the pattern. It is a simulation of your sound, not a real sand experiment.',u:'Hold different notes and compare their shapes for fun and focus.'},
+ wave:{t:'Waveform',w:'The movement of the sound your microphone hears.',r:'Bigger waves mean stronger sound, smaller waves quieter sound; smooth waves are pure tones, jagged waves are rich tones.',u:'Play softly, then strongly, from the same distance to the phone.'},
+ spectrum:{t:'Spectrum',w:'Splits your sound into all the tones inside it.',r:'Low tones on the left, high tones on the right; taller peaks are stronger tones.',u:'Compare flute, voice and bowl to see what makes each one sound different.'},
+ healing:{t:'Healing Map',w:'Shows where your music has traveled through the 7 body stations, and what that means.',r:'Longer bars = more time spent on that station’s notes. The card explains the station most explored in 3 layers: tradition, research, and what was measured.',u:'Visit stations you have not reached, or stay on one on purpose; close with a long, soft Root tone.'},
+ coach:{t:'ESSI live coach',w:'ESSI listens to each note you hold and tells you what it connects to in the body and what she measured.',r:'She speaks in this order: body station, what she measured, a breath cue, then tuning (last).',u:'Hold each note at least one second; tap ▶ to hear her read it.'},
+ journal:{t:'Coach Journal',w:'Keeps every finding so nothing is lost.',r:'Repeats are grouped and counted, so habits show up. Green is going well, gold is close, red needs attention.',u:'Play the same note several times; tap Save PNG to keep a picture report.'},
+ study:{t:'Study My Play',w:'Records your whole playing for a set time, then studies all of it at once.',r:'It starts with your sound journey through the body, then your musical details.',u:'Pick 1 to 3 minutes and play the way you normally do.'},
+ pj:{t:'Pitch journey',w:'Your pitch over the whole session.',r:'Above the middle line = higher than the note, below = lower; the green band is centered.',u:'Look for the same note going off again and again, not one wobble.'},
+ mf:{t:'Melodic fingerprint',w:'Which notes you played the most.',r:'Taller bars = more time on that note; colors are the body stations.',u:'Play full phrases so the app can find your key.'},
+ nam:{t:'Note accuracy map',w:'Which notes you tend to play high or low.',r:'Bars to the left = low, to the right = high, small bars in the green = centered.',u:'Practice a repeated note gently if you want it more centered.'},
+ el:{t:'Expression landscape',w:'How your loudness changes and where your phrases and rests are.',r:'The line goes up when louder; shaded areas are phrases, gaps are rests.',u:'Explore the contrast between soft sounds, long tones and silence.'},
+ con:{t:'Consistency',w:'Compares the beginning, middle and end of your session.',r:'Each bar is the share of time your notes were centered in that part.',u:'Repeat similar sounds through the session so the comparison is fair.'},
+ flow:{t:'Flow',w:'The movement of your melody.',r:'Steps are small moves between neighboring notes, leaps are big jumps, repeats are the same note again.',u:'Free playing is welcome; timing is only judged against a beat if one is found.'},
+ growth:{t:'My growth',w:'Your progress across days.',r:'Each dot is one saved study; the line rising means more of your notes are centered.',u:'Study at least a few times a week on the same instrument.'},
+ body:{t:'Body Map',w:'An interactive body with the 7 stations and what each connects to.',r:'Tap an area to see its station, body point, theme, balanced and imbalanced signs, breath cue, stones and herbs.',u:'Use Show client to walk someone through where you will focus their session.'},
+ chart:{t:'Chakra chart',w:'Everything for the 7 stations in one place: notes, colors, elements, body areas.',r:'Each color and note is one station in this spiritual framework (a tradition, not a medical test).',u:'Pick a station to explore its affirmation, breath cue and teaching.'},
+ session:{t:'Session mode',w:'A guided journey through the 7 stations for you or a client.',r:'Each step shows the sound, the body point, the mudra and the affirmation.',u:'Ask your client how they feel before and after; their words are the best measure.'}
 };
 function guideOpen(k){const g=GUIDE[k];if(!g)return;let s=$('guideSheet');
   if(!s){s=document.createElement('div');s.id='guideSheet';s.className='guide-sheet';document.body.appendChild(s);s.addEventListener('click',e=>{if(e.target===s)guideClose()})}
-  s.innerHTML=`<div class="guide-card"><div class="guide-top"><b>HOW TO READ · ${g.t.toUpperCase()}</b><button class="s" onclick="guideClose()">✕</button></div>${essiBubble(g.b.map(x=>'<p>'+x+'</p>').join(''),{tag:'guide'})}
-  <div class="guide-voice"><label>Voice <select id="essiVoiceSel"></select></label><label>Speed <input type="range" id="essiRate" min=".7" max="1.1" step=".02" value="${ESSI.rate}"></label></div></div>`;
-  s.classList.add('on');essiVoiceList();$('essiRate').oninput=e=>{ESSI.rate=+e.target.value;store('rl_essi_rate',ESSI.rate)}}
+  const body=`<div class="g3"><span class="hm-k">WHAT IT IS</span>${g.w}</div><div class="g3"><span class="hm-k">HOW TO READ IT</span>${g.r}</div><div class="g3"><span class="hm-k">HOW TO USE IT</span>${g.u}</div>`;
+  s.innerHTML=`<div class="guide-card"><div class="guide-top"><b>ESSI · YOUR SOUND GUIDE · ${g.t.toUpperCase()}</b><button class="s" onclick="guideClose()">✕</button></div>${essiBubble(body,{tag:'how to read it'})}</div>`;
+  s.classList.add('on')}
 function guideClose(){const s=$('guideSheet');if(s)s.classList.remove('on');if(ESSI.speaking)speechSynthesis.cancel()}
 function essiVoiceList(){const sel=$('essiVoiceSel');if(!sel||!window.speechSynthesis)return;const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
   ESSI.voice=ESSI.voice||essiPickVoice();sel.innerHTML=vs.map(v=>`<option ${ESSI.voice&&v.name===ESSI.voice.name?'selected':''}>${v.name}</option>`).join('')||'<option>Phone default</option>';
   sel.onchange=()=>{ESSI.voice=vs.find(v=>v.name===sel.value)||null;store('rl_essi_voice',sel.value);essiSpeak('Hello. I am ESSI. I will read your sound to you.')}}
 {const r=+store('rl_essi_rate');if(r)ESSI.rate=r}
-function guideBtn(k){return `<button class="guide-i" onclick="guideOpen('${k}')" aria-label="How to read it">i</button>`}
+function guideBtn(k){return `<button class="guide-i" onclick="guideOpen('${k}')" aria-label="How to read it">?</button>`}
 /* place the guide buttons */
 (function(){const put=(el,k)=>{if(!el)return;el.style.position=el.style.position||'relative';el.insertAdjacentHTML('beforeend',guideBtn(k))};
   put($('dialwrap'),'tuner');put($('coach')&&$('coach').querySelector('.coach-h'),'coach');put($('cjPanel')&&$('cjPanel').querySelector('.coach-h'),'journal');
   put($('study')&&$('study').querySelector('.coach-h'),'study');put($('hmPanel')&&$('hmPanel').querySelector('.coach-h'),'healing');
-  document.querySelectorAll('h2').forEach(h=>{const t=h.textContent;const k=/Pitch trail/.test(t)?'trail':/brainwave/.test(t)?'bands':/sand plate/.test(t)?'sound':/Body map/.test(t)?'body':null;if(k){h.style.display='flex';h.style.alignItems='center';h.style.gap='8px';h.insertAdjacentHTML('beforeend',guideBtn(k))}});
+  document.querySelectorAll('h2').forEach(h=>{const t=h.textContent;const k=/Pitch trail/.test(t)?'trail':/brainwave/.test(t)?'bands':/sand plate/.test(t)?'sound':/Body map/.test(t)?'body':/Harmonic ladder/.test(t)?'ladder':/Seven stations/.test(t)?'stations':/^Teacher/.test(t)?'teacher':/^Waveform/.test(t)?'wave':/^Spectrum/.test(t)?'spectrum':/Chakra chart/.test(t)?'chart':null;if(k){h.style.display='flex';h.style.alignItems='center';h.style.gap='8px';h.insertAdjacentHTML('beforeend',guideBtn(k))}});
   const so=$('sessOpen');if(so)so.insertAdjacentHTML('afterend',guideBtn('session'));})();
 essiState();
 
 $('hmReset').onclick=hmReset;hmRender();
+(function(){try{
+  const coach=$('coach'),bub=coach.querySelector('.essi-bubble'),hm=$('hmPanel');if(bub&&hm){bub.after(hm);hm.style.marginTop='10px'}
+  const figPanel=$('fig')&&$('fig').closest('.panel'),dialPanel=$('dialwrap').closest('.panel');
+  if(figPanel&&dialPanel){dialPanel.after(figPanel);figPanel.style.marginTop='12px'}
+  const lvl=$('coachStats');if(lvl){const d=document.createElement('details');d.className='tech';d.innerHTML='<summary>Musical details (tuning numbers)</summary>';lvl.before(d);d.appendChild(lvl)}
+}catch(e){console.warn(e)}})();
+
 Object.assign(window,{essiSpeak,guideOpen,guideClose});
 })();
 </script>
