@@ -1160,7 +1160,6 @@ function welcome(){if(!uiOn)return;try{const c=actx(),t=c.currentTime;const out=
 let welcomed=false;function doWelcome(){if(welcomed)return;welcomed=true;welcome()}
 /* Jah's voice welcome: bells + reverb, plays on Tap to enter */
 let INTRO_VOX=null;try{INTRO_VOX=new Audio('intro-voice.m4a');INTRO_VOX.preload='auto';INTRO_VOX.volume=1}catch(e){INTRO_VOX=null}
-function medDuck(sec){if(typeof med==='undefined'||!med)return;try{const c=actx(),t=c.currentTime,g=med.master.gain;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(.012,t+.25);g.setValueAtTime(.012,t+sec-1.5);g.linearRampToValueAtTime(.075,t+sec+1.5)}catch(e){}}
 document.addEventListener('pointerdown',e=>{if(e.target.closest('#splash'))return;const b=e.target.closest('button,select,.pp,.pt,[data-z]');if(!welcomed){doWelcome();return}if(b)softTap()},true);
 function uiUI(){$('uiBtn').classList.toggle('on',!!uiOn);$('uiBtn').textContent='🔔 Tap sounds: '+(uiOn?'on':'off')}
 $('uiBtn').addEventListener('click',()=>{uiOn=uiOn?0:1;store('rl_ui',uiOn);uiUI()});uiUI();
@@ -1215,10 +1214,14 @@ if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)doc
 (function(){const sp=$('splash');let done=false;const close=()=>{if(done)return;done=true;sp.classList.add('is-exiting');setTimeout(()=>sp.remove(),400)};
   let seen=false;try{seen=sessionStorage.getItem('et_splash')==='1';sessionStorage.setItem('et_splash','1')}catch(e){}
   if(seen){sp.remove();return}
-  const enter=(withSound)=>{welcomed=true;let played=false;
-    if(uiOn&&INTRO_VOX){try{INTRO_VOX.currentTime=0;const pr=INTRO_VOX.play();played=true;medDuck(5.8);if(pr&&pr.catch)pr.catch(()=>welcome())}catch(e){played=false}}
-    if(uiOn&&!played)welcome();
-    if(withSound&&!med){setTimeout(()=>{medStart();store('rl_med',1)},played?4800:700)}close()};
+  /* try the voice welcome as soon as the app opens; if the phone blocks sound until a tap, it plays on Tap to enter */
+  let introDone=false;
+  const playIntro=()=>{if(introDone||!uiOn||!INTRO_VOX)return Promise.reject();INTRO_VOX.currentTime=0;return INTRO_VOX.play().then(()=>{introDone=true})};
+  try{playIntro().then(()=>{try{if(toneCtx&&toneCtx.state==='suspended')toneCtx.resume()}catch(e){}}).catch(()=>{})}catch(e){}
+  const enter=(withSound)=>{welcomed=true;
+    if(withSound&&!med){medStart();store('rl_med',1)}
+    if(uiOn&&!introDone){try{playIntro().catch(()=>welcome())}catch(e){welcome()}}
+    close()};
   $('enterBtn').addEventListener('click',e=>{e.stopPropagation();enter(true)});
   sp.addEventListener('click',()=>enter(true));})();
 $('introOpen').onclick=()=>{sStopGuide();$('intro').classList.add('on')};$('introGo').onclick=()=>$('intro').classList.remove('on');
