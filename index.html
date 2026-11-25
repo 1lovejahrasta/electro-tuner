@@ -176,7 +176,7 @@ body.d-viber .saiyan{display:none!important}
 <div class="et-bg"><img class="et-plate" src="intro-bg.jpg" alt="" onerror="this.src='intro.jpg'"><div class="et-glow"></div><img class="et-fig" src="intro-fig.webp" alt="Jah Rasta floating in the galaxy" onerror="this.remove()"></div>
 <div class="et-power"></div>
 <div class="et-splash-title" style="margin-top:auto">ELECTRO TUNER</div>
-<div class="et-splash-credit et-credit-row">Created by Jah Rasta<img class="cap-logo" src="cap-fish.png" alt="Conscious Artist Productions"></div>
+<div class="et-splash-credit et-credit-row">Created by Jah Rasta<img class="cap-logo" src="ankh.svg" alt="Ankh"></div>
 <button class="et-enter" id="enterBtn">✦ Tap to enter ✦</button>
 </div>
 <canvas id="bgWaves" style="position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;background:transparent;border-radius:0"></canvas>
@@ -184,7 +184,7 @@ body.d-viber .saiyan{display:none!important}
 <header>
 <div class="eyebrow">FIELD INSTRUMENT 01 · v1.5 · ZION 3000</div>
 <div class="titlerow"><div class="et-badge" aria-hidden="true"><span class="et-pulse"></span><span class="et-pulse p2"></span><img src="badge.jpg" alt="" onerror="this.onerror=null;this.src='avatar.png'"></div><h1>Electro Tuner</h1></div>
-<div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin:-4px 0 10px;text-transform:uppercase;display:flex;align-items:center;gap:10px">Created by Jah Rasta<img class="cap-logo" src="cap-fish.png" alt="Conscious Artist Productions"></div>
+<div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin:-4px 0 10px;text-transform:uppercase;display:flex;align-items:center;gap:10px">Created by Jah Rasta<img class="cap-logo" src="ankh.svg" alt="Ankh"></div>
 <div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
 <button class="sessbtn" id="sessOpen">🧘 Session mode</button><button class="medbtn" id="medBtn">🎵 Meditation sound: off</button><button class="medbtn" id="uiBtn">🔔 Tap sounds: on</button></div>
 </header>
@@ -958,7 +958,8 @@ function medStop(){if(!med)return;const c=toneCtx,m=med;med=null;try{m.master.ga
 function medToggle(){if(med){medStop();store('rl_med',0)}else{if(running)stop();medStart();store('rl_med',1)}}
 function medUI(){const on=!!med;[$('medBtn'),$('sMedBtn')].forEach(b=>{if(!b)return;b.classList.toggle('on',on)});$('medBtn').textContent='🎵 Meditation sound: '+(on?'on':'off');$('sMedBtn').textContent=on?'🎵 Sound on':'🎵 Sound'}
 $('medBtn').onclick=medToggle;$('sMedBtn').onclick=medToggle;
-if(store('rl_med')){const once=()=>{document.removeEventListener('pointerdown',once,true);if(!med&&!running)medStart()};document.addEventListener('pointerdown',once,true)}
+/* meditation sound opens with the app; if the phone blocks sound until a tap, it starts on the first tap */
+if(!med)medStart();{const once=()=>{document.removeEventListener('pointerdown',once,true);if(toneCtx&&toneCtx.state==='suspended')toneCtx.resume();if(!med&&!running)medStart()};document.addEventListener('pointerdown',once,true)}
 
 /* ---------- floating wavelengths background ---------- */
 (function(){const cv=$('bgWaves'),g=cv.getContext('2d');const R=matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
