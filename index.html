@@ -91,7 +91,7 @@ canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-
 .et-splash > .et-bg{position:absolute;inset:0;overflow:hidden;z-index:0}
 .et-splash > .et-power{position:absolute;inset:0;z-index:0}
 .et-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 42%;animation:et-float 6.5s ease-in-out infinite;transform-origin:50% 60%}
-@media (min-aspect-ratio:3/4){.et-bg img{object-fit:contain;-webkit-mask-image:radial-gradient(ellipse 38% 60% at 50% 46%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 38% 60% at 50% 46%,#000 62%,transparent 100%)}}
+@media (min-aspect-ratio:3/4){.et-bg img{object-position:50% 30%}}
 .et-power{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 30% 14% at 50% 80%,rgba(255,214,90,.55),transparent 70%),radial-gradient(ellipse 22% 40% at 50% 46%,rgba(120,255,170,.12),transparent 70%);mix-blend-mode:screen;animation:et-power 2.6s ease-in-out infinite}
 .et-splash::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;z-index:0;pointer-events:none;background:linear-gradient(to top,rgba(3,8,5,.85),transparent)}
 .et-splash .et-splash-title,.et-splash .et-splash-credit,.et-splash .et-skip{z-index:2}
@@ -165,12 +165,11 @@ body.d-viber .saiyan{display:none!important}
 <body>
 <div class="et-splash" id="splash" role="dialog" aria-label="Electro Tuner">
 <canvas class="stars" id="splashStars"></canvas>
-<button class="et-skip" id="skip">Enter quietly ›</button>
 <div class="et-bg"><img src="ascension.jpg" alt="Jah Rasta floating in the galaxy, powering up"></div>
 <div class="et-power"></div>
 <div class="et-splash-title" style="margin-top:auto">ELECTRO TUNER</div>
 <div class="et-splash-credit">Created by Jah Rasta</div>
-<button class="et-enter" id="enterBtn">✦ Tap to enter · meditation sound on ✦</button>
+<button class="et-enter" id="enterBtn">✦ Tap to enter ✦</button>
 </div>
 <canvas id="bgWaves" style="position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;background:transparent;border-radius:0"></canvas>
 <div class="flag"></div>
@@ -967,7 +966,7 @@ if(store('rl_med')){const once=()=>{document.removeEventListener('pointerdown',o
   if(!R)requestAnimationFrame(draw);else draw(1000)})();
 
 /* ---------- splash starfield + galaxy ---------- */
-(function(){const sp=$('splash');if(!sp)return;const gi=new Image();gi.onload=()=>sp.classList.add('has-galaxy');gi.src='galaxy.jpg';
+(function(){const sp=$('splash');if(!sp)return;
   const cv=$('splashStars'),g=cv.getContext('2d');const R=matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cols=['#ffffff','#f4c430','#22a25a','#e2382b','#cfa6f4'];let S=[];
   function size(){cv.width=innerWidth*DPR();cv.height=innerHeight*DPR();S=Array.from({length:170},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:(Math.random()*1.3+.3)*DPR(),p:Math.random()*6.28,v:.2+Math.random()*.5,c:cols[Math.random()<.75?0:1+(Math.random()*4|0)]}));for(let k=0;k<46;k++)S.push({spark:1,x:cv.width*(.5+(Math.random()-.5)*.22),y:cv.height*(.78+Math.random()*.06),r:(Math.random()*1.6+.6)*DPR(),p:Math.random()*6.28,v:.5+Math.random()*1.2,c:['#f4c430','#ffe27a','#22a25a','#e2382b'][Math.random()*4|0]})}
@@ -983,7 +982,6 @@ if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)doc
   if(seen){sp.remove();return}
   const enter=(withSound)=>{welcomed=true;if(uiOn)welcome();if(withSound&&!med){setTimeout(()=>{medStart();store('rl_med',1)},700)}close()};
   $('enterBtn').addEventListener('click',e=>{e.stopPropagation();enter(true)});
-  $('skip').addEventListener('click',e=>{e.stopPropagation();enter(false)});
   sp.addEventListener('click',()=>enter(true));})();
 $('introOpen').onclick=()=>{sStopGuide();$('intro').classList.add('on')};$('introGo').onclick=()=>$('intro').classList.remove('on');
 showCard(0);selected=0;
