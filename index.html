@@ -68,6 +68,9 @@ button:disabled{opacity:.4}
 .hm-noteline{margin-top:8px;font-size:13.5px;line-height:1.4;padding-top:8px;border-top:1px solid #294535}
 details.tech>summary{cursor:pointer;color:var(--muted);font-size:12px;letter-spacing:.08em;margin:10px 0 4px}
 .g3{margin:0 0 10px;font-size:15px;line-height:1.45}
+.hm-now{padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--c) 60%,transparent);background:color-mix(in srgb,var(--c) 10%,#0D1712);margin-bottom:6px;font-size:14px;line-height:1.45}
+.hm-now-n{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.hm-now-n b{font-size:22px}.hm-now-n span{color:var(--muted)}.hm-now-n em{margin-left:auto;font-style:normal;font-weight:900}
+.hm-more summary{cursor:pointer;color:#FFC928;font-size:12.5px;font-weight:800;margin-top:8px}
 .coach{margin-top:12px;border:1px solid #1f3a28;border-radius:14px;padding:12px;background:linear-gradient(160deg,rgba(0,255,133,.05),rgba(255,201,40,.04) 60%,rgba(255,52,52,.04))}
 .coach-h{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:.04em;margin-bottom:8px}.coach-h .s{padding:5px 9px;font-size:12px}
 .coach-now{font-size:15px;line-height:1.45;min-height:44px}
@@ -263,7 +266,7 @@ body.d-viber .saiyan{display:none!important}
 <select id="tuning" style="width:auto;padding:6px"><option value="440">A = 440</option><option value="432">A = 432</option></select></label>
 </div>
 <div id="midiBox" class="status" style="display:none"><button class="s" id="midiBtn">🎛 Connect MIDI</button> <span id="midiState">Plug your MIDI keyboard or controller into the phone with a USB-C (OTG) cable, then tap Connect.</span></div>
-<div id="status" class="status">Microphone is off. Press Start and allow the microphone. Nothing is recorded or uploaded.</div>
+<div id="status" class="status">Microphone is off. Press Start and allow the microphone. Audio is not saved or uploaded; analysis stays on this device.</div>
 </div>
 
 <div class="grid2">
@@ -323,7 +326,7 @@ body.d-viber .saiyan{display:none!important}
 </div>
 
 <div class="panel viber">
-<h2>Harmonic ladder</h2>
+<h2 id="ladderTitle">Harmonic ladder</h2>
 <canvas id="ladder" aria-label="Harmonics of the current note"></canvas>
 <p class="note">1× is your note. 2×, 3×… are overtones that ring above it. More overtones = brighter, breathier tone. Fewer = purer, rounder tone.</p>
 </div>
@@ -620,7 +623,7 @@ function droneOff(){if(droneNode){try{droneNode.g.gain.linearRampToValueAtTime(0
 
 /* ---------- instruments ---------- */
 const INST={
- flute:{lo:180,label:'Native flute',sharp:'On flute, a little less air or a slightly shaded hole brings it down.',flat:'On flute, a little more air brings it up.'},
+ flute:{lo:180,label:'Native flute',sharp:'Try a small, gentle change in your airflow or fingering and listen to how the pitch responds. Keep your breathing comfortable.',flat:'Try a small, gentle change in your airflow and listen to how the pitch responds. Keep your breathing comfortable.'},
  voice:{lo:70,label:'Voice',sharp:'Relax and aim a touch lower.',flat:'Lift the note a touch; more breath support helps.'},
  guitar:{lo:70,label:'Guitar',sharp:'Loosen the string slightly (tuning peg).',flat:'Tighten the string slightly (tuning peg).'},
  bowl:{lo:55,label:'Tibetan bowl',sharp:'A bowl’s pitch is set by its size and shape. This bowl sits a little sharp of the note; pair it with the station it is closest to.',flat:'A bowl’s pitch is set by its size and shape. This bowl sits a little flat of the note; pair it with the station it is closest to.'},
@@ -691,12 +694,28 @@ function bowlPitch(fd,sr,N){
   // floor of other peaks below the strongest: clearer bowl = higher confidence
   return {f:main.f,conf:Math.min(.99,.8+Math.max(0,(main.db-(mx-30)))/150)};
 }
+
+/* Safety check against "ghost" notes: if the pitch reader picks a frequency that is barely present
+   in the actual sound (a sub-octave from breath noise, or the shared root of two notes played together),
+   switch to the strongest real tone. Flute is checked more strictly because its lowest tone is normally its loudest. */
+function checkSub(p,fd,sr,N){
+  const bw=sr/N,lvAt=f=>{const b=Math.round(f/bw);let m=-200;for(let q=b-2;q<=b+2;q++)if(fd[q]>m)m=fd[q];return m};
+  const b0=Math.max(2,Math.floor(50/bw)),b1=Math.min(fd.length-2,Math.floor(4000/bw));let mx=-200,mb=b0;for(let b=b0;b<=b1;b++)if(fd[b]>mx){mx=fd[b];mb=b}
+  if(mx<-85)return p;const a=fd[mb-1],c=fd[mb+1],den=a-2*mx+c,fp=(mb+(den?.5*(a-c)/den:0))*bw;
+  const gap=mx-lvAt(p.f),ratio=fp/p.f,k=Math.round(ratio),isMult=k>=2&&Math.abs(ratio-k)<.03*k;
+  const lim=inst==='flute'?15:35;
+  const gap2=mx-lvAt(2*p.f);
+  if(ratio>1.5&&gap>lim&&gap2>lim){cur.poly=true;return {f:fp,conf:Math.min(p.conf,.85)}}        // neither the note nor its octave is really there: ghost from two notes at once
+  if(ratio>1.5&&gap>lim){if(!isMult)cur.poly=true;if(!isMult||inst==='flute'){return {f:fp,conf:Math.min(p.conf,.85)}}}
+  return p;
+}
 function analyse(now){
   an.getFloatTimeDomainData(td);an.getFloatFrequencyData(fd);
   if(essiBusy()){cur.f=null;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null;cur.conf=0;cur.vib=null;trail.push({t:now,m:null});while(trail.length&&now-trail[0].t>6000)trail.shift();if(SM.on)smFrame(now);return}
   let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];const rms=Math.sqrt(sq/td.length);
   cur.rms=rms;cur.db=rms>0?20*Math.log10(rms):null;
   let p=null;if(rms>0.004&&performance.now()>toneUntil)p=inst==='bowl'?bowlPitch(fd,ctx.sampleRate,an.fftSize):yin(td,ctx.sampleRate);
+  cur.poly=false;if(p&&inst!=='bowl')p=checkSub(p,fd,ctx.sampleRate,an.fftSize);
   if(p&&p.f>INST[inst].lo&&p.f<2400&&p.conf>.6){cur.f=p.f;cur.conf=p.conf;cur.midi=midiOf(p.f);const r=Math.round(cur.midi);cur.cents=Math.round((cur.midi-r)*100);cur.pc=((r%12)+12)%12;cur.name=NAMES[cur.pc]+(Math.floor(r/12)-1)}
   else{cur.f=null;cur.conf=p?p.conf:0;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null}
   trail.push({t:now,m:cur.midi});while(trail.length&&now-trail[0].t>6000)trail.shift();
@@ -710,6 +729,7 @@ function caption(){
   if(depth==='chill'&&cur.f&&running||depth==='chill'&&inst==='midi'&&cur.f){const k=stationOfPc(cur.pc);return (Math.abs(cur.cents)<=15?'✅ ':'🎯 ')+`<b>${cur.name}</b> · `+(k>=0?`<span style="color:${ST[k].col}">${ST[k].name}</span> · “${ST[k].aff}”`:'between stations')}
   if(inst==='midi'&&!cur.f)return midiOn?'🎛 MIDI connected. Play a note or a chord; every station in the chord lights up.':'🎛 Tap <b>Connect MIDI</b> above, then play.';
   if(inst!=='midi'&&!running)return '🎶 Press <b>Start microphone</b>, then play or sing one steady note.';
+  if(cur.poly&&cur.f)return '🎶 <b>Several notes at once.</b> I show the strongest one ('+cur.name+'). For the clearest reading, play one note at a time.';
   if(!cur.f)return cur.rms>0.004?'👂 <b>Pitch unclear.</b> Try one clean, steady note; noise or two sounds at once confuse the meter.':'🎶 Listening… play or hum one steady note.';
   const s=stationOfPc(cur.pc),st=s>=0?ST[s]:null;let t='';
   if(inst==='midi'&&held.size>1){const ns=midiNotes();const sts=[...new Set(ns.map(n=>stationOfPc(n%12)).filter(x=>x>=0))].map(i=>ST[i].name);return `🎛 <b>Chord: ${ns.map(n=>NAMES[n%12]).join(' ')}</b> lights ${sts.join(', ')||'no single station'}. Newest note: ${cur.name}.`}
@@ -723,7 +743,7 @@ function readouts(now){
   
   
   const s=cur.pc!==null?stationOfPc(cur.pc):-1;$('solf').textContent=s>=0?'solfège '+ST[s].so:(cur.pc!==null?'between stations':'solfège —');
-  $('conf').textContent='confidence '+(cur.f?Math.round(cur.conf*100)+'%':'—');
+  $('conf').textContent=cur.f?(cur.conf>=.9?'strong pitch reading':cur.conf>=.8?'clear pitch reading':'weak pitch reading'):'pitch reading —';
   const c=cur.cents;$('needle').style.left=(c===null?50:50+Math.max(-50,Math.min(50,c)))+'%';
   
   $('sustain').textContent=sustain.toFixed(1)+'s';$('best').textContent=best.toFixed(1);
@@ -750,6 +770,7 @@ function coachTick(now){
     if(!CO.note||CO.note.name!==name){if(CO.note)coachFinish(now);CO.note={name,pc:cur.pc,midi:Math.round(cur.midi),t0:now,s:[],db:[],vib:null,gap:0}}
     const n=CO.note;n.gap=0;n.s.push({t:now-n.t0,c:(cur.midi-Math.round(cur.midi))*100});if(cur.db!==null)n.db.push(cur.db);
     if(cur.vib&&(!n.vib||cur.vib.amp>n.vib.amp))n.vib={hz:cur.vib.hz,amp:cur.vib.amp};
+    if(inst==='bowl'&&cur.partials)n.partials=cur.partials;
     const dur=(now-n.t0)/1000;if(dur<.5){if(CO.stage!=='an'){CO.stage='an';$('coachNow').innerHTML=`<span class="cj-live" style="color:#FFC928">● ANALYZING</span> <b>${n.name}</b>…`}}
       else if(now-(CO.lastNow||0)>1500){CO.lastNow=now;CO.stage='co';const st=n.s.filter(p=>p.t>150).map(p=>p.c),m=coMean(st),sd=coStd(st);let msg;
         const si2=stationOfPc(n.pc),S2=si2>=0?ST[si2]:null;
@@ -780,7 +801,7 @@ function coachFinish(now){
   const pts=[];
   pts.push(`Held <b>${dur.toFixed(1)} s</b>; <b>${inPct}%</b> of that time was within ±10¢.`);
   if(n.vib)pts.push(`Vibrato measured: <b>${n.vib.hz.toFixed(1)} Hz</b>, about <b>±${Math.round(n.vib.amp*1.41)}¢</b> wide. (Classical singers usually sit around 5–7 Hz.)`);
-  else pts.push(spread<1?`Very steady: pitch varied <b>under ±1¢</b>.`:spread<=4?`Very steady: pitch varied only <b>±${spread.toFixed(0)}¢</b>.`:spread<=10?`Fairly steady: pitch varied <b>±${spread.toFixed(0)}¢</b>.`:`Unsteady: pitch moved <b>±${spread.toFixed(0)}¢</b> with no regular vibrato. Steadier air or support will tighten it.`);
+  else pts.push(spread<1?`Very steady: pitch spread <b>under ±1¢</b> (standard deviation).`:spread<=4?`Very steady: pitch varied only <b>±${spread.toFixed(0)}¢</b>.`:spread<=10?`Fairly steady: pitch varied <b>±${spread.toFixed(0)}¢</b>.`:`Unsteady: pitch moved <b>±${spread.toFixed(0)}¢</b> with no regular vibrato. Steadier air or support will tighten it.`);
   if(fr)pts.push(`Slid in from <b>${fr.name}</b> ${fr.midi<n.midi?'below':'above'}: the note started a half step ${fr.midi<n.midi?'low':'high'} before it settled.`);
   else if(attack<-15)pts.push(`Started <b>${Math.round(-attack)}¢ low</b> and slid up (a scoop) in the first 0.1 s.`);
   else if(attack>15)pts.push(`Started <b>${Math.round(attack)}¢ high</b> and settled down in the first 0.1 s.`);
@@ -788,7 +809,8 @@ function coachFinish(now){
   if(dyn>12)pts.push(`Loudness changed by <b>${Math.round(dyn)} dB</b> during the note; pitch can follow loudness on wind instruments and voice.`);
   let tip='';if(a>10&&INST[inst]&&INST[inst][avg>0?'sharp':'flat'])tip=`<div style="margin-top:6px">→ ${INST[inst][avg>0?'sharp':'flat']}</div>`;
   const stn='';
-  $('coachLast').innerHTML=`<div class="coach-card" style="--c:${col}">${si>=0?`<div style="font-size:16px;font-weight:900;color:${ST[si].col}">${n.name} · ${ST[si].name} · ${ST[si].sk}</div><div class="note" style="margin:2px 0 6px">${ST[si].theme} · “${ST[si].aff}”</div>`:''}<b class="h">${head}</b>${stn}<ul>${pts.slice(0,4).map(p=>'<li>'+p+'</li>').join('')}</ul>${tip}${hmNoteLine(si)}<button class="essi-play mini" onclick="essiSpeak(this.parentNode.innerHTML,this)">▶ ESSI</button></div>`;
+  const P=n.partials||[];const bowlLine=inst==='bowl'?`<div class="hm-noteline" style="border-top:0;padding-top:0"><b>Resonance layers:</b> your bowl is producing several frequencies at once. The lowest strong sound is near <b>${n.name}</b>${si>=0?`, which represents ${ST[si].name} in our chakra framework`:''}.${P.length?` Higher layers: ${P.slice(0,3).map(q=>Math.round(q.f)+' Hz ('+q.ratio.toFixed(2)+'×)').join(', ')}.`:''} These layers give the bowl its rich character; listen to how they change as the sound fades.</div>`:'';
+  $('coachLast').innerHTML=`<div class="coach-card" style="--c:${col}">${si>=0?`<div style="font-size:16px;font-weight:900;color:${ST[si].col}">${n.name} · ${ST[si].name} · ${ST[si].sk}</div><div class="note" style="margin:2px 0 6px">${ST[si].theme} · “${ST[si].aff}”</div>`:''}${hmNoteLine(si)}${bowlLine}<div class="hm-k" style="margin-top:10px">MUSICAL DETAILS</div><b class="h">${head}</b>${stn}<ul>${pts.slice(0,4).map(p=>'<li>'+p+'</li>').join('')}</ul>${tip}<button class="essi-play mini" onclick="essiSpeak(this.parentNode.innerHTML,this)">▶ ESSI</button></div>`;
   if(si>=0)try{cjAdd(n.name,n.pc,'station',`Lit ${ST[si].name} · ${ST[si].sk}`,dur,' s held','#FFC928')}catch(e){}
   $('coachNow').innerHTML='<span class="cj-live">● LISTENING</span> Play the next note, or hold one longer for a deeper read.';
   coachStats();
@@ -1109,14 +1131,15 @@ function hmTick(now){
   const si=stationOfPc(cur.pc);if(si>=0)HM.t[si]+=dt;else HM.between+=dt;
   if(cur.midi<60)HM.lowT+=dt;else if(cur.midi>=72)HM.highT+=dt;
   if(HM.holdNote!==cur.name){HM.holdNote=cur.name;HM.holdStart=now;HM.counted=false}else if(!HM.counted&&now-HM.holdStart>=4000){HM.longHolds++;HM.counted=true}
-  if(now-(HM.drawn||0)>1000){HM.drawn=now;hmRender()}
+  const nk=JT.has?JT.name:'';if(now-(HM.drawn||0)>1000||(nk!==HM.lastNk&&now-(HM.drawn||0)>250)){HM.drawn=now;HM.lastNk=nk;hmRender()}
 }
+window.HMOPEN={v:false};const HMOPEN=window.HMOPEN;
 const RESEARCH={
   breath:'Slow breathing can shift heart-rate variability toward a calmer, more relaxed state.',
   music:'Listening to music can lower felt stress and some body stress responses.',
   hum:'Humming has been shown in small studies to raise nitric oxide in the nose for a short time; wider healing benefits are not proven.',
   bowl:'Early studies suggest singing bowls may help relaxation and mood; study quality varies.',
-  flute:'Flute playing trains breath awareness and a long, steady out-breath.',
+  flute:'Flute playing involves controlled breathing out and offers a chance for breath awareness.',
   note:'No study shows that a single musical note heals a specific gland, organ or chakra.'};
 function hmBody(si){const s=ST[si],b=BODY[si]||{},k=SKT[si]||{};return {s,b,k}}
 function hmLine(si){const {s,b}=hmBody(si);return `<span style="color:${s.col}">${s.name}</span> (${s.sk}) · ${s.loc.toLowerCase()} · ${s.gl.toLowerCase()}${b.organs?' · '+b.organs.split(',').slice(0,2).join(',').toLowerCase():''}`}
@@ -1136,22 +1159,24 @@ function hmHTML(T,between,longHolds,live){
   if(tot<1){return '<div class="note">As you play, I map which stations your notes highlight (musical station coverage) and what that means in the tradition, in research, and in your measured sound.</div>'}
   const mx=Math.max(...HM.t);const top=HM.t.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).filter(x=>x[0]>=1);
   const bars=ST.map((s,i)=>`<div class="hm-row"><span class="hm-n" style="color:${s.col}">${s.n}</span><span class="hm-lbl">${s.name}</span><span class="hm-bar"><i style="width:${mx?100*HM.t[i]/mx:0}%;background:${s.col}"></i></span><span class="hm-v">${Math.round(HM.t[i])}s</span></div>`).join('');
+  let now='';if(live&&JT.has&&JT.pc!==null&&stationOfPc(JT.pc)>=0){const si=stationOfPc(JT.pc),q=ST[si],kk=SKT[si]||{};
+    now=`<div class="hm-now" style="--c:${q.col}"><span class="hm-k">NOW · LIVE STATION</span><div class="hm-now-n"><b style="color:${q.col}">${q.name}</b> <span>${q.sk}${kk.dev?' · '+kk.dev:''}</span><em>${JT.name}</em></div><div>${q.theme.split(',').slice(0,2).join(' ·')} · “${q.aff}”</div><div class="note">Notice where you personally feel this sound. ${q.loc}.</div></div>`}
   const t1=top[0]?top[0][1]:-1;let focus='';
   if(t1>=0){const {s,b,k}=hmBody(t1);const pct=Math.round(100*HM.t[t1]/(tot+HM.between));
-    focus=`<div class="hm-focus" style="--c:${s.col}"><b>Most explored: ${s.name} · ${s.sk}${k.dev?' · '+k.dev:''} · ${s.n}</b>
-    <div class="hm-layer"><span class="hm-k">TRADITIONAL WISDOM</span>${s.name} sits at the ${(b.pt||s.loc).split('(')[0].trim().toLowerCase()} and is linked with ${s.theme.toLowerCase()}. Element ${s.el.toLowerCase()} · affirmation “${s.aff}”. In the tradition it is tied to the ${s.gl.toLowerCase()}${b.organs?' and '+b.organs.split(',').slice(0,2).join(',').toLowerCase():''}.<br><small>When balanced: ${(b.bal||[]).join(' · ')}. Breath cue: ${b.breath||'slow, even breathing'}. Symbolic companions: ${b.stones||s.cry}; ${b.herbs||''}.</small></div>
+    focus=`<div class="hm-focus" style="--c:${s.col}"><span class="hm-k">SESSION · MOST EXPLORED</span><b>${s.name} · ${s.sk}${k.dev?' · '+k.dev:''} · ${s.n}</b><div style="margin-top:4px">${s.theme.split(',').slice(0,2).join(' and ')} · “${s.aff}” · ${Math.round(HM.t[t1])} s (${pct}% of your playing).</div><details class="hm-more"${HMOPEN.v?' open':''} ontoggle="HMOPEN.v=this.open"><summary>Learn more: tradition · research · measured</summary>
+    <div class="hm-layer"><span class="hm-k">TRADITIONAL WISDOM</span>${s.name} sits at the ${(b.pt||s.loc).split('(')[0].trim().toLowerCase()} and is linked with ${s.theme.toLowerCase()}. Element ${s.el.toLowerCase()} · affirmation “${s.aff}”. Some modern chakra systems link it symbolically with the ${s.gl.toLowerCase()}${b.organs?' and '+b.organs.split(',').slice(0,2).join(',').toLowerCase():''}.<br><small>Traditional themes of balance: ${(b.bal||[]).join(' · ')}. Breath cue: ${b.breath||'slow, even breathing'}. Symbolic companions: ${b.stones||s.cry}; ${b.herbs||''}.</small></div>
     <div class="hm-layer"><span class="hm-k">RESEARCH INSIGHT</span>${HM.longHolds>=2?RESEARCH.breath:RESEARCH.music} ${RESEARCH.note}</div>
-    <div class="hm-layer"><span class="hm-k">YOUR MEASURED SOUND</span>${Math.round(HM.t[t1])} s on ${s.n} notes (${pct}% of your playing) · ${HM.longHolds} hold${HM.longHolds===1?'':'s'} of 4 s+${live&&cur&&cur.vib?` · vibrato ${cur.vib.hz.toFixed(1)} Hz`:''}.</div></div>`}
+    <div class="hm-layer"><span class="hm-k">YOUR MEASURED SOUND</span>${Math.round(HM.t[t1])} s on ${s.n} notes (${pct}% of your playing) · ${HM.longHolds} hold${HM.longHolds===1?'':'s'} of 4 s+${live&&cur&&cur.vib?` · vibrato ${cur.vib.hz.toFixed(1)} Hz`:''}.</div></details></div>`}
   const missing=ST.map((s,i)=>HM.t[i]<1?s:null).filter(Boolean);
   const eff=live?hmEffects():[];
-  return `${bars}${HM.between>=1?`<div class="note" style="margin-top:4px">${Math.round(HM.between)} s on notes between stations (sharps and flats).</div>`:''}${focus}
-  ${eff.length?`<div class="hm-eff"><b>What your sound is doing</b> <small class="note">measured + research</small><ul>${eff.map(x=>'<li>'+x+'</li>').join('')}</ul></div>`:''}
-  ${missing.length&&missing.length<7?`<div class="hm-next">Not reached yet: ${missing.map(s=>`<span style="color:${s.col}">${s.name} (${s.n})</span>`).join(', ')}.<br><b>Suggested next:</b> <span style="color:${missing[0].col}">${missing[0].n} · ${missing[0].name}</span>, “${missing[0].aff}”. A session focused on one station can also be on purpose.</div>`:missing.length===0?`<div class="hm-next"><b>Full journey complete.</b> Closing idea: return to <span style="color:${ST[0].col}">C · Root</span> with a long, soft tone and let the sound fade into silence.</div>`:''}
+  return `${now}${live?'<span class="hm-k" style="margin-top:10px">SESSION COVERAGE</span>':''}${bars}${HM.between>=1?`<div class="note" style="margin-top:4px">${Math.round(HM.between)} s on notes between stations (sharps and flats).</div>`:''}${focus}
+  ${eff.length?`<div class="hm-eff"><b>Sound characteristics &amp; possible connections</b> <small class="note">measured + research</small><ul>${eff.map(x=>'<li>'+x+'</li>').join('')}</ul></div>`:''}
+  ${missing.length&&missing.length<7?`<div class="hm-next">Not reached yet: ${missing.map(s=>`<span style="color:${s.col}">${s.name} (${s.n})</span>`).join(', ')}.<br><b>Optional next exploration:</b> <span style="color:${missing[0].col}">${missing[0].n} · ${missing[0].name}</span>, “${missing[0].aff}”. A session focused on one station can also be on purpose.</div>`:missing.length===0?`<div class="hm-next"><b>Full journey complete.</b> Closing idea: return to <span style="color:${ST[0].col}">C · Root</span> with a long, soft tone and let the sound fade into silence.</div>`:''}
   <div class="note" style="margin-top:8px;font-size:11.5px">Station links come from yogic chakra tradition (a spiritual map, not a medical scan). Research notes are general findings; this app does not diagnose or treat anything.</div>`;
 }
 function hmReset(){HM.t.fill(0);HM.between=0;HM.longHolds=0;HM.lowT=0;HM.highT=0;hmRender()}
 
-function hmNoteLine(si){if(si<0)return '';const {s,b}=hmBody(si);return `<div class="hm-noteline"><span style="color:${s.col}">●</span> <b>Body connection:</b> ${s.n} lights <span style="color:${s.col}">${s.name}</span> (${s.sk}), ${s.loc.toLowerCase()}. Tradition links it to ${s.theme.toLowerCase().split(',').slice(0,2).join(' and')} · “${s.aff}”.</div>`}
+function hmNoteLine(si){if(si<0)return '';const {s,b}=hmBody(si);return `<div class="hm-noteline" style="border-top:0;padding-top:0;margin-top:4px"><span style="color:${s.col}">●</span> <b>Body connection:</b> ${s.n} lights <span style="color:${s.col}">${s.name}</span> (${s.sk}), ${s.loc.toLowerCase()}. Tradition links it to ${s.theme.toLowerCase().split(',').slice(0,2).join(' and')} · “${s.aff}”.</div>`}
 
 function centsWord(c){const a=Math.abs(c);if(a<=5)return 'Centered';const lv=a<=15?'A little':a<=30?'Noticeably':'Quite';return lv+(c>0?' high':' low')}
 /* ---------- JAH RASTA TUNER · ZION 3000 (one pitch source for every visual) ---------- */
@@ -1183,7 +1208,7 @@ function jtText(){
   const c=Math.round(JT.c),tgt=noteHz(JT.midi);
   hz.textContent=(tgt*Math.pow(2,JT.c/1200)).toFixed(1)+' Hz';
   if(JT.lock){tag.className='dial-tag ok';tag.textContent=JT.better===JT.name&&JT.habits&&JT.habits[JT.name]?'BETTER THAN YOUR USUAL '+JT.name:'ALIGNED ✦'}
-  else{tag.className='dial-tag '+(Math.abs(c)<=5?'ok':Math.abs(c)<=15?'near':'off');tag.textContent=Math.abs(c)<=5?'CENTERED':centsWord(c).toUpperCase()+(c>0?' ▲':' ▼')}
+  else{tag.className='dial-tag '+(Math.abs(c)<=5?'ok':Math.abs(c)<=15?'near':'off');tag.textContent=Math.abs(c)<=5?'CENTERED':(c>0?'HIGH ▲':'LOW ▼')}
   jtSet(ce,'innerHTML',`<b style="font-size:16px;color:${jtCol(c)}">${centsWord(c)}</b> · ${c>0?'+':''}${c}¢<br><small>target ${tgt.toFixed(2)} Hz · A=${A4}</small>`);
 }
 function drawDial(now){
@@ -1547,7 +1572,7 @@ async function start(){
     ctx=new (window.AudioContext||window.webkitAudioContext)();await ctx.resume();
     src=ctx.createMediaStreamSource(stream);an=ctx.createAnalyser();an.fftSize=8192;an.smoothingTimeConstant=.5;src.connect(an);
     td=new Float32Array(an.fftSize);fd=new Float32Array(an.frequencyBinCount);running=true;
-    $('start').disabled=true;$('stop').disabled=false;$('status').textContent='Live · '+ctx.sampleRate+' Hz · nothing is recorded or uploaded.';
+    $('start').disabled=true;$('stop').disabled=false;$('status').textContent='Live · audio is not saved or uploaded; analysis stays on this device.';
   }catch(e){$('status').textContent='Could not start microphone: '+(e.message||e.name)+'. Check Chrome permissions.'}
 }
 function stop(){running=false;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;if(src)src.disconnect();src=null;if(ctx)ctx.close().catch(()=>{});ctx=null;an=null;cur={f:null,midi:null,conf:0,rms:0,db:null,cents:null,name:null,pc:null,vib:null};$('start').disabled=false;$('stop').disabled=true;$('status').textContent='Microphone off. Nothing is being recorded.'}
@@ -1745,10 +1770,12 @@ function guideBtn(k){return `<button class="guide-i" onclick="guideOpen('${k}')"
 essiState();
 
 $('hmReset').onclick=hmReset;hmRender();
+const ladT=()=>{const h=$('ladderTitle');if(h&&h.firstChild)h.firstChild.textContent=inst==='bowl'?'Resonance layers':'Harmonic ladder'};ladT();$('inst').addEventListener('change',()=>setTimeout(ladT,0));
 (function(){try{
-  const coach=$('coach'),bub=coach.querySelector('.essi-bubble'),hm=$('hmPanel');if(bub&&hm){bub.after(hm);hm.style.marginTop='10px'}
-  const figPanel=$('fig')&&$('fig').closest('.panel'),dialPanel=$('dialwrap').closest('.panel');
-  if(figPanel&&dialPanel){dialPanel.after(figPanel);figPanel.style.marginTop='12px'}
+  const coach=$('coach'),bub=coach.querySelector('.essi-bubble'),hm=$('hmPanel');
+  const figPanel=$('fig')&&$('fig').closest('.panel');
+  if(bub&&figPanel){bub.after(figPanel);figPanel.style.margin='10px 0 0'}
+  if(figPanel&&hm){figPanel.after(hm);hm.style.marginTop='10px'}
   const lvl=$('coachStats');if(lvl){const d=document.createElement('details');d.className='tech';d.innerHTML='<summary>Musical details (tuning numbers)</summary>';lvl.before(d);d.appendChild(lvl)}
 }catch(e){console.warn(e)}})();
 
