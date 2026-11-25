@@ -42,6 +42,30 @@ button:disabled{opacity:.4}
 .mini-mon{position:fixed;left:50%;top:8px;transform:translate(-50%,-140%);z-index:60;display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;border-radius:14px;background:rgba(5,9,7,.92);border:1px solid #294535;box-shadow:0 8px 28px rgba(0,0,0,.5);transition:transform .25s ease;backdrop-filter:blur(6px)}
 .mini-mon.on{transform:translate(-50%,0)}.mini-mon b{font-size:26px;font-weight:900;min-width:58px;text-align:center}.mini-mon span{font-size:13px;font-weight:800;letter-spacing:.12em}
 .mini-bar{width:120px;height:6px;border-radius:4px;background:#16221a;position:relative}.mini-bar i{position:absolute;top:-4px;width:4px;height:14px;border-radius:2px;left:50%;background:#F4F5E9;transition:left .1s}
+.essi-bubble{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:14px;background:linear-gradient(135deg,rgba(255,201,40,.06),rgba(0,255,133,.05));border:1px solid #294535}
+.essi-orb{width:36px;height:36px;flex:none;margin-top:2px}
+.essi-txt{flex:1;min-width:0}.essi-who{font-size:11px;font-weight:900;letter-spacing:.18em;color:#FFC928}.essi-who span{color:var(--muted);letter-spacing:.06em;font-weight:700}
+.essi-say{font-size:15px;line-height:1.45;margin-top:2px}.essi-say p{margin:0 0 8px}
+.essi-play{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid #FFC92888;background:#0D1712;color:#FFC928;font-size:15px;cursor:pointer}
+.essi-play.on{background:#FFC928;color:#050907;box-shadow:0 0 14px #FFC92888}
+.essi-play.mini{width:auto;height:30px;border-radius:15px;padding:0 12px;margin-top:8px;font-size:12px;font-weight:800}
+.guide-i{width:22px;height:22px;border-radius:50%;border:1px solid #FFC928aa;background:transparent;color:#FFC928;font:800 12px/20px Georgia,serif;font-style:italic;cursor:pointer;padding:0;flex:none}
+#dialwrap>.guide-i{position:absolute;right:6px;top:6px;z-index:3}
+.guide-sheet{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s}
+.guide-sheet.on{opacity:1;pointer-events:auto}
+.guide-card{width:min(640px,100%);max-height:78vh;overflow:auto;background:#0D1712;border:1px solid #294535;border-radius:18px 18px 0 0;padding:14px 14px 22px;transform:translateY(16px);transition:transform .18s}
+.guide-sheet.on .guide-card{transform:none}
+.guide-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;letter-spacing:.1em;font-size:13px;color:#FFC928}
+.guide-voice{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}.guide-voice select{max-width:180px;padding:4px}
+.hm-row{display:grid;grid-template-columns:24px 92px 1fr 40px;align-items:center;gap:8px;margin:4px 0;font-size:13px}
+.hm-n{font-weight:900;text-align:center}.hm-lbl{color:var(--muted)}.hm-bar{height:8px;border-radius:5px;background:#16221a;overflow:hidden}.hm-bar i{display:block;height:100%;border-radius:5px;transition:width .4s}
+.hm-v{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.hm-focus{margin-top:10px;padding:10px;border-radius:12px;background:#0D1712;border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.hm-layer{margin-top:8px;font-size:13.5px;line-height:1.45}.hm-layer small{color:var(--muted)}
+.hm-k{display:block;font-size:10.5px;font-weight:900;letter-spacing:.16em;color:#FFC928;margin-bottom:2px}
+.hm-eff{margin-top:10px;font-size:13.5px;line-height:1.45}.hm-eff ul{margin:4px 0 0;padding-left:18px}
+.hm-next{margin-top:10px;padding:8px 10px;border-radius:10px;border:1px dashed #294535;font-size:13.5px}
+.hm-noteline{margin-top:8px;font-size:13.5px;line-height:1.4;padding-top:8px;border-top:1px solid #294535}
 .coach{margin-top:12px;border:1px solid #1f3a28;border-radius:14px;padding:12px;background:linear-gradient(160deg,rgba(0,255,133,.05),rgba(255,201,40,.04) 60%,rgba(255,52,52,.04))}
 .coach-h{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:.04em;margin-bottom:8px}.coach-h .s{padding:5px 9px;font-size:12px}
 .coach-now{font-size:15px;line-height:1.45;min-height:44px}
@@ -253,7 +277,7 @@ body.d-viber .saiyan{display:none!important}
 <i id="needle" hidden></i>
 <div class="coach" id="coach">
 <div class="coach-h"><span>🧠 Live Coach</span><span style="flex:1"></span><button class="s" id="coachCopy">📋 Copy report</button><button class="s" id="coachReset">↺ New session</button></div>
-<div class="coach-now" id="coachNow">Start the microphone and play one note. I'll study each note you hold and tell you what the numbers show.</div>
+<div class="essi-bubble"><canvas class="essi-orb" width="72" height="72"></canvas><div class="essi-txt"><div class="essi-who">ESSI · <span>live coach</span></div><div class="essi-say coach-now" id="coachNow">Start the microphone and play one note. I'll study each note you hold and tell you what the numbers show.</div></div><button class="essi-play" aria-label="Play ESSI voice" onclick="essiSpeak(document.getElementById('coachNow').innerHTML+' '+(document.getElementById('coachLast').innerText||''),this)">▶</button></div>
 <div class="coach-last" id="coachLast"></div>
 <div class="coach-stats" id="coachStats"></div>
 <p class="note" style="margin:6px 0 0">How I judge: ±5¢ is what most tuners call in tune; around 10¢ is where many listeners start to notice. Every comment comes from the pitch and loudness the mic measured, nothing is guessed.</p>
@@ -263,6 +287,10 @@ body.d-viber .saiyan{display:none!important}
 <div class="note" id="cjHead" style="margin:-2px 0 8px"></div>
 <div id="cjList"></div>
 <div class="controls" style="margin-top:8px"><button class="s" id="cjMore">View all</button><span style="flex:1"></span><button class="s" id="cjClear">New journal</button></div>
+</div>
+<div class="coach" id="hmPanel" style="margin-top:12px">
+<div class="coach-h"><span>HEALING MAP</span><span class="cj-live" style="margin-left:8px;font-size:12px">● LIVE</span><span style="flex:1"></span><button class="s" id="hmReset">↺</button></div>
+<div id="hmBox"></div>
 </div>
 <div class="coach" id="study" style="margin-top:12px">
 <div class="coach-h"><span>🔬 Study My Play</span></div>
@@ -648,6 +676,7 @@ function fromMidi(now){
 }
 function analyse(now){
   an.getFloatTimeDomainData(td);an.getFloatFrequencyData(fd);
+  if(essiBusy()){cur.f=null;cur.midi=null;cur.cents=null;cur.pc=null;cur.name=null;cur.conf=0;cur.vib=null;trail.push({t:now,m:null});while(trail.length&&now-trail[0].t>6000)trail.shift();if(SM.on)smFrame(now);return}
   let sq=0;for(let i=0;i<td.length;i++)sq+=td[i]*td[i];const rms=Math.sqrt(sq/td.length);
   cur.rms=rms;cur.db=rms>0?20*Math.log10(rms):null;
   let p=null;if(rms>0.004&&performance.now()>toneUntil)p=yin(td,ctx.sampleRate);
@@ -739,7 +768,8 @@ function coachFinish(now){
   if(dyn>12)pts.push(`Loudness changed by <b>${Math.round(dyn)} dB</b> during the note; pitch can follow loudness on wind instruments and voice.`);
   let tip='';if(a>10&&INST[inst]&&INST[inst][avg>0?'sharp':'flat'])tip=`<div style="margin-top:6px">→ ${INST[inst][avg>0?'sharp':'flat']}</div>`;
   const stn=si>=0?` · lights <span style="color:${ST[si].col}">${ST[si].name}</span>`:'';
-  $('coachLast').innerHTML=`<div class="coach-card" style="--c:${col}"><b class="h">${head}</b>${stn}<ul>${pts.slice(0,4).map(p=>'<li>'+p+'</li>').join('')}</ul>${tip}</div>`;
+  $('coachLast').innerHTML=`<div class="coach-card" style="--c:${col}"><b class="h">${head}</b>${stn}<ul>${pts.slice(0,4).map(p=>'<li>'+p+'</li>').join('')}</ul>${tip}${hmNoteLine(si)}<button class="essi-play mini" onclick="essiSpeak(this.parentNode.innerHTML,this)">▶ ESSI</button></div>`;
+  if(si>=0)try{cjAdd(n.name,n.pc,'station',`Lit ${ST[si].name} · ${ST[si].sk}`,dur,' s held','#FFC928')}catch(e){}
   $('coachNow').innerHTML='<span class="cj-live">● LISTENING</span> Play the next note, or hold one longer for a deeper read.';
   coachStats();
 }
@@ -876,6 +906,7 @@ function smAnalyse(F,elapsed){
     title:'Hold pitch to the end of each note',obs:`Held notes typically drifted ${sgn(R.drift)} from start to finish.`,ex:inst==='flute'||inst==='voice'?'Keep the air steady as the note ends; practise 4-second holds with an even fade.':'Notice where the pitch moves as the note decays.',goal:'End-of-note drift under 10¢.'});
   if(R.decline)iss.push({k:'decline',score:100*Math.min(1,Math.max(0,(z.absErr-a.absErr))/10)*Math.sqrt(1/3)*evd(z.n),
     title:'Keep your accuracy through to the end',obs:`Within ±10¢ went from ${Math.round(a.p10)}% in the opening third to ${Math.round(z.p10)}% in the closing third.`,ex:'Short breaks between phrases; re-centre on a reference note midway.',goal:'Closing third within 5 points of the opening.'});
+  R.stTime=new Array(7).fill(0);R.between=0;for(const e of events){const si=stationOfPc(((e.n%12)+12)%12);if(si>=0)R.stTime[si]+=e.d/1000;else R.between+=e.d/1000}R.longHolds=events.filter(e=>e.d>=4000).length;
   R.priorities=iss.sort((x,y)=>y.score-x.score).slice(0,3).map(i=>({...i,score:Math.round(i.score)}));
   /* strengths (always at least one when data allows) */
   const str=[];const goodNote=R.notes.filter(n=>n.count>=3&&Math.abs(n.med)<=5).sort((a,b)=>b.count-a.count)[0];
@@ -908,6 +939,7 @@ function smRender(R){
   <h3 class="smh">Note accuracy map</h3>${smCanvas('smC3',Math.max(80,R.notes.length*22+20))}<p class="note">${habit.length?habit.join(' · '):'No note showed a repeated flat or sharp habit (each note needs at least 3 appearances to judge).'}</p>
   <h3 class="smh">Expression landscape</h3>${smCanvas('smC4',120)}<p class="note">Loudness over time. Shaded = estimated phrases (${R.phrases}, average ${R.phraseAvg.toFixed(1)} s, longest ${R.phraseMax.toFixed(1)} s). These are sound-based phrase estimates, not a breath or lung measurement. Dynamic range ${Math.round(R.dyn)} dB${R.vibRate?` · vibrato ${R.vibRate.toFixed(1)} Hz, about ${Math.round(R.vibWidth)}¢ peak to peak, used ${Math.round(R.vibUse*100)}% of held time`:''}.</p>
   <h3 class="smh">Consistency: opening · middle · closing</h3>${smCanvas('smC5',110)}<p class="note">${R.decline?'Your consistency dropped toward the end (at least two measures got worse). This shows declining consistency, not confirmed tiredness.':'No meaningful drop from start to finish.'}</p>
+  <h3 class="smh">Healing highlights</h3><div class="coach" style="margin:0">${hmHTML(R.stTime,R.between,R.longHolds,false)}</div>
   <h3 class="smh">Flow</h3><p class="note">${Math.round(R.npm)} notes per minute of playing · ${Math.round(R.step)}% steps, ${Math.round(R.leap)}% leaps, ${Math.round(R.rep)}% repeats${R.bpm?` · a steady pulse near ${R.bpm} BPM`:' · no steady pulse detected (fine for free playing; timing is not graded without a metronome)'}.</p>
   <h3 class="smh">My growth</h3>${smCanvas('smC6',110)}<p class="note" id="smGrowthTxt"></p>
   <div class="controls" style="margin-top:8px"><button class="s" id="smCopy">📋 Copy study</button><button class="s" id="smJson">⬇ Export data</button></div>
@@ -990,7 +1022,7 @@ function cjRender(){
 }
 /* ---------- PNG report (1080 wide, grows taller for long journals) ---------- */
 function cjImage(){
-  const W=1080,rowsH=Math.max(1,CJ.rows.length)*92,H=Math.max(1920,240+380+340+120+rowsH+300);
+  const W=1080,rowsH=Math.max(1,CJ.rows.length)*92,H=Math.max(1920,240+380+340+120+rowsH+300+440);
   const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   g.fillStyle='#050907';g.fillRect(0,0,W,H);
   // faint holographic geometry
@@ -1015,8 +1047,14 @@ function cjImage(){
   g.fillStyle='rgba(0,255,133,.12)';g.fillRect(60,py(10),W-120,py(-10)-py(10));g.strokeStyle='#294535';g.lineWidth=2;g.beginPath();g.moveTo(60,py(0));g.lineTo(W-60,py(0));g.stroke();
   g.fillStyle='#9fb3a6';g.font='500 22px system-ui';g.fillText('+50¢',64,y1+64);g.fillText('−50¢',64,y1+300);
   N.forEach((x,i)=>{const px=140+(N.length>1?i/(N.length-1):0.5)*(W-240),yy=py(x.avg),cc=Math.abs(x.avg)<=5?'#00FF85':Math.abs(x.avg)<=15?'#FFC928':'#FF3434';g.fillStyle=cc;g.beginPath();g.arc(px,yy,10,0,Math.PI*2);g.fill();if(N.length<=24){g.fillStyle='#F4F5E9';g.font='600 18px system-ui';g.textAlign='center';g.fillText(x.name,px,yy-16);g.textAlign='left'}});
+  // healing map
+  let yh=y1+360;g.fillStyle='#FFC928';g.font='800 34px system-ui';g.fillText('SOUND & BODY · STATION COVERAGE',64,yh+10);yh+=36;
+  const ht=HM.t.reduce((a,b)=>a+b,0)||1,hm=Math.max(...HM.t)||1;ST.forEach((s2,i)=>{const yy=yh+i*40;g.fillStyle=s2.col;g.font='900 26px system-ui';g.fillText(s2.n,64,yy+28);g.fillStyle='#F4F5E9';g.font='600 24px system-ui';g.fillText(s2.name,110,yy+28);
+    g.fillStyle='#16221a';rr(g,330,yy+12,560,18,9);g.fill();g.fillStyle=s2.col;rr(g,330,yy+12,Math.max(2,560*HM.t[i]/hm),18,9);g.fill();g.fillStyle='#9fb3a6';g.font='500 22px system-ui';g.fillText(Math.round(100*HM.t[i]/ht)+'%',910,yy+30)});
+  yh+=7*40+20;const topi=HM.t.indexOf(Math.max(...HM.t));if(HM.t[topi]>=1){const s2=ST[topi];g.fillStyle='#F4F5E9';g.font='600 26px system-ui';g.fillText(`Most explored: ${s2.name} (${s2.sk}) · “${s2.aff}”`,64,yh+10);
+    g.fillStyle='#9fb3a6';g.font='500 22px system-ui';g.fillText('Tradition: '+s2.theme.slice(0,70),64,yh+44);g.fillText('Station links are a spiritual map, not a medical test.',64,yh+76);yh+=96}
   // journal
-  let y2=y1+360;g.fillStyle='#FFC928';g.font='800 34px system-ui';g.fillText(`COACH JOURNAL · ${CJ.rows.reduce((a,r)=>a+r.count,0)} observations`,64,y2+10);y2+=36;
+  let y2=yh+20;g.fillStyle='#FFC928';g.font='800 34px system-ui';g.fillText(`COACH JOURNAL · ${CJ.rows.reduce((a,r)=>a+r.count,0)} observations`,64,y2+10);y2+=36;
   CJ.rows.forEach(r=>{g.fillStyle='#101C15';rr(g,40,y2,W-80,80,16);g.fill();const si=stationOfPc(r.pc),nc=si>=0?ST[si].col:'#F4F5E9';
     g.fillStyle=nc;g.font='900 36px system-ui';g.fillText(r.note,64,y2+52);g.fillStyle=r.col;g.font='800 32px system-ui';g.fillText(r.title,200,y2+40);
     const v=r.vals.length?cjMed(r.vals):null;g.fillStyle='#9fb3a6';g.font='500 24px system-ui';g.fillText(`${v===null?'':(r.unit==='¢'?(v>0?'+':'')+Math.round(v)+'¢ median':Math.round(v)+r.unit)+' · '}${r.count} time${r.count>1?'s':''}`,200,y2+70);y2+=92});
@@ -1040,6 +1078,59 @@ $('cjMore').onclick=()=>{CJ.showAll=!CJ.showAll;cjRender()};
 $('cjSave').onclick=()=>cjExport(false);$('cjShare').onclick=()=>cjExport(true);
 $('cjClear').onclick=()=>{CJ.rows=[];CJ.sid=Date.now();CJ.t0=null;cjSave();cjRender()};
 cjRender();
+
+
+/* ================= HEALING MAP: where the sound is highlighting the body ================= */
+const HM={t:new Array(7).fill(0),between:0,last:0,longHolds:0,holdStart:0,holdNote:null,lowT:0,highT:0};
+function hmTick(now){
+  const dt=HM.last?Math.min(.1,(now-HM.last)/1000):0;HM.last=now;
+  const live=running&&cur&&cur.f&&cur.pc!==null&&cur.conf>.75;if(!live){HM.holdNote=null;return}
+  const si=stationOfPc(cur.pc);if(si>=0)HM.t[si]+=dt;else HM.between+=dt;
+  if(cur.midi<60)HM.lowT+=dt;else if(cur.midi>=72)HM.highT+=dt;
+  if(HM.holdNote!==cur.name){HM.holdNote=cur.name;HM.holdStart=now;HM.counted=false}else if(!HM.counted&&now-HM.holdStart>=4000){HM.longHolds++;HM.counted=true}
+  if(now-(HM.drawn||0)>1000){HM.drawn=now;hmRender()}
+}
+const RESEARCH={
+  breath:'Slow breathing can shift heart-rate variability toward a calmer, more relaxed state.',
+  music:'Listening to music can lower felt stress and some body stress responses.',
+  hum:'Humming has been shown in small studies to raise nitric oxide in the nose for a short time; wider healing benefits are not proven.',
+  bowl:'Early studies suggest singing bowls may help relaxation and mood; study quality varies.',
+  flute:'Flute playing trains breath awareness and a long, steady out-breath.',
+  note:'No study shows that a single musical note heals a specific gland, organ or chakra.'};
+function hmBody(si){const s=ST[si],b=BODY[si]||{},k=SKT[si]||{};return {s,b,k}}
+function hmLine(si){const {s,b}=hmBody(si);return `<span style="color:${s.col}">${s.name}</span> (${s.sk}) · ${s.loc.toLowerCase()} · ${s.gl.toLowerCase()}${b.organs?' · '+b.organs.split(',').slice(0,2).join(',').toLowerCase():''}`}
+function hmEffects(){
+  const out=[],tot=HM.t.reduce((a,b)=>a+b,0);
+  if(HM.longHolds>=2)out.push(`Measured: ${HM.longHolds} notes held 4 s or longer. Research: long, steady tones slow the out-breath, and ${RESEARCH.breath.toLowerCase()}`);
+  if(inst==='voice')out.push('Notice where you feel the buzz: face, throat or chest. Research: '+RESEARCH.hum.toLowerCase()+(HM.lowT>HM.highT?' Your lower notes resonate more in the chest.':HM.highT>HM.lowT?' Your higher notes resonate more in the head and face.':''));
+  if(inst==='bowl')out.push('Research: '+RESEARCH.bowl.toLowerCase()+' Bowls make several tones at once, so I report the strongest one.');
+  if(inst==='flute')out.push('Research: '+RESEARCH.flute.toLowerCase());
+  if(cur&&cur.vib)out.push(`Your vibrato pulses about ${cur.vib.hz.toFixed(1)} times a second. That is your sound's rhythm, not a reading of your brainwaves.`);
+  if(tot>0&&HM.t.filter(x=>x>=1).length===7)out.push('You touched all seven stations: a full journey from Root to Crown.');
+  return out;
+}
+function hmRender(){const box=$('hmBox');if(!box)return;box.innerHTML=hmHTML(HM.t,HM.between,HM.longHolds,true)}
+function hmHTML(T,between,longHolds,live){
+  const HM={t:T,between,longHolds,lowT:0,highT:0};const tot=T.reduce((a,b)=>a+b,0);
+  if(tot<1){return '<div class="note">As you play, I map which stations your notes highlight (musical station coverage) and what that means in the tradition, in research, and in your measured sound.</div>'}
+  const mx=Math.max(...HM.t);const top=HM.t.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).filter(x=>x[0]>=1);
+  const bars=ST.map((s,i)=>`<div class="hm-row"><span class="hm-n" style="color:${s.col}">${s.n}</span><span class="hm-lbl">${s.name}</span><span class="hm-bar"><i style="width:${mx?100*HM.t[i]/mx:0}%;background:${s.col}"></i></span><span class="hm-v">${Math.round(HM.t[i])}s</span></div>`).join('');
+  const t1=top[0]?top[0][1]:-1;let focus='';
+  if(t1>=0){const {s,b,k}=hmBody(t1);const pct=Math.round(100*HM.t[t1]/(tot+HM.between));
+    focus=`<div class="hm-focus" style="--c:${s.col}"><b>Most explored: ${s.name} · ${s.sk}${k.dev?' · '+k.dev:''} · ${s.n}</b>
+    <div class="hm-layer"><span class="hm-k">TRADITIONAL WISDOM</span>${s.name} sits at the ${(b.pt||s.loc).split('(')[0].trim().toLowerCase()} and is linked with ${s.theme.toLowerCase()}. Element ${s.el.toLowerCase()} · affirmation “${s.aff}”. In the tradition it is tied to the ${s.gl.toLowerCase()}${b.organs?' and '+b.organs.split(',').slice(0,2).join(',').toLowerCase():''}.<br><small>When balanced: ${(b.bal||[]).join(' · ')}. Breath cue: ${b.breath||'slow, even breathing'}. Symbolic companions: ${b.stones||s.cry}; ${b.herbs||''}.</small></div>
+    <div class="hm-layer"><span class="hm-k">RESEARCH INSIGHT</span>${HM.longHolds>=2?RESEARCH.breath:RESEARCH.music} ${RESEARCH.note}</div>
+    <div class="hm-layer"><span class="hm-k">YOUR MEASURED SOUND</span>${Math.round(HM.t[t1])} s on ${s.n} notes (${pct}% of your playing) · ${HM.longHolds} hold${HM.longHolds===1?'':'s'} of 4 s+${live&&cur&&cur.vib?` · vibrato ${cur.vib.hz.toFixed(1)} Hz`:''}.</div></div>`}
+  const missing=ST.map((s,i)=>HM.t[i]<1?s:null).filter(Boolean);
+  const eff=live?hmEffects():[];
+  return `${bars}${HM.between>=1?`<div class="note" style="margin-top:4px">${Math.round(HM.between)} s on notes between stations (sharps and flats).</div>`:''}${focus}
+  ${eff.length?`<div class="hm-eff"><b>What your sound is doing</b> <small class="note">measured + research</small><ul>${eff.map(x=>'<li>'+x+'</li>').join('')}</ul></div>`:''}
+  ${missing.length&&missing.length<7?`<div class="hm-next">Not reached yet: ${missing.map(s=>`<span style="color:${s.col}">${s.name} (${s.n})</span>`).join(', ')}.<br><b>Suggested next:</b> <span style="color:${missing[0].col}">${missing[0].n} · ${missing[0].name}</span>, “${missing[0].aff}”. A session focused on one station can also be on purpose.</div>`:missing.length===0?`<div class="hm-next"><b>Full journey complete.</b> Closing idea: return to <span style="color:${ST[0].col}">C · Root</span> with a long, soft tone and let the sound fade into silence.</div>`:''}
+  <div class="note" style="margin-top:8px;font-size:11.5px">Station links come from yogic chakra tradition (a spiritual map, not a medical scan). Research notes are general findings; this app does not diagnose or treat anything.</div>`;
+}
+function hmReset(){HM.t.fill(0);HM.between=0;HM.longHolds=0;HM.lowT=0;HM.highT=0;hmRender()}
+
+function hmNoteLine(si){if(si<0)return '';const {s,b}=hmBody(si);return `<div class="hm-noteline"><span style="color:${s.col}">●</span> <b>Body connection:</b> ${s.n} lights <span style="color:${s.col}">${s.name}</span> (${s.sk}), ${s.loc.toLowerCase()}. Tradition links it to ${s.theme.toLowerCase().split(',').slice(0,2).join(' and')} · “${s.aff}”.</div>`}
 
 /* ---------- JAH RASTA TUNER · ZION 3000 (one pitch source for every visual) ---------- */
 const JT={hist:[],c:0,has:0,lastT:0,lastSeen:-1e9,name:null,pc:null,f:null,midi:null,
@@ -1074,7 +1165,7 @@ function jtText(){
 }
 function drawDial(now){
   const cv=$('dial');if(!cv||!cv.offsetParent){requestAnimationFrame(drawDial);return}
-  jtState(now);jtText();coachTick(now);
+  jtState(now);jtText();coachTick(now);hmTick(now);
   const g=fit(cv),W=cv.width,H=cv.height,d=Math.min(2,DPR());const dt=Math.min(.05,(now-(JT.last||now))/1000);JT.last=now;
   const cx=W/2,cy=H*.53,R=Math.min(W*.43,H*.47);
   const A0=Math.PI*(5/6),SPAN=Math.PI*(4/3);const ang=c=>A0+(c+50)/100*SPAN;
@@ -1542,6 +1633,114 @@ if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)doc
 $('introOpen').onclick=()=>{sStopGuide();$('intro').classList.add('on')};$('introGo').onclick=()=>$('intro').classList.remove('on');
 showCard(0);selected=0;
 requestAnimationFrame(loop);
+
+/* ================= ESSI · the frequency voice inside the instrument ================= */
+const ESSI={speaking:false,quietUntil:0,voice:null,rate:.88,pitch:.95,vol:.8};
+function essiBusy(){return ESSI.speaking||performance.now()<ESSI.quietUntil}
+function essiPickVoice(){
+  const vs=(window.speechSynthesis&&speechSynthesis.getVoices())||[];if(!vs.length)return null;
+  const saved=store('rl_essi_voice');if(saved){const v=vs.find(x=>x.name===saved);if(v)return v}
+  const en=vs.filter(v=>/^en/i.test(v.lang));
+  const pref=[/female/i,/samantha/i,/zira/i,/aria/i,/jenny/i,/libby/i,/google us english/i,/en-us.*x-.*f/i,/serena/i,/karen/i,/moira/i,/tessa/i];
+  for(const p of pref){const v=en.find(x=>p.test(x.name)||p.test(x.voiceURI||''));if(v)return v}
+  return en.find(v=>v.localService)||en[0]||vs[0];
+}
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{ESSI.voice=essiPickVoice();essiVoiceList()}}
+function essiClean(t){const d=document.createElement('div');d.innerHTML=t;d.querySelectorAll('button').forEach(b=>b.remove());return d.textContent.replace(/[●→▲▼✦☥▶]/g,'').replace(/(\d+)¢/g,'$1 cents').replace(/±/g,'plus or minus ').replace(/−/g,'minus ').replace(/\bHz\b/g,'hertz').replace(/\s+/g,' ').trim()}
+function essiSpeak(text,btn){
+  if(!window.speechSynthesis){alert('This phone browser has no built-in voice.');return}
+  if(ESSI.speaking){speechSynthesis.cancel();return}
+  const parts=essiClean(text).split(/(?<=[.!?])\s+/).filter(Boolean);if(!parts.length)return;
+  ESSI.voice=ESSI.voice||essiPickVoice();let i=0;
+  const say=()=>{if(i>=parts.length){done();return}const u=new SpeechSynthesisUtterance(parts[i++]);if(ESSI.voice)u.voice=ESSI.voice;u.rate=ESSI.rate;u.pitch=ESSI.pitch;u.volume=ESSI.vol;
+    u.onboundary=()=>{ESSI.pulse=performance.now()};u.onend=()=>setTimeout(say,300);u.onerror=()=>done();speechSynthesis.speak(u)};
+  const done=()=>{ESSI.speaking=false;ESSI.quietUntil=performance.now()+450;document.querySelectorAll('.essi-play').forEach(b=>b.classList.remove('on'));essiState()};
+  speechSynthesis.cancel();ESSI.speaking=true;if(btn)btn.classList.add('on');essiState();say();
+}
+function essiBubble(html,opts={}){return `<div class="essi-bubble${opts.cls?' '+opts.cls:''}"><canvas class="essi-orb" width="72" height="72"></canvas><div class="essi-txt"><div class="essi-who">ESSI${opts.tag?` · <span>${opts.tag}</span>`:''}</div><div class="essi-say">${html}</div></div><button class="essi-play" aria-label="Play ESSI voice" onclick="essiSpeak(this.parentNode.querySelector('.essi-say').innerHTML,this)">▶</button></div>`}
+function essiState(){document.documentElement.dataset.essi=ESSI.speaking?'speaking':(running?'listening':'resting')}
+/* the orb: heartbeat when resting, listening wave from the mic, equalizer while speaking */
+function essiOrbs(now){
+  const orbs=document.querySelectorAll('.essi-orb');
+  orbs.forEach(c=>{if(!c.offsetParent)return;const g=c.getContext('2d'),W=c.width,H=c.height,cx=W/2,cy=H/2;g.clearRect(0,0,W,H);
+    const st=ESSI.speaking?'s':running?'l':'r';
+    const beat=Math.pow(Math.max(0,Math.sin(now/1400*Math.PI*2)),8);
+    const gr=g.createRadialGradient(cx,cy,2,cx,cy,W/2);gr.addColorStop(0,st==='s'?'#FFC928':st==='l'?'#00FF85':'#FFC928');gr.addColorStop(1,'rgba(0,0,0,0)');
+    g.globalAlpha=st==='r'?.35+.45*beat:.55;g.fillStyle=gr;g.beginPath();g.arc(cx,cy,W/2,0,Math.PI*2);g.fill();g.globalAlpha=1;
+    if(st==='s'){const N=24;for(let i=0;i<N;i++){const a=i/N*Math.PI*2,h=6+12*Math.abs(Math.sin(now/140+i*1.7))*(.6+.4*Math.max(0,1-(now-(ESSI.pulse||0))/400));
+      g.strokeStyle=['#FF3434','#FFC928','#00FF85'][i%3];g.lineWidth=2.4;g.beginPath();g.moveTo(cx+Math.cos(a)*14,cy+Math.sin(a)*14);g.lineTo(cx+Math.cos(a)*(14+h),cy+Math.sin(a)*(14+h));g.stroke()}}
+    else if(st==='l'&&typeof td!=='undefined'&&td){g.strokeStyle='#00FF85';g.lineWidth=2;g.beginPath();for(let p=0;p<=60;p++){const a=p/60*Math.PI*2,v=td[Math.floor(p/60*1024)]||0,r=18+Math.max(-8,Math.min(8,v*40));const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;p?g.lineTo(x,y):g.moveTo(x,y)}g.closePath();g.stroke()}
+    else{g.strokeStyle='#FFC928';g.globalAlpha=.6+.4*beat;g.lineWidth=2;g.beginPath();g.arc(cx,cy,14+4*beat,0,Math.PI*2);g.stroke();g.globalAlpha=1}
+  });
+  requestAnimationFrame(essiOrbs);
+}
+requestAnimationFrame(essiOrbs);
+/* ================= "How to read it" guides ================= */
+const GUIDE={
+ tuner:{t:'Zion 3000 Tuner',b:[
+  'The big letter in the middle is the note you are playing; its colour is that note’s station. The word under it tells you: ALIGNED, FLAT or SHARP.',
+  'The glowing flower is your real sound. It grows when you play louder, gets sharper when your tone is brighter, and shows extra layers when your tone is rich.',
+  'The arc of LED segments is your tuning. The light slides left when you are flat and right when you are sharp; green in the middle means in tune.',
+  'The outer dashes spin one way when you are flat and the other way when you are sharp, and stop when you are aligned. A gold marker shows a note you usually play off, from your past studies.',
+  'Tip: hold one note for 3 to 4 seconds. Short notes give the tuner too little to read.']},
+ coach:{t:'Live Coach',b:[
+  'I listen to every note you hold. While you play, I show one short tip; when the note ends, I give its full reading.',
+  'Average shows if the note sat flat or sharp. Steadiness shows how much it wobbled. I also notice slides, drift, vibrato and loudness changes.',
+  'Tip: hold each note at least one second for a detailed reading.']},
+ journal:{t:'Coach Journal',b:[
+  'Every finding is kept here so nothing gets lost. When the same thing happens again on the same note, I group it and count it, so habits become clear.',
+  'Green rows are going well, gold rows are close, red rows need attention. Save PNG makes a picture report you can keep or share.',
+  'Tip: play the same note several times so I can tell a habit from a one-off.']},
+ study:{t:'Study My Play',b:[
+  'Pick a time and play freely. When it ends I study the whole take, not one note at a time.',
+  'Pitch journey: your pitch over time; above the middle is sharp, below is flat. Melodic fingerprint: which notes you used most and the likely key. Note accuracy map: bars to the left are flat habits, to the right sharp habits. Expression landscape: loudness and phrases. Consistency: how your accuracy held from opening to closing. My growth: your progress across days.',
+  'Tip: choose 1 to 3 minutes and play the way you normally do for the most honest picture.']},
+ healing:{t:'Healing Map',b:[
+  'This shows which stations your notes highlight and for how long. I call it musical station coverage: it measures your sound, not your body.',
+  'For the station you explore most, I share three separate layers: what the chakra tradition says, what research actually supports, and what I measured.',
+  'Tip: visit stations you have not reached, or stay on one station on purpose, and close with a long, soft Root tone.']},
+ trail:{t:'Pitch trail',b:[
+  'Your pitch over the last few seconds. A flat line is a steady note, waves are vibrato, and steps are note changes.',
+  'Coloured lines are the seven station notes, so you can see when you land on one.',
+  'Tip: move slowly between notes to see your slides and bends.']},
+ bands:{t:'Vibrato and brainwave bands',b:[
+  'Vibrato is how many times per second your note wobbles. I place that number next to the brainwave band ranges for comparison.',
+  'It is a number comparison only: the phone measures your sound, not your brain.',
+  'Tip: try a slow, even vibrato and watch which range it falls in.']},
+ sound:{t:'Sound shapes & sand plate',b:[
+  'These moving patterns are inspired by cymatics: the shapes sound makes in sand on a vibrating plate.',
+  'Your pitch and tone change the simulated pattern. It is a digital picture of your sound, not a real sand experiment.',
+  'Tip: hold one note and change your tone to see the pattern respond.']},
+ session:{t:'Session mode',b:[
+  'A guided journey through the seven stations for you or a client, with the sound, the body point, the mudra and the affirmation for each.',
+  'Use the arrows to move station by station, or let the journey run on its own timer.',
+  'Tip: ask your client how they feel before and after; their own words are the best measure of the session.']},
+ body:{t:'Body Map',b:[
+  'Tap an area to see its station, body point, theme, balanced and imbalanced signs, breath cue, stones and herbs.',
+  'These links come from the chakra tradition, a spiritual map. They are not a medical test, and the herbs are not medical advice.',
+  'Tip: use Show client to walk someone through where you will focus their session.']}
+};
+function guideOpen(k){const g=GUIDE[k];if(!g)return;let s=$('guideSheet');
+  if(!s){s=document.createElement('div');s.id='guideSheet';s.className='guide-sheet';document.body.appendChild(s);s.addEventListener('click',e=>{if(e.target===s)guideClose()})}
+  s.innerHTML=`<div class="guide-card"><div class="guide-top"><b>HOW TO READ · ${g.t.toUpperCase()}</b><button class="s" onclick="guideClose()">✕</button></div>${essiBubble(g.b.map(x=>'<p>'+x+'</p>').join(''),{tag:'guide'})}
+  <div class="guide-voice"><label>Voice <select id="essiVoiceSel"></select></label><label>Speed <input type="range" id="essiRate" min=".7" max="1.1" step=".02" value="${ESSI.rate}"></label></div></div>`;
+  s.classList.add('on');essiVoiceList();$('essiRate').oninput=e=>{ESSI.rate=+e.target.value;store('rl_essi_rate',ESSI.rate)}}
+function guideClose(){const s=$('guideSheet');if(s)s.classList.remove('on');if(ESSI.speaking)speechSynthesis.cancel()}
+function essiVoiceList(){const sel=$('essiVoiceSel');if(!sel||!window.speechSynthesis)return;const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
+  ESSI.voice=ESSI.voice||essiPickVoice();sel.innerHTML=vs.map(v=>`<option ${ESSI.voice&&v.name===ESSI.voice.name?'selected':''}>${v.name}</option>`).join('')||'<option>Phone default</option>';
+  sel.onchange=()=>{ESSI.voice=vs.find(v=>v.name===sel.value)||null;store('rl_essi_voice',sel.value);essiSpeak('Hello. I am ESSI. I will read your sound to you.')}}
+{const r=+store('rl_essi_rate');if(r)ESSI.rate=r}
+function guideBtn(k){return `<button class="guide-i" onclick="guideOpen('${k}')" aria-label="How to read it">i</button>`}
+/* place the guide buttons */
+(function(){const put=(el,k)=>{if(!el)return;el.style.position=el.style.position||'relative';el.insertAdjacentHTML('beforeend',guideBtn(k))};
+  put($('dialwrap'),'tuner');put($('coach')&&$('coach').querySelector('.coach-h'),'coach');put($('cjPanel')&&$('cjPanel').querySelector('.coach-h'),'journal');
+  put($('study')&&$('study').querySelector('.coach-h'),'study');put($('hmPanel')&&$('hmPanel').querySelector('.coach-h'),'healing');
+  document.querySelectorAll('h2').forEach(h=>{const t=h.textContent;const k=/Pitch trail/.test(t)?'trail':/brainwave/.test(t)?'bands':/sand plate/.test(t)?'sound':/Body map/.test(t)?'body':null;if(k){h.style.display='flex';h.style.alignItems='center';h.style.gap='8px';h.insertAdjacentHTML('beforeend',guideBtn(k))}});
+  const so=$('sessOpen');if(so)so.insertAdjacentHTML('afterend',guideBtn('session'));})();
+essiState();
+
+$('hmReset').onclick=hmReset;hmRender();
+Object.assign(window,{essiSpeak,guideOpen,guideClose});
 })();
 </script>
 </body>
