@@ -78,6 +78,24 @@ details p,details li{line-height:1.55;color:var(--muted);font-size:14px}
 .band div{flex:1;text-align:center;font-size:11px;padding:6px 2px;border-radius:6px;background:#0f140d;border:1px solid var(--line);color:var(--muted)}
 .band div.on{background:#2b230b;border-color:var(--gold);color:var(--fg);font-weight:800}
 footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
+/* ===== Electro Tuner · character integration ===== */
+.et-splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#030b07;padding:20px;transition:opacity 350ms ease}
+.et-splash.is-exiting{opacity:0;pointer-events:none}
+.et-aura-stage{flex:none;position:relative;width:min(58vw,300px);height:min(62dvh,560px);display:grid;place-items:center;animation:aura-enter 700ms ease-out both}
+.et-aura-stage img{position:absolute;inset:0;display:block;height:100%;width:100%;object-fit:contain;-webkit-mask-image:radial-gradient(ellipse 66% 49% at 50% 48%,#000 64%,transparent 100%);mask-image:radial-gradient(ellipse 66% 49% at 50% 48%,#000 64%,transparent 100%)}
+.et-aura-stage::before{content:"";position:absolute;inset:14%;border-radius:50%;background:radial-gradient(circle,rgba(19,160,89,.22),rgba(245,197,46,.08) 48%,transparent 72%);filter:blur(18px);animation:aura-breathe 3s ease-in-out infinite;pointer-events:none}
+.et-splash-title{font-size:clamp(26px,6vw,42px);font-weight:900;letter-spacing:.07em;background:linear-gradient(90deg,#e2382b,#f5c52e,#22a25a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.et-splash-credit{color:#f5c52e;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+.et-skip{position:absolute;top:14px;right:14px;background:transparent;border:1px solid #2c3a27;color:#c3bfa8;border-radius:999px;padding:7px 13px;font-size:12px}
+.et-avatar{width:48px;height:48px;border-radius:50%;border:2px solid #f5c52e;object-fit:cover;box-shadow:0 0 12px rgba(25,178,99,.35);flex:none}
+.titlerow{display:flex;align-items:center;gap:12px}
+.et-intro{position:absolute;inset:0;z-index:5;background:radial-gradient(ellipse at 50% 35%,#0f2416,#030503 72%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center}
+.et-intro.on{display:flex}
+.et-intro .et-aura-stage{height:min(46dvh,460px);width:min(46vw,240px)}
+@media(min-width:700px){.et-aura-stage{width:320px;height:min(66dvh,650px)}.et-avatar{width:56px;height:56px}}
+@keyframes aura-enter{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes aura-breathe{0%,100%{opacity:.5;transform:scale(.97)}50%{opacity:.85;transform:scale(1.05)}}
+@media(prefers-reduced-motion:reduce){.et-aura-stage,.et-aura-stage::before{animation:none}.et-splash{transition:none}}
 /* ===== v1.4 · Zion 3000 theme ===== */
 body{background:#050806;background-image:radial-gradient(ellipse at 20% -10%,rgba(34,162,90,.22),transparent 55%),radial-gradient(ellipse at 90% 10%,rgba(226,56,43,.14),transparent 50%),radial-gradient(ellipse at 50% 110%,rgba(244,196,48,.12),transparent 55%);background-attachment:fixed}
 body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(244,196,48,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(244,196,48,.045) 1px,transparent 1px);background-size:34px 34px;mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 80%);z-index:0}
@@ -113,10 +131,16 @@ body.d-viber .saiyan{display:none!important}
 </style>
 </head>
 <body>
+<div class="et-splash" id="splash" role="dialog" aria-label="Electro Tuner">
+<button class="et-skip" id="skip">Skip ›</button>
+<div class="et-aura-stage"><img class="aura-anim" src="aura.gif" data-still="aura.png" alt="Jah Rasta in an electric aura"></div>
+<div class="et-splash-title">ELECTRO TUNER</div>
+<div class="et-splash-credit">Created by Jah Rasta</div>
+</div>
 <div class="flag"></div>
 <header>
 <div class="eyebrow">FIELD INSTRUMENT 01 · v1.5 · ZION 3000</div>
-<h1>Electro Tuner</h1>
+<div class="titlerow"><img class="et-avatar" src="avatar.png" alt="Jah Rasta"><h1>Electro Tuner</h1></div>
 <div style="font-size:13px;font-weight:800;letter-spacing:.14em;color:var(--gold);margin:-4px 0 10px;text-transform:uppercase">Created by Jah Rasta</div>
 <div class="toprow"><div class="seg" id="depth"><button data-d="chill">😌 Chill</button><button data-d="viber">🔥 Viber</button><button data-d="saiyan">⚡ Super Saiyan</button></div>
 <button class="sessbtn" id="sessOpen">🧘 Session mode</button></div>
@@ -273,7 +297,14 @@ The 7 stations follow the modern sound-healing pairing C = Root … B = Crown (D
 </section>
 
 <div id="session">
-<div class="stop"><button class="s" id="sessClose">✕ Exit</button><span id="sessCount">Station 1 of 7</span><span class="seg" id="sLayers"><button data-l="st">🕉</button><button data-l="both">✨</button><button data-l="body">🫀</button></span></div>
+<div class="et-intro" id="intro">
+<div class="et-aura-stage"><img class="aura-anim" src="aura.gif" data-still="aura.png" alt="Jah Rasta"></div>
+<div class="et-splash-title" style="font-size:clamp(24px,6vw,36px)">JAH RASTA</div>
+<div class="et-splash-credit">Sound healer · Creator of Electro Tuner</div>
+<p class="note" style="max-width:520px;font-size:15px;color:#e8e3cf">Welcome. Together we'll move through seven stations of the body, from the base of the spine to the crown, using sound, breath and stillness. Relax, breathe, and simply notice how you feel.</p>
+<button class="b" id="introGo">Begin session</button>
+</div>
+<div class="stop"><button class="s" id="sessClose">✕ Exit</button><button class="s" id="introOpen">👤 Intro</button><span id="sessCount">Station 1 of 7</span><span class="seg" id="sLayers"><button data-l="st">🕉</button><button data-l="both">✨</button><button data-l="body">🫀</button></span></div>
 <svg id="sfig" viewBox="-44 0 404 262" aria-label="Session figure"></svg>
 <div style="width:100%">
 <div class="sname" id="sName">Root</div>
@@ -698,6 +729,15 @@ function setDepth(d){depth=d;store('rl_depth',d);document.body.classList.remove(
 document.querySelectorAll('#depth button').forEach(b=>b.onclick=()=>setDepth(b.dataset.d));setDepth(depth);setLayer(layer);
 document.querySelectorAll('.voiceSel').forEach(el=>{el.value=voiceSel;el.addEventListener('change',e=>{voiceSel=e.target.value;store('rl_voice',voiceSel);document.querySelectorAll('.voiceSel').forEach(x=>x.value=voiceSel)})});
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+/* ---------- splash + practitioner intro ---------- */
+if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)document.querySelectorAll('img.aura-anim').forEach(i=>i.src=i.dataset.still);
+(function(){const sp=$('splash');let done=false;const close=()=>{if(done)return;done=true;sp.classList.add('is-exiting');setTimeout(()=>sp.remove(),400)};
+  let seen=false;try{seen=sessionStorage.getItem('et_splash')==='1';sessionStorage.setItem('et_splash','1')}catch(e){}
+  if(seen){sp.remove();return}
+  $('skip').onclick=close;sp.addEventListener('click',close);
+  const img=sp.querySelector('img');const go=()=>setTimeout(close,2000);if(img.complete)go();else{img.onload=go;img.onerror=()=>{img.src=img.dataset.still;go()}}
+  setTimeout(close,4500);})();
+$('introOpen').onclick=()=>{sStopGuide();$('intro').classList.add('on')};$('introGo').onclick=()=>$('intro').classList.remove('on');
 showCard(0);selected=0;
 requestAnimationFrame(loop);
 })();
