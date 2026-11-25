@@ -126,6 +126,7 @@ body.d-viber .saiyan{display:none!important}
 #session .sctl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 #session .prog{height:4px;width:100%;max-width:520px;background:#1a2216;border-radius:3px;overflow:hidden;margin:8px auto}
 #session .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold),var(--green))}
+.mudra{width:100%;height:auto;display:block}
 .layerbar{display:flex;justify-content:center;margin-bottom:6px}
 
 </style>
@@ -337,6 +338,7 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <div class="sline" id="sLine"></div>
 <div class="saff" id="sAff"></div>
 <div class="note" style="text-align:center;margin-top:6px" id="sBody"></div>
+<div id="sMudra" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:6px"></div>
 <div class="prog"><i id="sProg"></i></div>
 <div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="60">1 min each</option><option value="120" selected>2 min each</option><option value="180">3 min each</option><option value="300">5 min each</option></select><select class="voiceSel" style="width:auto;padding:6px"><option value="bowl">🥣 Bowl</option><option value="flute">🪈 Flute</option></select><button class="s" id="sNext">▶</button></div>
 <p class="note" style="text-align:center;margin-top:8px">Sound healing here is a relaxation and reflection practice, not a medical treatment.</p>
@@ -692,6 +694,57 @@ function journeyStep(){
   if(T.hold>=0.8){T.phase='done';droneOff();chime();$('jText').innerHTML=`✅ <b>Matched ${st.n} · ${st.name}!</b> “${st.aff}”`;setTimeout(()=>{if(T.on)teachNext()},1400)}
 }
 
+/* ---------- hand mudras ---------- */
+const MUDRA=[
+ {name:'Prithvi mudra',dev:'पृथ्वी मुद्रा',el:'Earth',how:'Touch the tip of the ring finger to the tip of the thumb. Keep the other fingers relaxed and straight. Rest hands on the knees, palms up.',why:'Grounding, stability, feeling supported.',spec:{touch:[2]}},
+ {name:'Varuna mudra',dev:'वरुण मुद्रा',el:'Water',how:'Touch the tip of the little finger to the tip of the thumb. Other fingers relaxed and straight.',why:'Flow, feeling, creativity.',spec:{touch:[3]}},
+ {name:'Agni (Surya) mudra',dev:'अग्नि मुद्रा',el:'Fire',how:'Fold the ring finger down to the base of the thumb, then press the thumb gently over it. Other fingers straight.',why:'Inner fire, confidence, willpower.',spec:{fold:[2]}},
+ {name:'Vayu mudra',dev:'वायु मुद्रा',el:'Air',how:'Fold the index finger down to the base of the thumb, then rest the thumb gently over it. Other fingers straight.',why:'Lightness of breath, an open, calm heart.',spec:{fold:[0]}},
+ {name:'Akasha (Shunya) mudra',dev:'आकाश मुद्रा',el:'Space / ether',how:'Touch the tip of the middle finger to the tip of the thumb. Other fingers relaxed and straight.',why:'Space to listen and to speak clearly.',spec:{touch:[1]}},
+ {name:'Hakini mudra',dev:'हाकिनी मुद्रा',el:'Light',how:'Bring both hands in front of you and touch all five fingertips of one hand to the matching fingertips of the other, like a dome. Gaze gently upward between the brows.',why:'Focus, memory, inner vision.',spec:{type:'hakini'}},
+ {name:'Sahasrara mudra',dev:'सहस्रार मुद्रा',el:'Thought / consciousness',how:'Hold both hands in front of the chest or above the head. Touch the index fingertips together and the thumb tips together to make a triangle. Spread the other fingers upward like petals.',why:'Openness, peace, connection to the Most High.',spec:{type:'sahasrara'}}
+];
+const SKIN='#7a4a2a',SKIN2='#5a3420',EDGE='#c9a94a';
+function cap(x1,y1,x2,y2,w){return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${EDGE}" stroke-width="${w+2.4}" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${SKIN}" stroke-width="${w}" stroke-linecap="round"/>`}
+function curve(d,w){return `<path d="${d}" fill="none" stroke="${EDGE}" stroke-width="${w+2.4}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${SKIN}" stroke-width="${w}" stroke-linecap="round"/>`}
+function glow(x,y,col){return `<circle cx="${x}" cy="${y}" r="9" fill="${col}" opacity=".35"/><circle cx="${x}" cy="${y}" r="4.2" fill="${col}" stroke="#fff" stroke-width="1"/>`}
+function oneHand(spec,col){
+  const B=[[44,64],[56,61],[68,63],[79,68]],L=[36,40,36,28],W=[10,10,9.5,8.5];let g='';
+  g+=`<rect x="34" y="60" width="52" height="54" rx="20" fill="${SKIN}" stroke="${EDGE}" stroke-width="1.2"/>`;
+  const touch=spec.touch||[],fold=spec.fold||[];let thumbTip=[16,70];
+  B.forEach(([bx,by],i)=>{
+    if(touch.includes(i)){const M=[30+i*7,50+i*3];g+=curve(`M${bx},${by} Q${bx+2},${by-L[i]*.75} ${M[0]},${M[1]}`,W[i]);thumbTip=M}
+    else if(fold.includes(i)){g+=curve(`M${bx},${by} Q${bx+2},${by-8} ${bx-3},${by+16}`,W[i]-1);thumbTip=[bx-3,by+18]}
+    else g+=cap(bx,by,bx+(i-1.5)*3,by-L[i],W[i]);
+  });
+  g+=curve(`M40,100 Q22,92 ${thumbTip[0]},${thumbTip[1]}`,11);
+  if(touch.length)g+=glow(thumbTip[0],thumbTip[1],col);
+  if(fold.length)g+=glow(thumbTip[0]+1,thumbTip[1]-2,col);
+  return `<svg viewBox="0 0 120 130" class="mudra">${g}</svg>`;
+}
+function twoHands(type,col){
+  let g='';
+  const palm=(x)=>`<rect x="${x}" y="64" width="40" height="50" rx="16" fill="${SKIN}" stroke="${EDGE}" stroke-width="1.2"/>`;
+  g+=palm(14)+palm(106);
+  if(type==='hakini'){
+    [[40,46],[30,56],[24,66],[22,76]].forEach(([dy,w],i)=>{});
+    const pts=[44,56,68,80];
+    pts.forEach((y,i)=>{g+=curve(`M${48},${70+i*8} Q62,${y-10} 78,${y}`,8-i*.6);g+=curve(`M${112},${70+i*8} Q98,${y-10} 82,${y}`,8-i*.6);g+=glow(80,y,col)});
+    g+=curve('M30,104 Q55,100 78,94',9)+curve('M130,104 Q105,100 82,94',9)+glow(80,94,col);
+  }else{
+    g+=curve('M46,68 Q60,44 78,34',9)+curve('M114,68 Q100,44 82,34',9)+glow(80,34,col);
+    g+=curve('M30,104 Q54,96 78,90',10)+curve('M130,104 Q106,96 82,90',10)+glow(80,90,col);
+    [[36,64,24,26],[28,68,14,34],[20,74,6,44]].forEach(([x,y,x2,y2])=>{g+=cap(x,y,x2,y2,8);g+=cap(160-x,y,160-x2,y2,8)});
+    g+=`<path d="M80,34 L80,90" stroke="${col}" stroke-opacity=".35" stroke-dasharray="2 3"/>`;
+  }
+  return `<svg viewBox="0 0 160 130" class="mudra">${g}</svg>`;
+}
+function mudraSVG(i){const m=MUDRA[i];return m.spec.type?twoHands(m.spec.type,ST[i].col):oneHand(m.spec,ST[i].col)}
+function mudraBlock(i){const m=MUDRA[i],s=ST[i];return `<span class="tag t-r">🙏 HAND MUDRA</span>
+<div style="display:flex;gap:12px;align-items:center;background:#0f140d;border:1px solid var(--line);border-radius:12px;padding:10px">
+<div style="width:110px;flex:none">${mudraSVG(i)}</div>
+<div><div style="font-weight:900;color:${s.col}">${m.name}</div><div style="font-size:14px">${m.dev} · ${m.el}</div><div class="note" style="margin-top:4px">${m.how}</div><div class="note"><b>For:</b> ${m.why}</div></div></div>`}
+
 /* ---------- body map ---------- */
 const BODY=[
  {pt:'Base of the spine and perineum (between the legs, at the pelvic floor)',organs:'Pelvic floor, sacral and coccygeal nerves, legs, feet, bones',zone:'Legs, feet, lower back, bones',stones:'Red jasper, garnet, hematite, black onyx',herbs:'Ginger, dandelion root, burdock root, ashwagandha',bal:['Safe and grounded','Present in the body','Steady, patient, secure'],imb:['Anxious or fearful','Scattered, restless, hard to settle','Insecure about home, money or belonging'],breath:'Slow belly breath, feel your feet and seat'},
@@ -735,6 +788,7 @@ function showBody(i){bodySel=i;const s=ST[i],b=BODY[i],inF=focus.includes(i);
 ${herbNotes(b.herbs)?`<div class="note" style="margin-top:4px">${herbNotes(b.herbs)}</div>`:''}
 <div class="grid2" style="gap:10px;margin-top:10px"><div style="background:#0f2416;border:1px solid #22a25a55;border-radius:12px;padding:10px"><b style="color:#8fe0b2">✅ Balanced</b><ul style="margin:6px 0 0 18px;padding:0;line-height:1.55">${b.bal.map(x=>`<li>${x}</li>`).join('')}</ul></div>
 <div style="background:#2a1512;border:1px solid #e2382b55;border-radius:12px;padding:10px"><b style="color:#f4a79e">⚠ Out of balance</b><ul style="margin:6px 0 0 18px;padding:0;line-height:1.55">${b.imb.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>
+${mudraBlock(i)}
 <span class="tag t-m">🎶 WORK THIS AREA</span><div class="kv"><div>Sound</div><div>${s.n} note · bowl or flute · chant ${s.seed.split(' ')[0]} (${s.bija})</div><div>Breath</div><div>${b.breath}</div></div>
 <div class="controls" style="margin-top:10px"><button class="b" id="bcTone">🔊 Play ${s.n}</button><button class="s" id="bcFocus">${inF?'✓ In today’s focus':'＋ Add to today’s focus'}</button></div>
 </div></div>`;
@@ -742,10 +796,10 @@ ${herbNotes(b.herbs)?`<div class="note" style="margin-top:4px">${herbNotes(b.her
   markBody($('bodyfig'),'b',[...new Set([i,...focus])]);}
 function renderFocus(){$('focusList').innerHTML=focus.length?'Today\'s focus: '+focus.map(i=>`<b style="color:${ST[i].col}">${ST[i].name}</b>`).join(' · '):'Today\'s focus: none yet. Open an area and tap “＋ Add to today\'s focus”.'}
 buildBody($('bodyfig'),'b',showBody);
-$('chart').innerHTML='<tr><th>#</th><th>Chakra</th><th>Pinpoint</th><th>Color</th><th>Note · seed</th><th>Organs & glands</th><th>Stones</th><th>Herbs</th></tr>'+ST.map((s,i)=>`<tr><td style="color:${s.col};font-weight:900">${i+1}</td><td><b style="color:${s.col}">${s.name}</b><br><span style="font-size:15px">${s.dev}</span><br><span class="note"><i>${s.iast}</i><br>“${s.mean}”</span></td><td>${BODY[i].pt}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${s.col}"></span> ${s.nm.replace('≈ ','')}</td><td>${s.n} · ${s.seed.split(' ')[0]}</td><td>${BODY[i].organs}</td><td>${BODY[i].stones}</td><td>${herbList(BODY[i].herbs)}</td></tr>`).join('');
+$('chart').innerHTML='<tr><th>#</th><th>Chakra</th><th>Pinpoint</th><th>Color</th><th>Note · seed</th><th>Organs & glands</th><th>Stones</th><th>Herbs</th><th>Mudra</th></tr>'+ST.map((s,i)=>`<tr><td style="color:${s.col};font-weight:900">${i+1}</td><td><b style="color:${s.col}">${s.name}</b><br><span style="font-size:15px">${s.dev}</span><br><span class="note"><i>${s.iast}</i><br>“${s.mean}”</span></td><td>${BODY[i].pt}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${s.col}"></span> ${s.nm.replace('≈ ','')}</td><td>${s.n} · ${s.seed.split(' ')[0]}</td><td>${BODY[i].organs}</td><td>${BODY[i].stones}</td><td>${herbList(BODY[i].herbs)}</td><td><div style="width:70px">${mudraSVG(i)}</div>${MUDRA[i].name}</td></tr>`).join('');
 let cmBuilt=false;
 $('cmOpen').onclick=()=>{const list=focus.length?focus:[bodySel];if(!cmBuilt){buildBody($('cmfig'),'c',i=>{});cmBuilt=true}markBody($('cmfig'),'c',list);
-  $('cmList').innerHTML=list.map(i=>{const s=ST[i],b=BODY[i];return `<div class="card" style="margin:10px 0"><div class="top" style="background:${s.col}">${s.name} · ${s.dev} · ${s.iast}<small>${b.zone} · ${b.pt}</small></div><div class="body"><div class="chill-line">${s.chill}</div><div class="note">Working toward: ${b.bal.join(' · ')}</div><div class="kv" style="margin-top:6px"><div>Sound</div><div>${s.n} · ${s.seed.split(' ')[0]}</div><div>Stones</div><div>${b.stones}</div><div>Affirmation</div><div style="color:${s.col};font-weight:900">“${s.aff}”</div></div></div></div>`}).join('');
+  $('cmList').innerHTML=list.map(i=>{const s=ST[i],b=BODY[i];return `<div class="card" style="margin:10px 0"><div class="top" style="background:${s.col}">${s.name} · ${s.dev} · ${s.iast}<small>${b.zone} · ${b.pt}</small></div><div class="body"><div class="chill-line">${s.chill}</div><div class="note">Working toward: ${b.bal.join(' · ')}</div><div style="display:flex;gap:10px;align-items:center;margin-top:8px"><div style="width:90px;flex:none">${mudraSVG(i)}</div><div class="note"><b style="color:${s.col}">${MUDRA[i].name}</b><br>${MUDRA[i].how}</div></div><div class="kv" style="margin-top:6px"><div>Sound</div><div>${s.n} · ${s.seed.split(' ')[0]}</div><div>Stones</div><div>${b.stones}</div><div>Affirmation</div><div style="color:${s.col};font-weight:900">“${s.aff}”</div></div></div></div>`}).join('');
   $('clientMap').style.display='flex'};
 $('cmClose').onclick=()=>$('clientMap').style.display='none';
 $('focusClear').onclick=()=>{focus=[];store('rl_focus',focus);renderFocus();showBody(bodySel)};
@@ -753,7 +807,7 @@ renderFocus();showBody(0);
 
 /* ---------- session mode ---------- */
 let SF=null,sI=0,sGuide=null;
-function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').innerHTML=`<span style="font-size:1.25em">${st.dev}</span> · <i>${st.iast}</i> · “${st.mean}”<br>${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;$('sessCount').textContent=`Station ${sI+1} of 7`+(sGuide?' · auto':' · tap ▶ for the next sound');glowPts(SF,[sI])}
+function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').innerHTML=`<span style="font-size:1.25em">${st.dev}</span> · <i>${st.iast}</i> · “${st.mean}”<br>${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;$('sMudra').innerHTML=`<div style="width:70px">${mudraSVG(sI)}</div><div class="note" style="text-align:left;max-width:300px"><b style="color:${st.col}">${MUDRA[sI].name}</b><br>${MUDRA[sI].how}</div>`;$('sessCount').textContent=`Station ${sI+1} of 7`+(sGuide?' · auto':' · tap ▶ for the next sound');glowPts(SF,[sI])}
 $('sessOpen').onclick=()=>{if(!SF){SF=buildFigure($('sfig'),'s',i=>sShow(i));}applyLayer(SF);$('session').classList.add('on');sShow(selected>=0?selected:0);try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}catch(e){}};
 function sStopGuide(){if(sGuide){clearInterval(sGuide.timer);sGuide=null}$('sGuide').textContent='▶ Guided journey';$('sProg').style.width='0'}
 $('sessClose').onclick=()=>{sStopGuide();$('session').classList.remove('on');try{document.fullscreenElement&&document.exitFullscreen()}catch(e){}};
