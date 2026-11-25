@@ -119,7 +119,7 @@ body.d-viber .saiyan{display:none!important}
 #session{position:fixed;inset:0;z-index:50;background:radial-gradient(ellipse at 50% 35%,#0f2416,#030503 70%);display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:14px 14px 18px;color:var(--fg)}
 #session.on{display:flex}
 #session .stop{display:flex;width:100%;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
-#session svg{width:min(92vw,520px);height:auto;max-height:52vh}
+#session svg#sfig{width:min(92vw,520px);height:auto;max-height:52vh}
 #session .sname{font-size:clamp(30px,9vw,54px);font-weight:900;text-align:center;line-height:1.05}
 #session .sline{font-size:clamp(16px,4.4vw,22px);text-align:center;max-width:640px;line-height:1.45;margin:8px auto}
 #session .saff{font-size:clamp(20px,6vw,30px);font-weight:900;text-align:center;letter-spacing:.05em}
@@ -330,6 +330,7 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <p class="note" style="max-width:520px;font-size:15px;color:#e8e3cf">Welcome. Together we'll move through seven stations of the body, from the base of the spine to the crown, using sound, breath and stillness. Relax, breathe, and simply notice how you feel.</p>
 <button class="b" id="introGo">Begin session</button>
 </div>
+<div id="sMudraPop" style="position:absolute;inset:0;z-index:6;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(3,8,5,.94);padding:20px;text-align:center"></div>
 <div class="stop"><button class="s" id="sessClose">✕ Exit</button><button class="s" id="introOpen">👤 Intro</button><span id="sessCount">Station 1 of 7</span><span class="seg" id="sLayers"><button data-l="st">🕉</button><button data-l="both">✨</button><button data-l="body">🫀</button></span></div>
 <svg id="sfig" viewBox="-44 0 404 262" aria-label="Session figure"></svg>
 <div style="width:100%">
@@ -338,9 +339,8 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <div class="sline" id="sLine"></div>
 <div class="saff" id="sAff"></div>
 <div class="note" style="text-align:center;margin-top:6px" id="sBody"></div>
-<div id="sMudra" style="display:flex;gap:10px;align-items:center;justify-content:center;margin-top:6px"></div>
 <div class="prog"><i id="sProg"></i></div>
-<div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="60">1 min each</option><option value="120" selected>2 min each</option><option value="180">3 min each</option><option value="300">5 min each</option></select><select class="voiceSel" style="width:auto;padding:6px"><option value="bowl">🥣 Bowl</option><option value="flute">🪈 Flute</option></select><button class="s" id="sNext">▶</button></div>
+<div class="sctl"><button class="s" id="sPrev">◀</button><button class="b" id="sTone">🔊 Play tone</button><button class="s" id="sGuide">▶ Guided journey</button><select id="sDur" style="width:auto;padding:6px"><option value="60">1 min each</option><option value="120" selected>2 min each</option><option value="180">3 min each</option><option value="300">5 min each</option></select><select class="voiceSel" style="width:auto;padding:6px"><option value="bowl">🥣 Bowl</option><option value="flute">🪈 Flute</option></select><button class="s" id="sNext">▶</button><button class="s" id="sMudraBtn">🙏 Mudra</button></div>
 <p class="note" style="text-align:center;margin-top:8px">Sound healing here is a relaxation and reflection practice, not a medical treatment.</p>
 </div></div>
 <footer>Electro Tuner · created by Jah Rasta · One love 🟥🟨🟩</footer>
@@ -806,11 +806,13 @@ $('focusClear').onclick=()=>{focus=[];store('rl_focus',focus);renderFocus();show
 renderFocus();showBody(0);
 
 /* ---------- session mode ---------- */
+function showMudraPop(){const st=ST[sI],m=MUDRA[sI];const p=$('sMudraPop');p.innerHTML=`<div style="width:min(60vw,260px)">${mudraSVG(sI)}</div><div class="sname" style="font-size:clamp(26px,7vw,40px);color:${st.col}">${m.name}</div><div style="font-size:18px">${m.dev} · ${st.dev} ${st.iast}</div><div class="sline" style="font-size:17px">${m.how}</div><div class="note">For: ${m.why}</div><button class="b" id="sMudraClose">Done</button>`;p.style.display='flex';$('sMudraClose').onclick=()=>p.style.display='none'}
 let SF=null,sI=0,sGuide=null;
-function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').innerHTML=`<span style="font-size:1.25em">${st.dev}</span> · <i>${st.iast}</i> · “${st.mean}”<br>${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;$('sMudra').innerHTML=`<div style="width:70px">${mudraSVG(sI)}</div><div class="note" style="text-align:left;max-width:300px"><b style="color:${st.col}">${MUDRA[sI].name}</b><br>${MUDRA[sI].how}</div>`;$('sessCount').textContent=`Station ${sI+1} of 7`+(sGuide?' · auto':' · tap ▶ for the next sound');glowPts(SF,[sI])}
+function sShow(i){sI=(i+7)%7;const st=ST[sI];$('sName').textContent=st.name;$('sName').style.color=st.col;$('sMeta').textContent=`${st.sk} · ${st.n} · ${st.so} · seed sound ${st.seed.split(' ')[0]} · ${st.el}`;$('sLine').textContent=st.chill;$('sAff').textContent='“'+st.aff+'”';$('sAff').style.color=st.col;$('sBody').textContent='In the body here: '+st.near;if($('sMudraPop').style.display==='flex')showMudraPop();$('sessCount').textContent=`Station ${sI+1} of 7`+(sGuide?' · auto':' · tap ▶ for the next sound');glowPts(SF,[sI])}
 $('sessOpen').onclick=()=>{if(!SF){SF=buildFigure($('sfig'),'s',i=>sShow(i));}applyLayer(SF);$('session').classList.add('on');sShow(selected>=0?selected:0);try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}catch(e){}};
 function sStopGuide(){if(sGuide){clearInterval(sGuide.timer);sGuide=null}$('sGuide').textContent='▶ Guided journey';$('sProg').style.width='0'}
-$('sessClose').onclick=()=>{sStopGuide();$('session').classList.remove('on');try{document.fullscreenElement&&document.exitFullscreen()}catch(e){}};
+$('sMudraBtn').onclick=showMudraPop;
+$('sessClose').onclick=()=>{$('sMudraPop').style.display='none';sStopGuide();$('session').classList.remove('on');try{document.fullscreenElement&&document.exitFullscreen()}catch(e){}};
 $('sPrev').onclick=()=>{sStopGuide();sShow(sI-1);sound(noteHz(60+ST[sI].pc),4,.2)};$('sNext').onclick=()=>{sStopGuide();sShow(sI+1);sound(noteHz(60+ST[sI].pc),4,.2)};
 $('sTone').onclick=()=>sound(noteHz(60+ST[sI].pc),4,.2);
 $('sGuide').onclick=()=>{if(sGuide){sStopGuide();return}const dur=+$('sDur').value;sGuide={i:0,t0:performance.now(),lastT:0};$('sGuide').textContent='⏸ Stop guide';sShow(0);sound(noteHz(60),4,.2);
