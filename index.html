@@ -84,9 +84,20 @@ footer{font-size:12px;color:var(--muted);line-height:1.5;margin-top:20px}
 .et-splash.has-galaxy{background:radial-gradient(ellipse 42% 38% at 50% 44%,rgba(3,11,7,.72),rgba(3,11,7,.15) 70%,rgba(3,11,7,.35)),#030b07 url(galaxy.jpg) center/cover no-repeat}
 .et-splash > *:not(canvas){position:relative;z-index:1}
 .et-splash .et-skip{position:absolute}
-canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;background:transparent;border-radius:0}
+canvas.stars{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;background:transparent;border-radius:0}
 .medbtn{border:1px solid rgba(244,196,48,.45);background:rgba(244,196,48,.08);color:var(--fg);border-radius:999px;padding:7px 13px;font-weight:800;font-size:12px}
 .medbtn.on{background:linear-gradient(90deg,#e2382b,#f4c430,#22a25a);color:#111;border-color:transparent;box-shadow:0 0 14px rgba(244,196,48,.45)}
+.et-splash{justify-content:flex-end;padding-bottom:max(34px,6vh)}
+.et-splash > .et-bg{position:absolute;inset:0;overflow:hidden;z-index:0}
+.et-splash > .et-power{position:absolute;inset:0;z-index:0}
+.et-bg img{width:100%;height:100%;object-fit:cover;object-position:50% 42%;animation:et-float 6.5s ease-in-out infinite;transform-origin:50% 60%}
+@media (min-aspect-ratio:3/4){.et-bg img{object-fit:contain;-webkit-mask-image:radial-gradient(ellipse 38% 60% at 50% 46%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 38% 60% at 50% 46%,#000 62%,transparent 100%)}}
+.et-power{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 30% 14% at 50% 80%,rgba(255,214,90,.55),transparent 70%),radial-gradient(ellipse 22% 40% at 50% 46%,rgba(120,255,170,.12),transparent 70%);mix-blend-mode:screen;animation:et-power 2.6s ease-in-out infinite}
+.et-splash::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;z-index:0;pointer-events:none;background:linear-gradient(to top,rgba(3,8,5,.85),transparent)}
+.et-splash .et-splash-title,.et-splash .et-splash-credit,.et-splash .et-skip{z-index:2}
+@keyframes et-float{0%,100%{transform:translateY(0) scale(1.03)}50%{transform:translateY(-1.6%) scale(1.045)}}
+@keyframes et-power{0%,100%{opacity:.55}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.et-bg img,.et-power{animation:none}}
 .et-splash.is-exiting{opacity:0;pointer-events:none}
 .et-aura-stage{flex:none;position:relative;width:min(58vw,300px);height:min(62dvh,560px);display:grid;place-items:center;animation:aura-enter 700ms ease-out both}
 .et-aura-stage img{position:absolute;top:0;left:50%;transform:translateX(-50%);display:block;height:100%;width:auto;max-width:none;-webkit-mask-image:linear-gradient(to right,transparent 0%,#000 24%,#000 76%,transparent 100%),linear-gradient(to bottom,transparent 0%,#000 9%,#000 90%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent 0%,#000 24%,#000 76%,transparent 100%),linear-gradient(to bottom,transparent 0%,#000 9%,#000 90%,transparent 100%);mask-composite:intersect}
@@ -142,8 +153,9 @@ body.d-viber .saiyan{display:none!important}
 <div class="et-splash" id="splash" role="dialog" aria-label="Electro Tuner">
 <canvas class="stars" id="splashStars"></canvas>
 <button class="et-skip" id="skip">Skip ›</button>
-<div class="et-aura-stage"><img class="aura-anim" src="aura.gif" data-still="aura.png" alt="Jah Rasta in an electric aura"></div>
-<div class="et-splash-title">ELECTRO TUNER</div>
+<div class="et-bg"><img src="ascension.jpg" alt="Jah Rasta floating in the galaxy, powering up"></div>
+<div class="et-power"></div>
+<div class="et-splash-title" style="margin-top:auto">ELECTRO TUNER</div>
 <div class="et-splash-credit">Created by Jah Rasta</div>
 </div>
 <canvas id="bgWaves" style="position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;background:transparent;border-radius:0"></canvas>
@@ -928,10 +940,10 @@ if(store('rl_med')){const once=()=>{document.removeEventListener('pointerdown',o
 (function(){const sp=$('splash');if(!sp)return;const gi=new Image();gi.onload=()=>sp.classList.add('has-galaxy');gi.src='galaxy.jpg';
   const cv=$('splashStars'),g=cv.getContext('2d');const R=matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cols=['#ffffff','#f4c430','#22a25a','#e2382b','#cfa6f4'];let S=[];
-  function size(){cv.width=innerWidth*DPR();cv.height=innerHeight*DPR();S=Array.from({length:170},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:(Math.random()*1.3+.3)*DPR(),p:Math.random()*6.28,v:.2+Math.random()*.5,c:cols[Math.random()<.75?0:1+(Math.random()*4|0)]}))}
+  function size(){cv.width=innerWidth*DPR();cv.height=innerHeight*DPR();S=Array.from({length:170},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:(Math.random()*1.3+.3)*DPR(),p:Math.random()*6.28,v:.2+Math.random()*.5,c:cols[Math.random()<.75?0:1+(Math.random()*4|0)]}));for(let k=0;k<46;k++)S.push({spark:1,x:cv.width*(.5+(Math.random()-.5)*.22),y:cv.height*(.78+Math.random()*.06),r:(Math.random()*1.6+.6)*DPR(),p:Math.random()*6.28,v:.5+Math.random()*1.2,c:['#f4c430','#ffe27a','#22a25a','#e2382b'][Math.random()*4|0]})}
   size();addEventListener('resize',size);let t0=performance.now();
   (function tick(now){if(!document.body.contains(cv))return;const dt=(now-t0)/1000;g.clearRect(0,0,cv.width,cv.height);
-    for(const s of S){const a=.35+.65*Math.abs(Math.sin(s.p+dt*s.v*1.6));g.globalAlpha=a;g.fillStyle=s.c;g.beginPath();g.arc(s.x,(s.y-dt*6*s.v*DPR()+cv.height)%cv.height,s.r,0,6.283);g.fill()}
+    for(const s of S){if(s.spark){const yy=s.y-((dt*s.v*60*DPR())%(cv.height*.75));const life=1-(s.y-yy)/(cv.height*.75);g.globalAlpha=Math.max(0,life)*.9;g.fillStyle=s.c;g.beginPath();g.arc(s.x+Math.sin(dt*2+s.p)*6*DPR(),yy,s.r,0,6.283);g.fill();continue}const a=.35+.65*Math.abs(Math.sin(s.p+dt*s.v*1.6));g.globalAlpha=a;g.fillStyle=s.c;g.beginPath();g.arc(s.x,(s.y-dt*6*s.v*DPR()+cv.height)%cv.height,s.r,0,6.283);g.fill()}
     g.globalAlpha=1;if(!R)requestAnimationFrame(tick)})(t0);})();
 
 /* ---------- splash + practitioner intro ---------- */
@@ -940,7 +952,7 @@ if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)doc
   let seen=false;try{seen=sessionStorage.getItem('et_splash')==='1';sessionStorage.setItem('et_splash','1')}catch(e){}
   if(seen){sp.remove();return}
   $('skip').onclick=close;sp.addEventListener('click',close);
-  const img=sp.querySelector('img');const go=()=>setTimeout(close,2600);if(img.complete)go();else{img.onload=go;img.onerror=()=>{img.src=img.dataset.still;go()}}
+  const img=sp.querySelector('.et-bg img');const go=()=>setTimeout(close,3200);if(img.complete)go();else{img.onload=go;img.onerror=()=>{img.src=img.dataset.still;go()}}
   setTimeout(close,4500);})();
 $('introOpen').onclick=()=>{sStopGuide();$('intro').classList.add('on')};$('introGo').onclick=()=>$('intro').classList.remove('on');
 showCard(0);selected=0;
