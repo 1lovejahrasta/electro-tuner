@@ -1154,7 +1154,9 @@ $('export').onclick=()=>{const log=getLog();if(!log.length)return;const keys=Obj
 let clearArm=0;$('clear').onclick=()=>{if(Date.now()-clearArm<3000){store('rl_log',[]);renderLog();$('clear').textContent='🗑 Clear log';clearArm=0}else{clearArm=Date.now();$('clear').textContent='Tap again to erase';setTimeout(()=>$('clear').textContent='🗑 Clear log',3000)}};
 
 function setInst(v){inst=v;store('rl_inst',v);$('inst').value=v;$('midiBox').style.display=v==='midi'?'block':'none';const map={bowl:'Singing bowl',flute:'Native flute',voice:'Voice / humming',guitar:'Guitar',keys:'Keyboard',midi:'MIDI instrument'};$('source').value=map[v];held.clear();capT=0}
-$('inst').addEventListener('change',e=>setInst(e.target.value));$('midiBtn').onclick=connectMidi;setInst(inst);
+$('inst').addEventListener('change',e=>setInst(e.target.value))
+/* picking Guitar from chromatic sets standard guitar tuning, so the string guide (E A D G B E) shows right away */
+$('inst').addEventListener('change',e=>{try{if(e.target.value==='guitar'&&TM.mode==='chromatic')tmMode('preset','g_std')}catch(err){}});$('midiBtn').onclick=connectMidi;setInst(inst);
 let depth=store('rl_depth')||'viber';
 function setDepth(d){depth=d;store('rl_depth',d);document.body.classList.remove('d-chill','d-viber','d-saiyan');document.body.classList.add('d-'+d);document.querySelectorAll('#depth button').forEach(b=>b.classList.toggle('on',b.dataset.d===d));capT=0}
 document.querySelectorAll('#depth button').forEach(b=>b.onclick=()=>setDepth(b.dataset.d));setDepth(depth);setLayer(layer);
@@ -1509,7 +1511,7 @@ const SYSDEF=[
 const SYS={};const SYSEL={};
 (function(){let saved={};try{saved=JSON.parse(store('rl_sys')||'{}')}catch(e){}
   SYSDEF.forEach(d=>{SYS[d.id]=saved[d.id]||{on:false,min:false}});
-  if(!saved.tuner)SYS.tuner={on:true,min:false}; // first open: only the tuner card is shown (its mic stays off until you press power)
+  SYS.tuner={on:true,min:false}; // the Zion Tuner is the heart of the app: always shown when the app opens (its mic stays off until you press power)
 })();
 function sysSave(){const o={};SYSDEF.forEach(d=>o[d.id]=SYS[d.id]);store('rl_sys',JSON.stringify(o))}
 const sysRun=id=>SYS[id]&&SYS[id].on;              // processing allowed
@@ -1640,7 +1642,7 @@ function sysGo(id){const d=SYSDEF.find(x=>x.id===id);if(!d)return;const s=SYS[id
   const el=SYSEL[id];if(!el)return;
   if(d.tab&&!$(d.tab).classList.contains('on')){const b=document.querySelector(`[data-v="${d.tab.replace('v-','')}"]`);if(b)b.click();setTimeout(()=>sysFocus(id),120);return}
   if(!d.tab&&!$('v-live').classList.contains('on')){const b=document.querySelector('[data-v="live"]');if(b)b.click();setTimeout(()=>sysFocus(id),120);return}
-  if(lvOnScreen(el)){sysMin(id)}else sysFocus(id)}
+  if(lvOnScreen(el)&&id!=='tuner'){sysMin(id)}else sysFocus(id)}
 function sysFocus(id){const el=SYSEL[id];if(!el)return;const y=el.getBoundingClientRect().top+scrollY-62;
   scrollTo({top:Math.max(0,y),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   el.classList.remove('lv-pulse');void el.offsetWidth;el.classList.add('lv-pulse')}
