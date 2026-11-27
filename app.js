@@ -1291,11 +1291,11 @@ function nvUI(){document.querySelectorAll('.nv-bar').forEach(el=>{
    :'🎙 <span>Turn on ESSI\'s voice with reverb: one-time download (about 63 MB, best on Wi-Fi), then it works offline.</span><button class="b" onclick="nvDownload()">Get the voice</button>';
   el.dataset.state=NV.state})}
 async function nvSpeak(parts,btn,done){
-  NV.stop=false;const c=actx();try{await c.resume()}catch(e){}const m=await nvMod();const bus=nvChain();
+  NV.stop=false;const run=NV.run=(NV.run||0)+1;const c=actx();try{await c.resume()}catch(e){}const m=await nvMod();const bus=nvChain();
   let next=m.synth(parts[0]);
   for(let i=0;i<parts.length;i++){
     let r;try{r=await next}catch(e){break}
-    if(NV.stop)break;
+    if(NV.stop||NV.run!==run)break;
     if(i+1<parts.length)next=m.synth(parts[i+1]);
     const buf=c.createBuffer(1,r.samples.length,r.rate);buf.copyToChannel(r.samples,0);
     const src=c.createBufferSource();src.buffer=buf;src.connect(bus);NV.cur=src;
@@ -1303,10 +1303,10 @@ async function nvSpeak(parts,btn,done){
     await new Promise(res=>{src.onended=res;src.start()});clearInterval(pul);
     if(NV.stop)break;await new Promise(res=>setTimeout(res,220));
   }
-  NV.cur=null;done();
+  if(NV.run===run){NV.cur=null;if(!NV.stop)done()}
 }
 function essiSpeak(text,btn){
-  if(ESSI.speaking&&ESSI.nvOn){NV.stop=true;try{NV.cur&&NV.cur.stop()}catch(e){}return}
+  if(ESSI.speaking&&ESSI.nvOn){NV.stop=true;try{NV.cur&&NV.cur.stop()}catch(e){}ESSI.speaking=false;ESSI.nvOn=false;ESSI.quietUntil=performance.now()+450;document.querySelectorAll('.essi-play').forEach(b=>b.classList.remove('on'));essiState();return}
   if(NV.state==='ready'){
     const parts=essiClean(text).split(/(?<=[.!?])\s+/).filter(Boolean);if(!parts.length)return;
     const done=()=>{ESSI.speaking=false;ESSI.nvOn=false;ESSI.quietUntil=performance.now()+450;document.querySelectorAll('.essi-play').forEach(b=>b.classList.remove('on'));essiState()};
