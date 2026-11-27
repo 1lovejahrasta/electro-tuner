@@ -1270,7 +1270,7 @@ function essiPickVoice(){
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{ESSI.voice=essiPickVoice()}}
 function essiClean(t){const d=document.createElement('div');d.innerHTML=t;d.querySelectorAll('button').forEach(b=>b.remove());return d.textContent.replace(/[●→▲▼✦☥▶]/g,'').replace(/(\d+)¢/g,'$1 cents').replace(/±/g,'plus or minus ').replace(/−/g,'minus ').replace(/\bHz\b/g,'hertz').replace(/\s+/g,' ').trim()}
 /* ===== ESSI's own voice with reverb (in-app neural voice, one-time download, then offline) ===== */
-const NV={state:'none',mod:null,cur:null,stop:false,ir:null};
+const NV={state:"none",mod:null,cur:null,stop:false,ir:null};
 function nvMod(){return NV.mod||(NV.mod=import('./essi-tts.js'))}
 function nvIR(c){if(NV.ir)return NV.ir;const len=Math.floor(c.sampleRate*2.2),b=c.createBuffer(2,len,c.sampleRate);
   for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);let lp=0;for(let i=0;i<len;i++){const t=i/c.sampleRate;const pre=t<.035?0:1;lp=lp*.55+(Math.random()*2-1)*.45;d[i]=lp*pre*Math.exp(-3.2*t)}}
@@ -1279,7 +1279,7 @@ function nvChain(){const c=actx();if(NV.bus)return NV.bus;const inp=c.createGain
   hp.type='highpass';hp.frequency.value=90;pres.type='peaking';pres.frequency.value=3200;pres.gain.value=2.5;pres.Q.value=.9;
   conv.buffer=nvIR(c);dry.gain.value=.85;wet.gain.value=.38;inp.connect(hp).connect(pres);pres.connect(dry).connect(c.destination);pres.connect(conv).connect(wet).connect(c.destination);
   return NV.bus=inp}
-async function nvCheck(){try{const m=await nvMod();if(await m.isReady()){NV.state='ready';nvUI()}}catch(e){}}
+async function nvCheck(){try{const m=await nvMod();const rd=await m.isReady();if(rd){NV.state="ready";nvUI()}}catch(e){console.warn("nvCheck",e)}}
 async function nvDownload(){if(NV.state==='loading'||NV.state==='ready')return;NV.state='loading';nvUI();
   try{const m=await nvMod();await m.load((got,total)=>{NV.pct=total?Math.round(got/total*100):0;NV.mb=Math.round(got/1048576);nvUI()});NV.state='ready';nvUI()}
   catch(e){NV.state='error';NV.err=String(e&&e.message||e);nvUI()}}
@@ -1704,5 +1704,5 @@ window.sysGo=sysGo;window.sysFocus=sysFocus;
 if(typeof med!=='undefined'&&med)SYS.drone.on=true;
 sysApply();setInterval(()=>{const st=document.querySelector('[data-st="tuner"]');if(st)st.textContent=running?'● LISTENING':'○ MIC OFF';const m=document.querySelector('.dock-mic');if(m)m.classList.toggle('on',running);if(typeof med!=='undefined'&&SYS.drone.on!==!!med){SYS.drone.on=!!med;dockRender();sysSave()}},500);
 
-setInterval(()=>{document.documentElement.classList.toggle('mic-live',!!running);const dm=document.querySelector('.dock-mic');if(dm)dm.classList.toggle('on',!!running);const b=$('tmPower');if(!b)return;b.classList.toggle('on',running);b.querySelector('span').textContent=running?'ON':'OFF'},300);
+setInterval(()=>{document.documentElement.classList.toggle('mic-live',!!running);if(typeof NV!=='undefined'&&document.querySelector('.nv-bar:not([data-state="'+NV.state+'"])'))nvUI();const dm=document.querySelector('.dock-mic');if(dm)dm.classList.toggle('on',!!running);const b=$('tmPower');if(!b)return;b.classList.toggle('on',running);b.querySelector('span').textContent=running?'ON':'OFF'},300);
 })();
