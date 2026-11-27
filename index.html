@@ -338,6 +338,13 @@ main{padding-top:4px}
 .nv-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;padding:8px 10px;border-radius:12px;border:1px solid #8a5cff66;background:rgba(138,92,255,.08);font-size:13px}
 .nv-bar span{flex:1;min-width:160px}.nv-bar .b{padding:6px 12px;font-size:13px}
 .nv-bar[data-state="ready"]{border-color:#22a25a66;background:rgba(34,162,90,.08)}
+
+/* wide screens (computer, Fold sideways): show Jah's whole figure, galaxy fills behind (v60) */
+@media (min-aspect-ratio:4/5){
+ .et-bg .et-fig{object-fit:contain;object-position:50% 0%;top:-4vh;height:122vh}
+ .et-bg .et-glow{-webkit-mask-size:auto 122vh;mask-size:auto 122vh;-webkit-mask-position:50% -4vh;mask-position:50% -4vh}
+ .et-splash::after{height:24%}
+}
 </style>
 </head>
 <body>
@@ -592,6 +599,6 @@ Each station shows its original Sanskrit name in Devanagari script, its spelling
 <footer>Electro Tuner · created by Jah Rasta · One love 🟥🟨🟩</footer>
 </main>
 
-<script src="app.js?v=59"></script>
+<script src="app.js?v=60"></script>
 </body>
 </html>
