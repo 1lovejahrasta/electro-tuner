@@ -1269,7 +1269,49 @@ function essiPickVoice(){
 }
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>{ESSI.voice=essiPickVoice()}}
 function essiClean(t){const d=document.createElement('div');d.innerHTML=t;d.querySelectorAll('button').forEach(b=>b.remove());return d.textContent.replace(/[●→▲▼✦☥▶]/g,'').replace(/(\d+)¢/g,'$1 cents').replace(/±/g,'plus or minus ').replace(/−/g,'minus ').replace(/\bHz\b/g,'hertz').replace(/\s+/g,' ').trim()}
+/* ===== ESSI's own voice with reverb (in-app neural voice, one-time download, then offline) ===== */
+const NV={state:'none',mod:null,cur:null,stop:false,ir:null};
+function nvMod(){return NV.mod||(NV.mod=import('./essi-tts.js'))}
+function nvIR(c){if(NV.ir)return NV.ir;const len=Math.floor(c.sampleRate*2.2),b=c.createBuffer(2,len,c.sampleRate);
+  for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);let lp=0;for(let i=0;i<len;i++){const t=i/c.sampleRate;const pre=t<.035?0:1;lp=lp*.55+(Math.random()*2-1)*.45;d[i]=lp*pre*Math.exp(-3.2*t)}}
+  return NV.ir=b}
+function nvChain(){const c=actx();if(NV.bus)return NV.bus;const inp=c.createGain(),dry=c.createGain(),wet=c.createGain(),conv=c.createConvolver(),hp=c.createBiquadFilter(),pres=c.createBiquadFilter();
+  hp.type='highpass';hp.frequency.value=90;pres.type='peaking';pres.frequency.value=3200;pres.gain.value=2.5;pres.Q.value=.9;
+  conv.buffer=nvIR(c);dry.gain.value=.85;wet.gain.value=.38;inp.connect(hp).connect(pres);pres.connect(dry).connect(c.destination);pres.connect(conv).connect(wet).connect(c.destination);
+  return NV.bus=inp}
+async function nvCheck(){try{const m=await nvMod();if(await m.isReady()){NV.state='ready';nvUI()}}catch(e){}}
+async function nvDownload(){if(NV.state==='loading'||NV.state==='ready')return;NV.state='loading';nvUI();
+  try{const m=await nvMod();await m.load((got,total)=>{NV.pct=total?Math.round(got/total*100):0;NV.mb=Math.round(got/1048576);nvUI()});NV.state='ready';nvUI()}
+  catch(e){NV.state='error';NV.err=String(e&&e.message||e);nvUI()}}
+window.nvDownload=nvDownload;
+function nvUI(){document.querySelectorAll('.nv-bar').forEach(el=>{
+  el.innerHTML=NV.state==='ready'?'✨ <span>ESSI\'s voice with reverb is on. Works offline.</span>'
+   :NV.state==='loading'?`⏳ <span>Getting ESSI's voice… ${NV.pct?NV.pct+'%':(NV.mb||0)+' MB'}</span>`
+   :NV.state==='error'?`⚠ <span>Couldn't get the voice (${NV.err||'no connection'}). Check your internet and try again.</span><button class="b" onclick="nvDownload()">Try again</button>`
+   :'🎙 <span>Turn on ESSI\'s voice with reverb: one-time download (about 63 MB, best on Wi-Fi), then it works offline.</span><button class="b" onclick="nvDownload()">Get the voice</button>';
+  el.dataset.state=NV.state})}
+async function nvSpeak(parts,btn,done){
+  NV.stop=false;const c=actx();try{await c.resume()}catch(e){}const m=await nvMod();const bus=nvChain();
+  let next=m.synth(parts[0]);
+  for(let i=0;i<parts.length;i++){
+    let r;try{r=await next}catch(e){break}
+    if(NV.stop)break;
+    if(i+1<parts.length)next=m.synth(parts[i+1]);
+    const buf=c.createBuffer(1,r.samples.length,r.rate);buf.copyToChannel(r.samples,0);
+    const src=c.createBufferSource();src.buffer=buf;src.connect(bus);NV.cur=src;
+    const pul=setInterval(()=>{ESSI.pulse=performance.now()},180);
+    await new Promise(res=>{src.onended=res;src.start()});clearInterval(pul);
+    if(NV.stop)break;await new Promise(res=>setTimeout(res,220));
+  }
+  NV.cur=null;done();
+}
 function essiSpeak(text,btn){
+  if(ESSI.speaking&&ESSI.nvOn){NV.stop=true;try{NV.cur&&NV.cur.stop()}catch(e){}return}
+  if(NV.state==='ready'){
+    const parts=essiClean(text).split(/(?<=[.!?])\s+/).filter(Boolean);if(!parts.length)return;
+    const done=()=>{ESSI.speaking=false;ESSI.nvOn=false;ESSI.quietUntil=performance.now()+450;document.querySelectorAll('.essi-play').forEach(b=>b.classList.remove('on'));essiState()};
+    try{speechSynthesis&&speechSynthesis.cancel()}catch(e){}
+    ESSI.speaking=true;ESSI.nvOn=true;if(btn)btn.classList.add('on');essiState();nvSpeak(parts,btn,done).catch(()=>done());return}
   if(!window.speechSynthesis){alert('This phone browser has no built-in voice.');return}
   if(ESSI.speaking){speechSynthesis.cancel();return}
   const parts=essiClean(text).split(/(?<=[.!?])\s+/).filter(Boolean);if(!parts.length)return;
@@ -1576,6 +1618,7 @@ function dockOpen(){let s=$('dockSheet');if(!s){s=document.createElement('div');
 function dockClose(){const s=$('dockSheet');if(s)s.classList.remove('on')}
 Object.assign(window,{sysPower,sysMin,sysWorkspace,dockOpen,dockClose,SYSEL});
 sysFind();SYSDEF.forEach(d=>{if(d.id!=='drone'){sysHeader(d.id);sysMicStrip(d.id)}});
+{const co=SYSEL.coach;if(co){const nb=document.createElement('div');nb.className='nv-bar';const bar=co.querySelector(':scope>.sys-bar');if(bar)bar.after(nb);else co.prepend(nb)}nvUI();nvCheck();}
 /* ===== Live layout: two balanced columns on the open Fold, one column on the cover screen =====
    Shortest-column masonry in a fixed priority order; the tuner is pinned top-left.
    Reflows only on power / minimize / restore / rotate / fold, never on live sound updates. */
